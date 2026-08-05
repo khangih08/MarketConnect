@@ -1,0 +1,30 @@
+﻿using System.Threading.Tasks;
+using MarketConnect.Data;
+using System.Linq;
+
+namespace MarketConnect.Data
+{
+    public static class SeedData
+    {
+        public static async Task InitializeAsync(ApplicationDbContext db)
+        {
+            // Ensure database exists and migrations applied are handled by caller
+
+            if (db.Categories.Any()) return; // already seeded
+
+            var cat1 = new Category { Name = "Electronics" };
+            var cat2 = new Category { Name = "Books" };
+            var cat3 = new Category { Name = "Home" };
+
+            db.Categories.AddRange(cat1, cat2, cat3);
+
+            db.Products.AddRange(
+               new Product { Name = "Wireless Headphones", Description = "Bluetooth over-ear headphones", Category = cat1, ImageUrl = "https://placehold.co/300x180?text=Headphones" },
+               new Product { Name = "C# In Depth", Description = "Programming book about C#", Category = cat2, ImageUrl = "https://placehold.co/300x180?text=Book" },
+               new Product { Name = "Coffee Maker", Description = "Automatic coffee maker", Category = cat3, ImageUrl = "https://placehold.co/300x180?text=Coffee+Maker" }
+            );
+
+            await db.SaveChangesAsync();
+        }
+    }
+}

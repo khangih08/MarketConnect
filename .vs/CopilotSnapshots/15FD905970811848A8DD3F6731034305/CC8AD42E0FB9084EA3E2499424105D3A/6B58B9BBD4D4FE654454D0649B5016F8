@@ -1,0 +1,99 @@
+﻿@using MarketConnect.Data
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Products</h1>
+    </div>
+    <div class="col-md-4">
+        <form method="get" asp-action="Index" class="d-flex">
+            <input type="text" name="q" value="@Context.Request.Query["q"]" class="form-control me-2" placeholder="Search products..." />
+            <button class="btn btn-outline-primary">Search</button>
+        </form>
+    </div>
+</div>
+
+<div id="productContainer">
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">No products found.</div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4 server-rendered">
+            @foreach (var p in Model)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? "/images/no-image.png" : p.ImageUrl)" class="card-img-top" alt="@p.Name" style="object-fit:cover;height:180px;" />
+                        <div class="card-body">
+                            <h5 class="card-title">@p.Name</h5>
+                            <p class="card-text">@p.Description</p>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">Category: @p.Category?.Name</small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    (function () {
+        const form = document.querySelector('form[asp-action="Index"]');
+        const input = form.querySelector('input[name="q"]');
+        const container = document.getElementById('productContainer');
+
+        async function renderProducts(q) {
+            const url = '/api/products' + (q ? '?q=' + encodeURIComponent(q) : '');
+            try {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    console.error('Failed to fetch products', res.status);
+                    return;
+                }
+                const items = await res.json();
+                if (!Array.isArray(items) || items.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">No products found.</div>';
+                    return;
+                }
+                const row = document.createElement('div');
+                row.className = 'row row-cols-1 row-cols-md-3 g-4';
+                for (const p of items) {
+                    const col = document.createElement('div');
+                    col.className = 'col';
+                    col.innerHTML = `
+                        <div class="card h-100">
+                            <img src="${p.imageUrl || '/images/no-image.png'}" class="card-img-top" alt="${p.name}" style="object-fit:cover;height:180px;" />
+                            <div class="card-body">
+                                <h5 class="card-title">${p.name}</h5>
+                                <p class="card-text">${p.description || ''}</p>
+                            </div>
+                            <div class="card-footer"><small class="text-muted">Category: ${p.category?.name || ''}</small></div>
+                        </div>
+                    `;
+                    row.appendChild(col);
+                }
+                container.innerHTML = '';
+                container.appendChild(row);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Use client-side API when JS enabled: intercept form submit
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            renderProducts(input.value);
+        });
+
+        // Optionally load via API on page load (comment/uncomment as needed)
+        // renderProducts(input.value || '');
+    })();
+</script>
+

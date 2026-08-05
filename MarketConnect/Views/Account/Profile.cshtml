@@ -1,0 +1,283 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Hồ sơ cá nhân | MarketConnect";
+}
+
+<style>
+    .custom-radio:checked {
+        background-color: #004532;
+        border-color: #004532;
+    }
+</style>
+
+<main class="max-w-[1440px] mx-auto w-full px-4 md:px-16 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+        <!-- Left Column: Sidebar -->
+        <aside class="md:col-span-4 lg:col-span-3 space-y-4">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col items-center text-center shadow-sm">
+                <div class="relative mb-2">
+                    <img id="sidebar_avatar" alt="Profile" class="w-24 h-24 rounded-full object-cover border-4 border-[#004532]/10" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" />
+                    <div class="absolute bottom-1 right-1 bg-[#004532] text-white rounded-full p-1 border-2 border-white flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    </div>
+                </div>
+                <h2 id="sidebar_fullname" class="text-base font-bold text-gray-800">Đang tải...</h2>
+                <p id="sidebar_username" class="text-xs text-gray-500">@@marketconnect</p>
+                <div class="mt-2 inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-[#004532] text-[10px] font-bold uppercase tracking-wider">
+                    Đã xác minh
+                </div>
+            </div>
+
+            <nav class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                <ul class="flex flex-col list-none m-0 p-0">
+                    <li>
+                        <a class="flex items-center gap-3 px-6 py-3.5 transition-all bg-emerald-50 text-[#004532] border-l-4 border-[#004532]" href="#">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+                            <span class="text-sm font-medium">Thông tin cá nhân</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center gap-3 px-6 py-3.5 text-gray-600 hover:bg-gray-50 transition-all" href="/Account/ChangePassword">
+                            <span class="material-symbols-outlined">lock</span>
+                            <span class="text-sm font-medium">Đổi mật khẩu</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center gap-3 px-6 py-3.5 text-gray-600 hover:bg-gray-50 transition-all" href="#">
+                            <span class="material-symbols-outlined">shopping_bag</span>
+                            <span class="text-sm font-medium">Lịch sử mua hàng</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center gap-3 px-6 py-3.5 text-gray-600 hover:bg-gray-50 transition-all" href="#">
+                            <span class="material-symbols-outlined">location_on</span>
+                            <span class="text-sm font-medium">Sổ địa chỉ</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Right Column: Main Content -->
+        <section class="md:col-span-8 lg:col-span-9">
+            <div class="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm">
+                <div class="border-b border-gray-100 pb-4 mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Hồ sơ của tôi</h3>
+                    <p class="text-sm text-gray-500 mt-1">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+                </div>
+
+                <form action="#" class="space-y-6" id="profileForm" method="POST">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <!-- Họ và tên -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-sm font-medium text-gray-600" for="fullname">Họ và tên</label>
+                            <input name="FullName" class="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#004532] focus:border-[#004532] transition-shadow outline-none" id="fullname" type="text" value="" />
+                        </div>
+
+                        <!-- Số điện thoại (ĐÃ ĐƯỢC NÂNG CẤP ĐỂ ĐIỀU HƯỚNG) -->
+                        <div class="flex flex-col gap-1.5 relative">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-medium text-gray-600" for="phone">Số điện thoại</label>
+                                <!-- Nút Thiết lập ngay (Ẩn mặc định, chỉ hiện nếu chưa có SĐT/Mật khẩu) -->
+                                <a href="/Account/ChangePassword" id="setupPhoneLink" class="text-xs font-bold text-[#004532] hover:underline hidden">Thiết lập ngay &rarr;</a>
+                            </div>
+                            <input class="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#004532] focus:border-[#004532] transition-all outline-none" id="phone" name="Phone" type="tel" value="" />
+                        </div>
+
+                        <!-- Địa chỉ -->
+                        <div class="flex flex-col gap-1.5 lg:col-span-2">
+                            <label class="text-sm font-medium text-gray-600" for="address">Địa chỉ nhà</label>
+                            <input class="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#004532] focus:border-[#004532] transition-shadow outline-none" id="address" name="Address" type="text" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" value="" />
+                        </div>
+
+                        <!-- Giới tính -->
+                        <div class="flex flex-col gap-1.5 lg:col-span-2">
+                            <label class="text-sm font-medium text-gray-600">Giới tính</label>
+                            <div class="flex gap-6 mt-1">
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input class="w-4 h-4 text-[#004532] border-gray-300 focus:ring-[#004532] custom-radio" name="Gender" type="radio" value="nam" />
+                                    <span class="text-sm text-gray-600 group-hover:text-[#004532] transition-colors">Nam</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input class="w-4 h-4 text-[#004532] border-gray-300 focus:ring-[#004532] custom-radio" name="Gender" type="radio" value="nu" />
+                                    <span class="text-sm text-gray-600 group-hover:text-[#004532] transition-colors">Nữ</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input class="w-4 h-4 text-[#004532] border-gray-300 focus:ring-[#004532] custom-radio" name="Gender" type="radio" value="khac" />
+                                    <span class="text-sm text-gray-600 group-hover:text-[#004532] transition-colors">Khác</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Ngày sinh -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-sm font-medium text-gray-600" for="dob">Ngày, tháng, năm sinh</label>
+                            <input class="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#004532] focus:border-[#004532] transition-shadow outline-none appearance-none" id="dob" name="DateOfBirth" type="date" value="" />
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4 flex justify-start">
+                        <button class="bg-[#004532] hover:bg-[#065f46] text-white font-semibold text-sm px-8 py-2.5 rounded-xl transition-all duration-300 shadow-md shadow-[#004532]/20" type="submit">
+                            Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/Account/Login';
+            return;
+        }
+
+        const savedName = sessionStorage.getItem('user_name');
+        if (savedName && savedName !== "undefined") {
+            const sidebarName = document.getElementById('sidebar_fullname');
+            if (sidebarName) sidebarName.innerText = savedName;
+            const inputName = document.getElementById('fullname');
+            if (inputName) inputName.value = savedName;
+        }
+
+        try {
+            const response = await fetch('/Account/GetProfileData', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+
+                const hasPassword = result.hasPassword !== undefined ? result.hasPassword : result.HasPassword;
+                const phoneInput = document.getElementById('phone');
+                const setupPhoneLink = document.getElementById('setupPhoneLink');
+
+                if (!result.phone || hasPassword === false) {
+                    if (phoneInput) {
+                        phoneInput.readOnly = true;
+                        phoneInput.placeholder = "Chưa liên kết (Bấm để thiết lập)";
+                        phoneInput.classList.add('cursor-pointer', 'bg-gray-50', 'hover:bg-gray-100');
+
+                        phoneInput.addEventListener('click', function () {
+                            window.location.href = '/Account/AddPhoneAndSetPassword';
+                        });
+                    }
+                    if (setupPhoneLink) {
+                        setupPhoneLink.href = '/Account/AddPhoneAndSetPassword';
+                        setupPhoneLink.classList.remove('hidden');
+                    }
+                } else {
+                    // Nếu đã có SĐT và Password bình thường, đổ dữ liệu ra để sửa
+                    if (phoneInput) {
+                        phoneInput.value = result.phone;
+                        sessionStorage.setItem('user_phone', result.phone);
+                    }
+                }
+
+                // Điền các dữ liệu khác
+                if (result.fullName) {
+                    const inputName = document.getElementById('fullname');
+                    if (inputName) inputName.value = result.fullName;
+                    const sidebarName = document.getElementById('sidebar_fullname');
+                    if (sidebarName) sidebarName.innerText = result.fullName;
+                    sessionStorage.setItem('user_name', result.fullName);
+                }
+
+                if (result.address) {
+                    const inputAddress = document.getElementById('address');
+                    if (inputAddress) inputAddress.value = result.address;
+                    sessionStorage.setItem('user_address', result.address);
+                }
+                if (result.gender) {
+                    const radioBtn = document.querySelector(`input[name="Gender"][value="${result.gender.toLowerCase()}"]`);
+                    if (radioBtn) radioBtn.checked = true;
+                    sessionStorage.setItem('user_gender', result.gender);
+                }
+                if (result.dateOfBirth) {
+                    const inputDob = document.getElementById('dob');
+                    if (inputDob) inputDob.value = result.dateOfBirth;
+                    sessionStorage.setItem('user_dob', result.dateOfBirth);
+                }
+            }
+        } catch (error) {
+            console.error('Không thể fetch dữ liệu profile real-time từ Server:', error);
+        }
+    });
+
+    document.getElementById('profileForm')?.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const btn = this.querySelector('button[type="submit"]');
+        const originalText = btn.innerText;
+        btn.innerText = 'Đang lưu vào DB...';
+        btn.disabled = true;
+
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch('/Account/UpdateProfile', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+
+                btn.innerText = 'Đã lưu thành công!';
+                btn.classList.add('bg-emerald-700');
+                btn.classList.remove('bg-[#004532]');
+
+                if (result.fullName) sessionStorage.setItem('user_name', result.fullName);
+                if (result.phone) sessionStorage.setItem('user_phone', result.phone);
+                if (result.address) sessionStorage.setItem('user_address', result.address);
+                if (result.gender) sessionStorage.setItem('user_gender', result.gender);
+                if (result.dateOfBirth) sessionStorage.setItem('user_dob', result.dateOfBirth);
+
+                const sidebarName = document.getElementById('sidebar_fullname');
+                if (sidebarName && result.fullName) sidebarName.innerText = result.fullName;
+
+                const headerZone = document.getElementById('topbar_auth_zone') || document.getElementById('authZone');
+                if (headerZone && result.fullName) {
+                    const specificNameSpan = Array.from(headerZone.querySelectorAll('span')).find(span =>
+                        !span.classList.contains('material-symbols-outlined') &&
+                        !span.classList.contains('text-[9px]')
+                    );
+
+                    if (specificNameSpan) {
+                        specificNameSpan.innerText = result.fullName;
+                    } else {
+                        const nameNode = Array.from(headerZone.childNodes)
+                            .find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '');
+                        if (nameNode) nameNode.textContent = result.fullName;
+                    }
+                }
+            } else {
+                const err = await response.json();
+                alert(err.message || 'Lưu thông tin thất bại!');
+                btn.innerText = 'Thất bại';
+            }
+        } catch (error) {
+            console.error('Lỗi kết nối server:', error);
+            alert('Không thể kết nối đến máy chủ. Vui lòng kiểm tra API.');
+            btn.innerText = 'Lỗi kết nối';
+        } finally {
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove('bg-emerald-700');
+                btn.classList.add('bg-[#004532]');
+                btn.disabled = false;
+            }, 2000);
+        }
+    });
+</script>

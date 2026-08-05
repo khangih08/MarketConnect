@@ -1,0 +1,23 @@
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MarketConnect.Data
+{
+    public class Wishlist
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [ForeignKey(nameof(Buyer))]
+        public int BuyerId { get; set; }
+
+        [ForeignKey(nameof(Product))]
+        public int ProductId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public User? Buyer { get; set; }
+        public Product? Product { get; set; }
+    }
+}

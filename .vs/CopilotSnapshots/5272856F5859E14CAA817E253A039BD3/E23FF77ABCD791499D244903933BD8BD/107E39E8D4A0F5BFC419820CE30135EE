@@ -1,0 +1,23 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MarketConnect.Data
+{
+    public class MerchantProfile
+    {
+        [Key]
+        [ForeignKey(nameof(User))]
+        public int UserId { get; set; }
+
+        [MaxLength(200)]
+        public string? StallName { get; set; }
+
+        [MaxLength(200)]
+        public string? MarketName { get; set; }
+
+        [MaxLength(50)]
+        public string? StallNumber { get; set; }
+
+        public User? User { get; set; }
+    }
+}

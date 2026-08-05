@@ -1,0 +1,360 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Đăng nhập | MarketConnect</title>
+    <!-- Import Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "primary": "#004532",
+                "primary-container": "#065f46",
+                "background": "#f9f9ff",
+                "surface": "#f9f9ff",
+                "on-surface": "#151c27",
+                "on-surface-variant": "#3f4944",
+                "outline-variant": "#bec9c2",
+                "outline": "#6f7973",
+                "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                "3xl": "1.5rem",
+                "4xl": "2rem"
+            },
+            "fontFamily": {
+                "display-lg": ["Hanken Grotesk"],
+                "headline-md": ["Hanken Grotesk"],
+                "body-lg": ["Hanken Grotesk"],
+                "body-md": ["Hanken Grotesk"],
+                "label-md": ["Hanken Grotesk"]
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        body { font-family: 'Hanken Grotesk', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background h-screen w-full flex overflow-hidden select-none">
+
+    <!-- Left Side: Banner -->
+    <section class="hidden lg:flex w-1/2 h-full bg-[#065f46] flex-col justify-between p-16 text-white relative overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <div class="w-full h-full bg-cover bg-center opacity-30 mix-blend-multiply" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLuCX7zMtVF5AFLv-K15WmZldH0X_twSgG_4-Bj8DgLWfCDo0BBDAeLNdLMVEVoel3bXPtps11hJiKwmcy9dQ-xMWkFLnFTLHpFQgZ9j62LHm-vQREpLxEUAlyqT01L-SnywOCUBAbyPHFXqIxLXCfsaJF7qNoNHAOM6XmAdX_sFaO-WK9KMfrrwba6xwzZphcmf8r7YwBk7RNliGPMdxjpe0H5IwoSYLUt1hX7nvAAHJLKneAqSoWPwRl4s')"></div>
+        </div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-2 mb-12">
+                <span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1;">storefront</span>
+                <h1 class="text-2xl font-bold tracking-tight">MarketConnect</h1>
+            </div>
+            <div class="max-w-lg">
+                <h2 class="text-5xl font-bold leading-[1.1] mb-6">Kết nối giá trị, trải nghiệm tươi mới mỗi ngày.</h2>
+                <p class="text-lg opacity-90 leading-relaxed">Nền tảng thương mại hiện đại dành cho những người sành sỏi, nơi sự tinh tế gặp gỡ hiệu suất tối ưu.</p>
+            </div>
+        </div>
+        <div class="relative z-10 grid grid-cols-2 gap-6">
+            <div class="p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center gap-3">
+                <span class="material-symbols-outlined">verified_user</span>
+                <p class="text-sm font-medium">Đảm bảo chất lượng</p>
+            </div>
+            <div class="p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center gap-3">
+                <span class="material-symbols-outlined">local_shipping</span>
+                <p class="text-sm font-medium">Giao hàng siêu tốc</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Right Side: Auth Area -->
+    <section class="w-full lg:w-1/2 h-full flex flex-col items-center justify-center bg-gray-50 p-6 overflow-y-auto">
+        
+        <!-- Hộp Alert hiển thị thông báo lỗi từ API Backend -->
+        <div id="api_error_alert" class="hidden w-full max-w-md mb-4 p-4 bg-red-50 text-red-700 text-sm rounded-2xl border border-red-100 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">error</span>
+            <span id="error_message">Có lỗi xảy ra, vui lòng thử lại.</span>
+        </div>
+
+        <div class="w-full max-w-md bg-white rounded-4xl shadow-2xl p-10 relative" id="authCard">
+            
+            <!-- Trạng thái loading phủ mờ khi đang gọi API -->
+            <div id="loading_overlay" class="hidden absolute inset-0 bg-white/70 backdrop-blur-sm rounded-4xl z-50 flex flex-col items-center justify-center gap-3">
+                <div class="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-sm font-medium text-emerald-800">Đang xử lý hệ thống...</p>
+            </div>
+
+            <!-- Step: auth_home -->
+            <div id="step_auth_home">
+                <div class="flex flex-col items-center mb-8">
+                    <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-[48px] text-[#065f46]" style="font-variation-settings: 'FILL' 1;">eco</span>
+                    </div>
+                    <h2 class="text-2xl font-bold text-on-surface">Đăng nhập / Đăng ký</h2>
+                    <p class="text-on-surface-variant text-sm mt-1">Truy cập nhanh chóng và an toàn</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Nút Google Đăng Nhập -->
+                    <div class="w-full flex justify-center">
+                        <div id="google_btn_container"></div>
+                    </div>
+
+                    <div class="flex items-center gap-4 py-2">
+                        <div class="flex-1 h-px bg-outline-variant"></div>
+                        <span class="text-xs font-bold text-outline uppercase tracking-widest">Hoặc</span>
+                        <div class="flex-1 h-px bg-outline-variant"></div>
+                    </div>
+
+                    <!-- Phone Login -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface-variant mb-1.5 ml-1" for="phone">Số điện thoại</label>
+                            <input class="w-full h-14 px-5 bg-gray-50 border border-outline-variant rounded-2xl focus:ring-2 focus:ring-[#065f46] focus:border-[#065f46] outline-none transition-all" id="phone" placeholder="0xxx xxx xxx" type="tel"/>
+                        </div>
+                        <button class="w-full h-14 bg-[#065f46] text-white font-bold rounded-full hover:bg-[#004532] transition-all active:scale-[0.98] flex items-center justify-center" id="continueBtn" onclick="requestOTP()">
+                            <span>Tiếp tục</span>
+                        </button>
+                    </div>
+                </div>
+                <p class="mt-8 text-center text-xs text-outline leading-relaxed px-4">
+                    Bằng cách tiếp tục, bạn đồng ý với 
+                    <a class="text-[#065f46] font-semibold hover:underline" href="#">Điều khoản dịch vụ</a> và 
+                    <a class="text-[#065f46] font-semibold hover:underline" href="#">Chính sách bảo mật</a> của chúng tôi.
+                </p>
+            </div>
+
+            <!-- Step: verify_otp -->
+            <div class="hidden" id="step_verify_otp">
+                <button class="mb-6 flex items-center text-[#065f46] font-semibold text-sm hover:underline" onclick="goToHome()">
+                    <span class="material-symbols-outlined text-sm mr-1">arrow_back</span>
+                    Quay lại
+                </button>
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-on-surface">Nhập mã xác thực</h2>
+                    <p class="text-on-surface-variant text-sm mt-2">Mã OTP đã được gửi đến số <span class="font-bold text-on-surface" id="displayPhone"></span></p>
+                </div>
+                <div class="flex gap-2 mb-8 justify-between">
+                    <input class="otp-input w-12 h-14 text-center text-xl font-bold bg-gray-50 border border-outline-variant rounded-xl focus:ring-2 focus:ring-[#065f46] outline-none transition-all" maxlength="1" type="text"/>
+                    <input class="otp-input w-12 h-14 text-center text-xl font-bold bg-gray-50 border border-outline-variant rounded-xl focus:ring-2 focus:ring-[#065f46] outline-none transition-all" maxlength="1" type="text"/>
+                    <input class="otp-input w-12 h-14 text-center text-xl font-bold bg-gray-50 border border-outline-variant rounded-xl focus:ring-2 focus:ring-[#065f46] outline-none transition-all" maxlength="1" type="text"/>
+                    <input class="otp-input w-12 h-14 text-center text-xl font-bold bg-gray-50 border border-outline-variant rounded-xl focus:ring-2 focus:ring-[#065f46] outline-none transition-all" maxlength="1" type="text"/>
+                    <input class="otp-input w-12 h-14 text-center text-xl font-bold bg-gray-50 border border-outline-variant rounded-xl focus:ring-2 focus:ring-[#065f46] outline-none transition-all" maxlength="1" type="text"/>
+                    <input class="otp-input w-12 h-14 text-center text-xl font-bold bg-gray-50 border border-outline-variant rounded-xl focus:ring-2 focus:ring-[#065f46] outline-none transition-all" maxlength="1" type="text"/>
+                </div>
+                <button class="w-full h-14 bg-[#065f46] text-white font-bold rounded-full hover:bg-[#004532] transition-all active:scale-[0.98] flex items-center justify-center" id="verifyBtn" onclick="verifyOTP()">
+                    <span>Xác nhận &amp; Hoàn tất</span>
+                </button>
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-on-surface-variant">Không nhận được mã? <button class="text-[#065f46] font-bold hover:underline">Gửi lại (59s)</button></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const BACKEND_URL = window.location.origin; 
+        const GOOGLE_CLIENT_ID = '856672788725-sncp4c66fotjd8pi4s678l5ms4lccgep.apps.googleusercontent.com'; 
+
+        const stepAuthHome = document.getElementById('step_auth_home');
+        const stepVerifyOtp = document.getElementById('step_verify_otp');
+        const phoneInput = document.getElementById('phone');
+        const displayPhone = document.getElementById('displayPhone');
+        const loadingOverlay = document.getElementById('loading_overlay');
+        const apiErrorAlert = document.getElementById('api_error_alert');
+        const errorMessage = document.getElementById('error_message');
+
+        window.onload = function () {
+            if (window.google && google.accounts && google.accounts.id) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById("google_btn_container"),
+                    { theme: "outline", size: "large", shape: "pill", width: 336 }
+                );
+            }
+        }
+
+        function showAlert(msg) {
+            errorMessage.innerText = msg;
+            apiErrorAlert.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            apiErrorAlert.classList.add('hidden');
+        }
+
+        async function handleCredentialResponse(response) {
+            loadingOverlay.classList.remove('hidden');
+            hideAlert();
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/auth/google-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: response.credential })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    // Chấp nhận linh hoạt cả chữ thường và chữ hoa từ API Backend
+                    const token = data.token || data.Token;
+                    localStorage.setItem('token', token);
+
+                    const avatar = data.avatar || data.Avatar;
+                    const name = data.name || data.Name;
+                    const email = data.email || data.Email;
+
+                    if (avatar) localStorage.setItem('user_avatar', avatar);
+                    if (name) localStorage.setItem('user_name', name);
+                    if (email) localStorage.setItem('user_email', email);
+
+                    // Sau khi đăng nhập bằng Google thành công, luôn chuyển hướng đến trang Hồ sơ
+                    alert('Đăng nhập Google thành công!');
+                    window.location.href = '/Account/Profile';
+                } else {
+                    showAlert(data.message || 'Xác thực Google với Backend thất bại.');
+                }
+            } catch (err) {
+                showAlert('Không thể kết nối tới máy chủ Backend.');
+            } finally {
+                // ĐÃ SỬA: Sửa từ khóa lỗi cú pháp về hàm block finally chuẩn
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        async function requestOTP() {
+            const phone = phoneInput.value.trim();
+            if (!phone) {
+                alert('Vui lòng nhập số điện thoại');
+                return;
+            }
+
+            loadingOverlay.classList.remove('hidden');
+            hideAlert();
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/auth/register-request`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        phoneNumber: phone,
+                        fullName: "Khách Hàng MarketConnect",
+                        password: "Node1347@Market"
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    displayPhone.innerText = phone;
+                    stepAuthHome.classList.add('hidden');
+                    stepVerifyOtp.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        document.querySelector('.otp-input').focus();
+                    }, 100);
+                } else {
+                    showAlert(data.message || 'Không thể gửi yêu cầu mã OTP.');
+                }
+            } catch (err) {
+                showAlert('Kết nối máy chủ Backend thất bại.');
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        async function verifyOTP() {
+            const inputs = document.querySelectorAll('.otp-input');
+            let otpCode = '';
+            inputs.forEach(input => otpCode += input.value);
+
+            if (otpCode.length < 6) {
+                alert('Vui lòng nhập đầy đủ mã OTP 6 số');
+                return;
+            }
+
+            loadingOverlay.classList.remove('hidden');
+            hideAlert();
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        phoneNumber: phoneInput.value.trim(), 
+                        otpCode: otpCode 
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    const token = data.token || data.Token;
+                    localStorage.setItem('token', token);
+                    
+                    const name = data.name || data.Name;
+                    const email = data.email || data.Email;
+
+                    localStorage.setItem('user_name', name || "Khách Hàng MarketConnect");
+                    localStorage.setItem('user_email', email || phoneInput.value.trim());
+                    localStorage.setItem('user_avatar', ""); 
+                    
+                    const params = new URLSearchParams(window.location.search);
+                    const returnUrl = params.get('returnUrl');
+                    const safeRedirect = (url) => url && url.startsWith('/') ? url : null;
+                    const target = safeRedirect(returnUrl) || '/';
+                    
+                    alert('Xác thực OTP thành công! Đang đăng nhập hệ thống...');
+                    window.location.href = target;
+                } else {
+                    showAlert(data.message || 'Mã OTP không chính xác hoặc đã hết hạn.');
+                }
+            } catch (err) {
+                showAlert('Lỗi kết nối xác thực OTP.');
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        function goToHome() {
+            stepVerifyOtp.classList.add('hidden');
+            stepAuthHome.classList.remove('hidden');
+            hideAlert();
+        }
+
+        const otpInputs = document.querySelectorAll('.otp-input');
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('keyup', (e) => {
+                if (e.key >= 0 && e.key <= 9) {
+                    if (index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                } else if (e.key === 'Backspace') {
+                    if (index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+﻿@using System.Linq
+@using MarketConnect.Data
+@using System.Globalization
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "MarketConnect - Thương mại điện tử số 1 Việt Nam";
+    Layout = "_Layout"; 
+}
+
+<style>
+    .product-card-aspect {
+        aspect-ratio: 1 / 1;
+    }
+
+    .shopee-shadow {
+        box-shadow: 0 1px 12px 0 rgba(0,0,0,.05);
+    }
+</style>
+
+<!-- Thanh khu vực hiện tại -->
+<div class="bg-gray-100 border-b border-gray-200 py-2.5 px-4">
+    <div class="max-w-[1200px] mx-auto flex items-center gap-2 text-[13px]">
+        <span class="text-gray-500">Khu vực hiện tại:</span>
+        <span class="font-bold text-[#004d38] flex items-center gap-1">
+            <i class="bi bi-shop text-[14px]"></i>
+            Chợ Bến Thành, Quận 1, TP. HCM
+        </span>
+        <a class="text-[#f97316] font-medium hover:underline ml-1" href="#">[Thay đổi]</a>
+    </div>
+</div>
+
+<main class="bg-[#f5f5f5] w-full min-h-screen py-5 px-4">
+    <div class="max-w-[1200px] mx-auto">
+        
+        <!-- Banners Section -->
+        <section class="grid grid-cols-12 gap-1.5 mb-6">
+            <div class="col-span-8 relative h-[235px] rounded-sm overflow-hidden shadow-sm">
+                <img alt="Hot Deals Banner" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent flex flex-col justify-end p-5">
+                    <span class="bg-[#f97316] text-white text-[10px] font-bold px-1.5 py-0.5 w-fit mb-1.5 rounded-sm">HOT DEALS</span>
+                    <h2 class="text-white text-2xl font-bold mb-1">Lễ Hội Mua Sắm - Giảm Đến 50%</h2>
+                    <p class="text-white/90 text-xs font-light">Áp dụng cho tất cả ngành hàng. Duy nhất hôm nay!</p>
+                </div>
+            </div>
+            <div class="col-span-4 flex flex-col gap-1.5">
+                <div class="h-[115px] rounded-sm overflow-hidden relative shadow-sm group cursor-pointer">
+                    <img alt="Sub promo" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=500" />
+                    <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+                        <span class="text-white text-[13px] font-bold border border-white/80 px-4 py-1.5 bg-black/20 backdrop-blur-[1px]">XẢ KHO TẾT</span>
+                    </div>
+                </div>
+                <div class="h-[115px] rounded-sm overflow-hidden relative shadow-sm group cursor-pointer">
+                    <img alt="Sub promo" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=500" />
+                    <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+                        <span class="text-white text-[13px] font-bold border border-white/80 px-4 py-1.5 bg-black/20 backdrop-blur-[1px]">DEAL SỐC 1K</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DANH MỤC -->
+        <section class="bg-white rounded-sm mb-6 shadow-sm border border-gray-100">
+            <h3 class="font-medium text-gray-400 uppercase text-[12px] tracking-wider px-5 pt-4 pb-2">DANH MỤC</h3>
+            <div class="grid grid-cols-5 md:grid-cols-10 border-t border-gray-50">
+                @{
+                    var categories = new[] {
+                        new { Text = "Đồ ăn", Bi = "bi-restaurant" },
+                        new { Text = "Tươi sống", Bi = "bi-flower1" },
+                        new { Text = "Thời trang", Bi = "bi-binoculars" },
+                        new { Text = "Nhu yếu phẩm", Bi = "bi-basket" },
+                        new { Text = "Tiện ích", Bi = "bi-tools" },
+                        new { Text = "Điện tử", Bi = "bi-laptop" },
+                        new { Text = "Làm đẹp", Bi = "bi-heart-pulse" },
+                        new { Text = "Đồ chơi", Bi = "bi-controller" },
+                        new { Text = "Sách", Bi = "bi-book" },
+                        new { Text = "Tất cả", Bi = "bi-grid-3x3-gap" }
+                    };
+                }
+                @foreach (var cat in categories)
+                {
+                    <a class="flex flex-col items-center gap-3 py-4 border-r border-b border-gray-50 hover:shadow-md transition-shadow bg-white text-center" href="#">
+                        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+                            <i class="bi @cat.Bi text-[#f97316] text-xl"></i>
+                        </div>
+                        <span class="text-[12px] text-gray-700 font-normal px-2 line-clamp-2 min-h-[32px] flex items-center justify-center">@cat.Text</span>
+                    </a>
+                }
+            </div>
+        </section>
+
+        <!-- FLASH SALE -->
+        <section class="bg-white rounded-sm mb-6 shadow-sm overflow-hidden border border-gray-100">
+            <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-white">
+                <div class="flex items-center gap-4">
+                    <h3 class="font-bold text-xl text-[#f97316] flex items-center gap-1 uppercase italic tracking-tighter">
+                        <i class="bi bi-lightning-fill"></i> FLASH SALE
+                    </h3>
+                    <div class="flex gap-1 items-center font-mono">
+                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">02</span> :
+                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">45</span> :
+                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">12</span>
+                    </div>
+                </div>
+                <a class="text-[#f97316] text-xs font-medium hover:opacity-80 flex items-center gap-0.5" href="#">Xem tất cả <i class="bi bi-chevron-right text-[10px]"></i></a>
+            </div>
+
+            <div class="p-2 grid grid-cols-2 md:grid-cols-6 gap-2">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var p in Model.Take(5))
+                    {
+                        var price = p.StallProducts?.FirstOrDefault()?.Price;
+                        var img = !string.IsNullOrWhiteSpace(p.ImageUrl) ? p.ImageUrl : Url.Content("~/images/placeholder.png");
+
+                        <div class="bg-white border border-transparent hover:border-[#f97316] hover:shadow-lg transition-all relative group cursor-pointer rounded-sm flex flex-col justify-between">
+                            <div>
+                                <div class="relative product-card-aspect overflow-hidden bg-gray-50">
+                                    <img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform "
+                                         src="@img" onerror="this.onerror=null;this.src='@Url.Content("~/images/placeholder.png")'" />
+                                    
+                                    <!-- Nhãn Giảm giá -->
+                                    <div class="absolute top-0 right-0 bg-[#ffd839]/95 px-1 py-0.5 text-center flex flex-col items-center z-10 w-[36px]">
+                                        <span class="text-[#f97316] font-bold text-[10px] leading-tight">20%</span>
+                                        <span class="text-white text-[8px] font-bold leading-tight">GIẢM</span>
+                                    </div>
+                                    
+                                    <!-- Nhãn Bán chạy/Yêu thích nếu cần (tùy biến theo ảnh mẫu) -->
+                                    <div class="absolute top-1 left-[-2px] bg-[#f97316] text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-r-sm z-10 shadow-sm">
+                                        Bán chạy
+                                    </div>
+                                </div>
+                                <div class="p-2 flex flex-col gap-1">
+                                    <h4 class="text-[12px] line-clamp-2 min-h-[36px] text-gray-800 font-normal leading-normal group-hover:text-[#f97316] transition-colors">@p.Name</h4>
+                                </div>
+                            </div>
+                            <div class="p-2 pt-0 flex flex-col">
+                                <span class="text-[#f97316] text-base font-semibold">
+                                    @(price.HasValue ? price.Value.ToString("N0") + "đ" : "Liên hệ")
+                                </span>
+                                <div class="flex items-center gap-1 mt-1.5">
+                                    <div class="flex text-amber-400 text-[9px]">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star text-gray-300"></i>
+                                    </div>
+                                    <span class="text-[10px] text-gray-400">Đã bán 1.2k</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <!-- Ô Xem thêm trong Flash sale -->
+                <div class="bg-white flex items-center justify-center border border-gray-100 rounded-sm hover:shadow-md transition-shadow min-h-[250px]">
+                    <div class="flex flex-col items-center gap-2 cursor-pointer group py-8">
+                        <div class="w-10 h-10 border-2 border-[#f97316] rounded-full flex items-center justify-center group-hover:bg-[#f97316]/5 transition-colors">
+                            <i class="bi bi-chevron-right text-[#f97316] font-bold"></i>
+                        </div>
+                        <span class="text-xs font-medium text-[#f97316]">Xem Thêm</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-6">
+            <div class="bg-white border-b-2 border-[#f97316] sticky top-0 z-20 shadow-sm">
+                <div class="w-[180px] text-center py-3 bg-white border-r border-gray-100">
+                    <h3 class="font-bold text-base text-[#f97316] uppercase tracking-wide">GỢI Ý HÔM NAY</h3>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-2 mt-2">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var p in Model.Skip(5).Take(12))
+                    {
+                        var price = p.StallProducts?.FirstOrDefault()?.Price;
+                        var img = !string.IsNullOrWhiteSpace(p.ImageUrl) ? p.ImageUrl : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400";
+
+                        <div class="bg-white border border-transparent hover:border-[#f97316] hover:shadow-lg transition-all relative group cursor-pointer rounded-sm flex flex-col justify-between">
+                            <div>
+                                <div class="relative product-card-aspect overflow-hidden bg-gray-50">
+                                    <img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200" src="@img" alt="@p.Name" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'" />
+                                </div>
+                                <div class="p-2">
+                                    <h4 class="text-[12px] line-clamp-2 min-h-[36px] text-gray-800 font-normal leading-normal group-hover:text-[#f97316] transition-colors">@p.Name</h4>
+                                </div>
+                            </div>
+                            <div class="p-2 pt-0">
+                                <div class="flex justify-between items-baseline mt-2 flex-wrap gap-1">
+                                    <span class="text-[#f97316] text-[15px] font-semibold">
+                                        @(price.HasValue ? price.Value.ToString("N0") + " đ" : "Liên hệ")
+                                    </span>
+                                    <span class="text-[10px] text-gray-400">Đã bán 5k+</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            
+            <div class="flex justify-center mt-6">
+                <button class="bg-white border border-gray-200 px-16 py-3 rounded-sm text-[13px] hover:bg-gray-50 transition-colors shadow-sm text-gray-600 min-w-[240px] font-medium">Xem Thêm</button>
+            </div>
+        </section>
+        
+    </div>
+</main>

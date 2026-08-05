@@ -1,0 +1,140 @@
+﻿using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.QueryDsl;
+using MarketConnect.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class ProductCompareService : IProductCompareService
+{
+    private readonly ElasticsearchClient _elasticClient;
+
+    public ProductCompareService(ElasticsearchClient elasticClient)
+    {
+        _elasticClient = elasticClient;
+    }
+
+    public async Task<ProductCompareResultDto> GetPriceComparisonAsync(CompareFilterDto filter)
+    {
+        // 1. Xây dựng danh sách bộ lọc động
+        var innerHitQueries = new List<Action<QueryDescriptor<ProductDocument>>>();
+
+        // Lọc khoảng giá
+        if (filter.MinPrice.HasValue || filter.MaxPrice.HasValue)
+        {
+            innerHitQueries.Add(q => q.Range(r => r
+                .NumberRange(nr => nr
+                    .Field(f => f.Price)
+                    .Gte(filter.MinPrice)
+                    .Lte(filter.MaxPrice)
+                )
+            ));
+        }
+
+        // Lọc vị trí
+        if (!string.IsNullOrEmpty(filter.Location) && filter.Location.ToLower() != "all")
+        {
+            innerHitQueries.Add(q => q.Term(t => t.Field(f => f.Province).Value(filter.Location)));
+        }
+
+        // 2. Xử lý logic Sắp xếp (Sort)
+        Action<SortCollectionDescriptor<ProductDocument>> sortAction = s => s.Field(f => f.Price, Order.Asc); // Mặc định giá thấp nhất
+
+        if (filter.SortBy == "price_desc")
+            sortAction = s => s.Field(f => f.Price, Order.Desc);
+        else if (filter.SortBy == "sold_desc")
+            sortAction = s => s.Field(f => f.SoldCount, Order.Desc);
+        else if (filter.SortBy == "rating_desc")
+            sortAction = s => s.Field(f => f.Rating, Order.Desc);
+
+        // 3. Thực hiện gọi Elasticsearch
+        var searchResponse = await _elasticClient.SearchAsync<ProductDocument>(s => s
+            .Index("products")
+            .Query(q => q
+                .Term(t => t.Field(f => f.GroupKey).Value(filter.GroupKey))
+            )
+            .Collapse(c => c
+                .Field(f => f.GroupKey)
+                .InnerHits(ih => ih
+                    .Name("other_shops")
+                    .Size(30)
+                    .Query(q => q.Bool(b => b.Filter(innerHitQueries.ToArray())))
+                    .Sort(sortAction)
+                )
+            )
+        );
+
+        if (!searchResponse.IsValidResponse || !searchResponse.Documents.Any()) return null;
+
+        var hit = searchResponse.Hits.FirstOrDefault();
+        if (hit == null || !hit.InnerHits.ContainsKey("other_shops")) return null;
+
+        var innerHitsResult = hit.InnerHits["other_shops"].Hits
+            .Select(h => h.Source as ProductDocument)
+            .Where(p => p != null)
+            .ToList();
+
+        if (!innerHitsResult.Any()) return null;
+
+        return new ProductCompareResultDto
+        {
+            MinPrice = innerHitsResult.Min(p => p.Price),
+            MaxPrice = innerHitsResult.Max(p => p.Price),
+            Shops = innerHitsResult.Select(p => new ShopProductDetailDto
+            {
+                ProductId = p.Id,
+                ShopId = p.ShopId,
+                ShopName = p.ShopName,
+                VariantName = p.VariantName,
+                Price = p.Price,
+                Province = p.Province,
+                SoldCount = p.SoldCount,
+                Rating = p.Rating
+            }).ToList()
+        };
+    }
+}
+
+// --- Các lớp đối tượng dữ liệu và DTO ---
+public class ProductDocument
+{
+    public string Id { get; set; }
+    public string ProductName { get; set; }
+    public string GroupKey { get; set; }
+    public string ShopId { get; set; }
+    public string ShopName { get; set; }
+    public string VariantName { get; set; }
+    public double Price { get; set; }
+    public string Province { get; set; }
+    public int SoldCount { get; set; }
+    public double Rating { get; set; }
+}
+
+public class CompareFilterDto
+{
+    public string GroupKey { get; set; }
+    public string SortBy { get; set; }
+    public string Location { get; set; }
+    public double? MinPrice { get; set; }
+    public double? MaxPrice { get; set; }
+}
+
+public class ProductCompareResultDto
+{
+    public double MinPrice { get; set; }
+    public double MaxPrice { get; set; }
+    public List<ShopProductDetailDto> Shops { get; set; }
+}
+
+public class ShopProductDetailDto
+{
+    public string ProductId { get; set; }
+    public string ShopId { get; set; }
+    public string ShopName { get; set; }
+    public string VariantName { get; set; }
+    public double Price { get; set; }
+    public string Province { get; set; }
+    public int SoldCount { get; set; }
+    public double Rating { get; set; }
+}

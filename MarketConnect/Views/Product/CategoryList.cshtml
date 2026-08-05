@@ -1,0 +1,499 @@
+@{
+    Layout = "_Layout";
+    var selectedCat = ViewBag.SelectedCategory as string ?? "Thịt & Gia cầm";
+    ViewData["Title"] = $"{selectedCat} | MarketConnect";
+}
+
+<!-- Include Google Font Manrope -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<style>
+    .font-manrope {
+        font-family: 'Manrope', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 4px;
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #bfc9c3;
+        border-radius: 10px;
+    }
+</style>
+
+<main class="max-w-[1200px] mx-auto px-4 py-6 min-h-screen font-manrope bg-[#fcf9f8] text-[#1c1b1b]">
+    <!-- 1. Breadcrumbs Navigation -->
+    <nav class="flex items-center gap-1.5 text-xs text-gray-600 mb-4 overflow-x-auto whitespace-nowrap">
+        <a class="hover:text-[#002c20] transition-colors" href="/">MarketConnect</a>
+        <span class="material-symbols-outlined text-[14px] text-gray-400">chevron_right</span>
+        <a class="hover:text-[#002c20] transition-colors" href="/">Nông sản & Thực phẩm</a>
+        <span class="material-symbols-outlined text-[14px] text-gray-400">chevron_right</span>
+        <span id="breadcrumbCurrentCat" class="font-bold text-[#1c1b1b]">@selectedCat</span>
+    </nav>
+
+    <!-- 2. Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <h1 id="pageHeadingTitle" class="text-2xl md:text-3xl font-extrabold text-[#002c20] leading-tight">
+            @selectedCat Chính Hãng, Tươi Ngon, Giá Rẻ
+        </h1>
+        <button id="btnSaveSearch" type="button" class="flex items-center gap-1.5 border border-[#bfc9c3] px-4 py-2 rounded-lg hover:bg-[#f6f3f2] transition-all active:scale-95 w-fit shadow-2xs">
+            <span class="material-symbols-outlined text-[#002c20] text-[18px]" style="font-variation-settings: 'FILL' 0;">bookmark</span>
+            <span class="text-xs font-bold text-gray-800">Lưu tìm kiếm</span>
+        </button>
+    </div>
+
+    <!-- 3. Filter Section -->
+    <section class="bg-[#f6f3f2] rounded-xl p-4 border border-[#bfc9c3]/60 mb-6">
+        <!-- Main Filter Controls -->
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+            <!-- Nút Lọc chính -->
+            <button id="btnMainFilter" type="button" class="flex items-center gap-1.5 bg-[#002c20] text-white px-5 py-2 rounded-lg font-bold text-xs hover:bg-[#004433] transition-all shadow-xs cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">tune</span>
+                <span>Lọc</span>
+            </button>
+
+            <!-- Tag Danh mục đang chọn (Nút xoá nhanh ✕) -->
+            <div id="activeCatTag" class="bg-[#004433] text-white px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-2xs">
+                <span id="activeCatNameText">@selectedCat</span>
+                <button type="button" onclick="window.clearCategoryFilter()" class="hover:text-red-300 text-gray-200 transition-colors ml-1 font-bold">✕</button>
+            </div>
+
+            <!-- Dropdown Lọc Giá -->
+            <div class="relative">
+                <select id="selectPriceFilter" onchange="window.applyFilters()" class="bg-white border border-[#bfc9c3] text-gray-800 font-medium px-4 py-2 rounded-lg text-xs outline-none cursor-pointer pr-8 appearance-none hover:border-[#002c20] transition-colors">
+                    <option value="">Giá ▾</option>
+                    <option value="under50k">Dưới 50.000đ</option>
+                    <option value="50k-200k">50.000đ - 200.000đ</option>
+                    <option value="200k-500k">200.000đ - 500.000đ</option>
+                    <option value="over500k">Trên 500.000đ</option>
+                </select>
+            </div>
+
+            <!-- Dropdown Lọc Tình trạng -->
+            <div class="relative">
+                <select id="selectConditionFilter" onchange="window.applyFilters()" class="bg-white border border-[#004433] text-[#004433] font-bold px-4 py-2 rounded-lg text-xs outline-none cursor-pointer pr-8 appearance-none hover:bg-[#004433]/5 transition-colors">
+                    <option value="">Tình trạng ▾</option>
+                    <option value="Tươi mới về">Tươi mới về trong ngày</option>
+                    <option value="Cấp đông tiêu chuẩn">Cấp đông tiêu chuẩn</option>
+                    <option value="Đã sơ chế sạch">Đã sơ chế sạch sẽ</option>
+                </select>
+            </div>
+
+            <div class="flex-grow"></div>
+
+            <!-- Nút Xoá lọc -->
+            <button type="button" onclick="window.resetAllFilters()" class="text-xs font-semibold text-gray-500 hover:text-[#ba1a1a] transition-colors cursor-pointer px-2">
+                Xoá lọc
+            </button>
+        </div>
+
+        <!-- Quick Access Sub-category Chips -->
+        <div id="subCategoriesContainer" class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+            <!-- Chips populated dynamically -->
+        </div>
+    </section>
+
+    <!-- 4. Toolbar Row -->
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-[#bfc9c3]/60 pb-4 mb-6">
+        <div class="text-xs text-gray-600">
+            Hiển thị <span id="totalProductCount" class="font-bold text-[#1c1b1b]">0</span> sản phẩm
+        </div>
+
+        <div class="flex items-center gap-4 flex-wrap text-xs">
+            <!-- Toggle Tin có Video -->
+            <label class="flex items-center cursor-pointer gap-2 group select-none">
+                <span class="text-gray-600 group-hover:text-[#002c20] transition-colors">Tin có video</span>
+                <div class="relative">
+                    <input id="toggleVideoFilter" type="checkbox" onchange="window.applyFilters()" class="sr-only peer">
+                    <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#002c20]"></div>
+                </div>
+            </label>
+
+            <div class="h-4 w-[1px] bg-[#bfc9c3] hidden md:block"></div>
+
+            <!-- Sort Dropdown -->
+            <div class="flex items-center gap-1">
+                <span class="text-gray-500">Sắp xếp:</span>
+                <select id="selectSortFilter" onchange="window.applyFilters()" class="font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer pr-4">
+                    <option value="newest">Tin mới nhất ▾</option>
+                    <option value="price_asc">Giá thấp đến cao</option>
+                    <option value="price_desc">Giá cao đến thấp</option>
+                    <option value="rating_desc">Đánh giá cao nhất</option>
+                </select>
+            </div>
+
+            <div class="h-4 w-[1px] bg-[#bfc9c3] hidden md:block"></div>
+
+            <!-- View Switcher -->
+            <div class="flex items-center border border-[#bfc9c3] rounded-lg overflow-hidden bg-white">
+                <button id="btnGridView" type="button" onclick="window.setViewMode('grid')" title="Dạng lưới" class="p-1.5 bg-[#f6f3f2] text-[#002c20] font-bold border-r border-[#bfc9c3] cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px] block">grid_view</span>
+                </button>
+                <button id="btnListView" type="button" onclick="window.setViewMode('list')" title="Dạng danh sách" class="p-1.5 bg-white text-gray-500 hover:text-gray-800 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px] block">format_list_bulleted</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Product Grid Container -->
+    <div id="productsGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Sample products loaded dynamically -->
+        <div class="col-span-full bg-white border border-dashed border-[#bfc9c3] rounded-xl flex flex-col items-center justify-center py-12 text-gray-500 bg-[#f6f3f2]/50">
+            <span class="material-symbols-outlined text-[48px] mb-2 animate-pulse text-[#002c20]">cloud_download</span>
+            <p class="text-xs font-bold">Đang tải danh sách sản phẩm...</p>
+        </div>
+    </div>
+
+    <!-- 6. Pagination Row -->
+    <div class="mt-8 flex justify-center items-center gap-2">
+        <button type="button" class="w-9 h-9 flex items-center justify-center border border-[#bfc9c3] rounded-lg hover:bg-[#f6f3f2] transition-colors disabled:opacity-40" disabled>
+            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+        </button>
+        <button type="button" class="w-9 h-9 flex items-center justify-center bg-[#002c20] text-white rounded-lg font-bold text-xs shadow-2xs">1</button>
+        <button type="button" class="w-9 h-9 flex items-center justify-center border border-[#bfc9c3] rounded-lg hover:bg-[#f6f3f2] transition-colors text-xs font-semibold text-gray-700">2</button>
+        <button type="button" class="w-9 h-9 flex items-center justify-center border border-[#bfc9c3] rounded-lg hover:bg-[#f6f3f2] transition-colors text-xs font-semibold text-gray-700">3</button>
+        <span class="text-gray-400 text-xs px-1">...</span>
+        <button type="button" class="w-9 h-9 flex items-center justify-center border border-[#bfc9c3] rounded-lg hover:bg-[#f6f3f2] transition-colors text-gray-700">
+            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+        </button>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    let searchQuery = urlParams.get('q') || '';
+    let selectedCat = urlParams.get('category') || (searchQuery ? 'Tất cả sản phẩm' : @Html.Raw(System.Text.Json.JsonSerializer.Serialize(selectedCat)));
+    let currentViewMode = 'grid';
+
+    // Sub-category mapping per main category
+    const subCatMap = {
+        "Thịt & Gia cầm": ["Thịt bò nhập khẩu", "Thịt heo tươi", "Gia cầm tươi", "Thịt đông lạnh chuẩn SA"],
+        "Rau củ & Trái cây tươi": ["Trái cây nhập khẩu", "Rau củ quả sạch", "Nấm & Rau mầm", "Trái cây sấy & Nước ép"],
+        "Thủy hải sản tươi sống": ["Hải sản cao cấp", "Cá tươi các loại", "Tôm, Cua, Ghẹ", "Nghêu, Sò, Ốc"],
+        "Thực phẩm chế biến sẵn": ["Lạp xưởng & Giò chả", "Đồ đóng hộp", "Thực phẩm ăn liền", "Món ướp sẵn"],
+        "Ẩm thực & Chợ ăn vặt": ["Bánh kẹo truyền thống", "Trà & Cà phê", "Đồ ăn vặt khô", "Chè & Nước giải khát"],
+        "Gia vị & Đồ khô": ["Gia vị nấu ăn", "Nước mắm & Nước tương", "Đồ khô đóng gói", "Măng, Nấm khô"],
+        "Gạo, Nếp & Ngũ cốc": ["Gạo đặc sản", "Gạo lứt & Yến mạch", "Nếp thơm", "Các loại hạt ngũ cốc"],
+        "Trứng & Sữa": ["Trứng gà & Trứng vịt", "Sữa tươi & Sữa hạt", "Bơ & Phô mai", "Sữa chua"],
+        "Đồ gia dụng & Tiện ích": ["Dụng cụ nhà bếp", "Hộp đựng thực phẩm", "Khăn & Đồ lau chùi"],
+        "Hoa tươi & Đồ thờ cúng": ["Hoa tươi thắp hương", "Trái cây cúng", "Nhang & Đèn thờ"]
+    };
+
+    let allProducts = [];
+    let filteredProducts = [];
+
+    function renderSubCategories(catName) {
+        const container = document.getElementById('subCategoriesContainer');
+        if (!container) return;
+        const list = subCatMap[catName] || ["Thịt bò nhập khẩu", "Thịt heo tươi", "Gia cầm tươi", "Thịt đông lạnh chuẩn SA"];
+        
+        container.innerHTML = list.map((sub, idx) => `
+            <button type="button" onclick="window.filterBySubCategory('${sub}', this)" class="sub-chip whitespace-nowrap flex items-center gap-1.5 bg-white border border-[#bfc9c3] px-3.5 py-1.5 rounded-full text-xs font-medium hover:border-[#002c20] transition-all cursor-pointer ${idx === 0 ? 'border-[#002c20] font-bold text-[#002c20]' : 'text-gray-700'}">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#002c20]"></span>
+                <span>${sub}</span>
+            </button>
+        `).join('');
+    }
+
+    function getCurrentMarket() {
+        return localStorage.getItem('selected_market') || 'Chợ Đồng Xuân';
+    }
+
+    function updateMarketHeading() {
+        const market = getCurrentMarket();
+        const heading = document.getElementById('pageHeadingTitle');
+        if (heading) {
+            if (searchQuery) {
+                heading.innerText = `Tìm kiếm "${searchQuery}" tại ${market}`;
+            } else if (selectedCat !== "Tất cả sản phẩm") {
+                heading.innerText = `${selectedCat} tại ${market} - Tươi Ngon, Giá Rẻ`;
+            } else {
+                heading.innerText = `Tất cả sản phẩm tại ${market}`;
+            }
+        }
+    }
+
+    window.addEventListener('marketChanged', function () {
+        updateMarketHeading();
+        fetchCategoryProducts();
+    });
+
+    let lastMarket = getCurrentMarket();
+    setInterval(() => {
+        const newM = getCurrentMarket();
+        if (newM !== lastMarket) {
+            lastMarket = newM;
+            updateMarketHeading();
+            fetchCategoryProducts();
+        }
+    }, 1000);
+
+    function applyFilters() {
+        const selectPrice = document.getElementById('selectPriceFilter');
+        const selectCond = document.getElementById('selectConditionFilter');
+        const selectSort = document.getElementById('selectSortFilter');
+
+        const priceVal = selectPrice ? selectPrice.value : "";
+        const condVal = selectCond ? selectCond.value : "";
+        const sortVal = selectSort ? selectSort.value : "newest";
+
+        filteredProducts = allProducts.filter(p => {
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase().trim();
+                const text = (p.productName + " " + (p.description || "") + " " + (p.condition || "")).toLowerCase();
+                if (!text.includes(q)) return false;
+            }
+
+            if (priceVal === 'under50k' && p.price >= 50000) return false;
+            if (priceVal === '50k-200k' && (p.price < 50000 || p.price > 200000)) return false;
+            if (priceVal === '200k-500k' && (p.price < 200000 || p.price > 500000)) return false;
+            if (priceVal === 'over500k' && p.price <= 500000) return false;
+
+            if (condVal && p.condition && !p.condition.includes(condVal)) return false;
+
+            return true;
+        });
+
+        if (sortVal === 'price_asc') {
+            filteredProducts.sort((a, b) => a.price - b.price);
+        } else if (sortVal === 'price_desc') {
+            filteredProducts.sort((a, b) => b.price - a.price);
+        } else if (sortVal === 'rating_desc') {
+            filteredProducts.sort((a, b) => (b.rating || 5) - (a.rating || 5));
+        }
+
+        const countEl = document.getElementById('totalProductCount');
+        if (countEl) countEl.innerText = filteredProducts.length;
+        renderProductsGrid(filteredProducts);
+    }
+
+    window.applyFilters = applyFilters;
+
+    async function fetchCategoryProducts() {
+        const currentMarket = getCurrentMarket();
+        const mockFallback = generateMockCategoryProducts(searchQuery ? "all" : selectedCat);
+        try {
+            let endpoint = `/api/Products?market=${encodeURIComponent(currentMarket)}`;
+            if (searchQuery) {
+                endpoint += `&q=${encodeURIComponent(searchQuery)}`;
+            } else if (selectedCat && selectedCat !== "Tất cả sản phẩm") {
+                endpoint += `&category=${encodeURIComponent(selectedCat)}`;
+            }
+
+            const res = await fetch(endpoint);
+            if (res.ok) {
+                const apiItems = await res.json();
+                if (apiItems && apiItems.length > 0) {
+                    const mappedItems = apiItems.map(p => ({
+                        id: p.id || p.Id,
+                        productName: p.productName || p.ProductName || p.Name,
+                        price: p.price || p.Price || 0,
+                        imageUrl: p.imageUrl || p.ImageUrl || "/images/placeholder.svg",
+                        address: p.address || p.Address || (currentMarket + " (Hà Nội)"),
+                        condition: p.condition || p.Condition || "Tươi mới về trong ngày",
+                        sellerName: p.sellerName || "Người đăng tin",
+                        soldCount: p.soldCount || 1,
+                        categoryName: p.categoryName || p.CategoryName || selectedCat
+                    }));
+
+                    // Kết hợp các sản phẩm từ DB (kèm cả sản phẩm vừa đăng tin của Chợ này) với mock fallbacks
+                    const combined = [...mappedItems];
+                    mockFallback.forEach(m => {
+                        if (!combined.some(c => c.productName.toLowerCase() === m.productName.toLowerCase())) {
+                            combined.push(m);
+                        }
+                    });
+                    allProducts = combined;
+                } else {
+                    allProducts = mockFallback;
+                }
+            } else {
+                allProducts = mockFallback;
+            }
+        } catch (err) {
+            console.error("Lỗi API Products:", err);
+            allProducts = mockFallback;
+        }
+        applyFilters();
+    }
+
+
+
+    window.clearCategoryFilter = function () {
+        selectedCat = "Tất cả sản phẩm";
+        document.getElementById('activeCatNameText').innerText = selectedCat;
+        document.getElementById('breadcrumbCurrentCat').innerText = selectedCat;
+        document.getElementById('pageHeadingTitle').innerText = `Tất cả sản phẩm Chợ Nông sản & Thực phẩm`;
+        allProducts = generateMockCategoryProducts("all");
+        window.applyFilters();
+    };
+
+    window.resetAllFilters = function () {
+        document.getElementById('selectPriceFilter').value = "";
+        document.getElementById('selectConditionFilter').value = "";
+        document.getElementById('selectSortFilter').value = "newest";
+        document.getElementById('toggleVideoFilter').checked = false;
+        window.applyFilters();
+    };
+
+    window.filterBySubCategory = function (subName, btnEl) {
+        document.querySelectorAll('.sub-chip').forEach(c => {
+            c.classList.remove('bg-[#002c20]', 'text-white', 'border-[#002c20]');
+            c.classList.add('bg-white', 'text-gray-700');
+        });
+        if (btnEl) {
+            btnEl.classList.add('bg-[#002c20]', 'text-white', 'border-[#002c20]');
+            btnEl.classList.remove('bg-white', 'text-gray-700');
+        }
+        filteredProducts = allProducts.filter(p => (p.productName + " " + (p.description || "")).toLowerCase().includes(subName.toLowerCase()));
+        document.getElementById('totalProductCount').innerText = filteredProducts.length;
+        renderProductsGrid(filteredProducts);
+    };
+
+    window.setViewMode = function (mode) {
+        currentViewMode = mode;
+        const gridBtn = document.getElementById('btnGridView');
+        const listBtn = document.getElementById('btnListView');
+        const container = document.getElementById('productsGridContainer');
+
+        if (mode === 'grid') {
+            gridBtn.className = 'p-1.5 bg-[#f6f3f2] text-[#002c20] font-bold border-r border-[#bfc9c3] cursor-pointer';
+            listBtn.className = 'p-1.5 bg-white text-gray-500 hover:text-gray-800 transition-colors cursor-pointer';
+            container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4';
+        } else {
+            listBtn.className = 'p-1.5 bg-[#f6f3f2] text-[#002c20] font-bold border-l border-[#bfc9c3] cursor-pointer';
+            gridBtn.className = 'p-1.5 bg-white text-gray-500 hover:text-gray-800 transition-colors border-r border-[#bfc9c3] cursor-pointer';
+            container.className = 'flex flex-col gap-3';
+        }
+        renderProductsGrid(filteredProducts);
+    };
+
+    function getProductUrl(p) {
+        const params = new URLSearchParams();
+        params.set('id', p.id || 1);
+        if (p.productName) params.set('name', p.productName);
+        if (p.price) params.set('price', p.price);
+        if (p.imageUrl) params.set('img', p.imageUrl);
+        if (p.address) params.set('address', p.address);
+        if (p.condition) params.set('condition', p.condition);
+        if (p.sellerName) params.set('seller', p.sellerName);
+        return '/Products/ProductDetail?' + params.toString();
+    }
+
+    function renderProductsGrid(list) {
+        const container = document.getElementById('productsGridContainer');
+        if (!list || list.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full bg-white border border-dashed border-[#bfc9c3] rounded-xl p-12 text-center text-gray-500 text-xs">
+                    <span class="material-symbols-outlined text-[40px] text-gray-300 mb-2">search_off</span>
+                    <p class="font-bold text-gray-700 text-sm">Không tìm thấy sản phẩm phù hợp.</p>
+                </div>`;
+            return;
+        }
+
+        if (currentViewMode === 'grid') {
+            container.innerHTML = list.map((p, idx) => `
+                <div onclick="window.location.href='${getProductUrl(p)}'" class="bg-white border border-[#bfc9c3] rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col justify-between">
+                    <div>
+                        <div class="relative aspect-square overflow-hidden bg-[#f6f3f2]">
+                            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${p.imageUrl || '/images/placeholder.svg'}" alt="${p.productName}" />
+                            ${idx % 2 === 0 ? `<div class="absolute bottom-2 left-2 bg-[#002c20]/90 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Nhập khẩu</div>` : `<div class="absolute top-2 right-2 bg-[#944b00] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">SALE</div>`}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-xs font-bold text-[#1c1b1b] line-clamp-2 mb-2 group-hover:text-[#002c20] transition-colors leading-snug">${p.productName}</h3>
+                            <div class="text-sm font-extrabold text-[#944b00] mb-3">đ${(p.price || 0).toLocaleString('vi-VN')}</div>
+                            <div class="flex items-center justify-between text-[11px] text-gray-500">
+                                <div class="flex items-center gap-0.5 truncate">
+                                    <span class="material-symbols-outlined text-[14px] text-red-500 shrink-0">location_on</span>
+                                    <span class="truncate font-semibold text-gray-700">${p.address || 'Chợ Đồng Xuân (Hà Nội)'}</span>
+                                </div>
+                                <span class="opacity-70 shrink-0">Vừa xong</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = list.map(p => `
+                <div onclick="window.location.href='${getProductUrl(p)}'" class="bg-white border border-[#bfc9c3] rounded-xl p-3.5 hover:shadow-md transition-all group cursor-pointer flex items-center gap-4">
+                    <div class="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-[#f6f3f2]">
+                        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="${p.imageUrl || '/images/placeholder.svg'}" alt="${p.productName}" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-sm text-[#1c1b1b] mb-1 group-hover:text-[#002c20] transition-colors truncate">${p.productName}</h3>
+                        <p class="text-xs text-gray-500 line-clamp-1 mb-2">${p.condition || 'Tươi sống mọng nước'} • Giao hàng tận nơi</p>
+                        <div class="text-base font-extrabold text-[#944b00] mb-2">đ${(p.price || 0).toLocaleString('vi-VN')}</div>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px] text-red-500">location_on</span>
+                                <span class="font-semibold text-gray-700">${p.address || 'Chợ Đồng Xuân (Hà Nội)'}</span>
+                            </span>
+                            <span class="font-semibold text-amber-600">4.8 ★ (${p.soldCount || 120} đã bán)</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    function generateMockCategoryProducts(cat) {
+        const marketAddr = getCurrentMarket() + " (Hà Nội)";
+        const mockData = {
+            "Rau củ & Trái cây tươi": [
+                { id: "1", productName: "Táo Fuji Mỹ Farm To Door Đỏ Ngọt Thanh 1kg", price: 120000, condition: "Tươi mới về trong ngày", address: marketAddr, sellerName: "Phước Thư Nông Sản", soldCount: 804, imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600" },
+                { id: "101", productName: "Táo Envy Mỹ Nhập Khẩu Tươi Giòn Ngọt 1kg", price: 125000, condition: "Tươi mới về trong ngày", address: marketAddr, sellerName: "Phước Thư Nông Sản", soldCount: 804, imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600" },
+                { id: "2", productName: "Cam Sành Tiền Giang Mọng Nước Ngọt Thanh 2kg", price: 45000, condition: "Tươi mới về trong ngày", address: marketAddr, sellerName: "Vườn Cam Sạch", soldCount: 1200, imageUrl: "https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=600" },
+                { id: "3", productName: "Rau Cải Thảo Đà Lạt Hữu Cơ Sạch 1kg", price: 25000, condition: "Đã sơ chế sạch sẽ", address: marketAddr, sellerName: "Nông Sản Đà Lạt", soldCount: 530, imageUrl: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600" },
+                { id: "40", productName: "Nấm Kim Nhật Bản Hộp 200g Tươi Ngon", price: 18000, condition: "Tươi mới về trong ngày", address: marketAddr, sellerName: "Rau Nấm Sạch", soldCount: 920, imageUrl: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600" }
+            ],
+            "Thịt & Gia cầm": [
+                { id: "4", productName: "Thịt Thăn Bò Wagyu Úc MB 4-5 - Gói 500g Tiêu Chuẩn", price: 450000, condition: "Cấp đông tiêu chuẩn", address: marketAddr, sellerName: "Tiểu Thương Bò Úc", soldCount: 804, imageUrl: "https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=600" },
+                { id: "5", productName: "Gà Ta Thả Vườn Nguyên Con Tươi Ngon Cấp Sạch", price: 185000, condition: "Tươi mới về trong ngày", address: marketAddr, sellerName: "Gà Sạch Đồi Vườn", soldCount: 412, imageUrl: "https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=600" },
+                { id: "6", productName: "Thịt Ba Chỉ Heo Quế Tươi Sạch 1kg", price: 140000, condition: "Tươi mới về trong ngày", address: marketAddr, sellerName: "Thịt Heo Sạch Chợ", soldCount: 1500, imageUrl: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=600" }
+            ],
+            "Thủy hải sản tươi sống": [
+                { id: "7", productName: "Cá Hồi Na Uy Tươi Sống Phi Lê Cắt Khúc 300g", price: 350000, condition: "Cấp đông tiêu chuẩn", address: marketAddr, sellerName: "Hải Sản Biển Đông", soldCount: 950, imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600" },
+                { id: "8", productName: "Tôm Hùm Bông Sống Nguyên Con Hải Sản Chợ", price: 890000, condition: "Tươi mới về trong ngày", address: marketAddr, sellerName: "Hải Sản Tươi Sống", soldCount: 320, imageUrl: "https://images.unsplash.com/photo-1559742811-822863cc4ad7?w=600" },
+                { id: "9", productName: "Cá Điêu Hồng Sống Làm Sạch 1kg", price: 75000, condition: "Tươi mới về trong ngày", address: marketAddr, sellerName: "Cá Tươi Sống Chợ", soldCount: 640, imageUrl: "https://images.unsplash.com/photo-1534483509719-3feaee7c30da?w=600" }
+            ],
+            "Thực phẩm chế biến sẵn": [
+                { id: "10", productName: "Giò Lụa Ước Lễ Truyền Thống Cây 1kg", price: 160000, condition: "Đã sơ chế sạch sẽ", address: marketAddr, sellerName: "Giò Chả Ước Lễ", soldCount: 1100, imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600" }
+            ],
+            "Ẩm thực & Chợ ăn vặt": [
+                { id: "11", productName: "Bánh Cốm Hàng Than Hà Nội Hộp 10 Cái", price: 65000, condition: "Mới 100% (nguyên màng bọc)", address: marketAddr, sellerName: "Đặc Sản Hà Thành", soldCount: 2300, imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600" }
+            ],
+            "Gia vị & Đồ khô": [
+                { id: "12", productName: "Nước Mắm Phú Quốc 40 Độ Đạm Chai 500ml", price: 85000, condition: "Mới 100% (nguyên màng bọc)", address: marketAddr, sellerName: "Đồ Khô & Gia Vị", soldCount: 1800, imageUrl: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600" }
+            ],
+            "Gạo, Nếp & Ngũ cốc": [
+                { id: "13", productName: "Gạo ST25 Ông Cua Thượng Hạng Túi 5kg", price: 190000, condition: "Mới 100% (nguyên màng bọc)", address: marketAddr, sellerName: "Gạo Sạch Hà Nội", soldCount: 3100, imageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600" }
+            ]
+        };
+
+        if (cat === "all" || cat === "Tất cả sản phẩm") {
+            let combined = [];
+            Object.values(mockData).forEach(arr => combined.push(...arr));
+            return combined;
+        }
+
+        const list = mockData[cat];
+        if (list && list.length > 0) return list;
+
+        return [
+            { id: "31", productName: `${cat} Tươi Ngon Đặc Sản Chợ`, price: 150000, condition: "Tươi mới về trong ngày", address: marketAddr, sellerName: "Nông Sản Thực Phẩm Chợ", soldCount: 500, imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600" },
+            { id: "32", productName: `${cat} Loại 1 Chuẩn Xuất Khẩu Gói 500g`, price: 210000, condition: "Đã sơ chế sạch sẽ", address: marketAddr, sellerName: "Nông Sản Sạch Chợ", soldCount: 720, imageUrl: "https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=600" },
+            { id: "33", productName: `${cat} Nhập Khẩu Thượng Hạng`, price: 320000, condition: "Cấp đông tiêu chuẩn", address: marketAddr, sellerName: "Đặc Sản Chợ Truyền Thống", soldCount: 430, imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600" }
+        ];
+    }
+
+    // Initial load execution on page load
+    renderSubCategories(selectedCat);
+    updateMarketHeading();
+    await fetchCategoryProducts();
+});
+</script>

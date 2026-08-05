@@ -1,0 +1,192 @@
+﻿using MarketConnect.Controllers.Dtos;
+using MarketConnect.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+
+namespace MarketConnect.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly ApplicationDbContext _db;
+
+        public AccountController(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        [HttpGet("Account/Login")]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpGet("Account/Profile")]
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        [HttpGet("Account/ChangePassword")]
+        public IActionResult ChangePassword()
+        {
+            return View("ChangePassword");
+        }
+
+        [Authorize]
+        [HttpPost("Account/UpdateProfile")] 
+        public async Task<IActionResult> UpdateProfile([FromForm] ProfileUpdateModel model)
+        {
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized(new { message = "Chưa đăng nhập hoặc phiên làm việc hết hạn." });
+            }
+
+            var user = await _db.Users.FirstOrDefaultAsync<User>(u => u.Email == userEmail);
+            if (user == null)
+            {
+                return NotFound(new { message = "Không tìm thấy người dùng." });
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.FullName)) user.Name = model.FullName;
+            user.Phone = model.Phone;
+            user.Address = model.Address;
+            user.Gender = model.Gender;
+            user.DateOfBirth = model.DateOfBirth;
+
+            _db.Users.Update(user);
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Cập nhật hồ sơ thành công trực tiếp vào Database!",
+                fullName = user.Name,
+                phone = user.Phone,
+                address = user.Address,
+                gender = user.Gender,
+                dateOfBirth = user.DateOfBirth?.ToString("yyyy-MM-dd")
+            });
+        }
+
+        [Authorize]
+        [HttpGet("Account/GetProfileData")]
+        public async Task<IActionResult> GetProfileData()
+        {
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized(new { message = "Chưa đăng nhập hoặc phiên làm việc hết hạn." });
+            }
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+            if (user == null)
+            {
+                return NotFound(new { message = "Không tìm thấy người dùng." });
+            }
+
+            return Ok(new
+            {
+                fullName = user.Name,
+                phone = user.Phone,
+                address = user.Address,
+                gender = user.Gender,
+                dateOfBirth = user.DateOfBirth?.ToString("yyyy-MM-dd"),
+                hasPassword = !string.IsNullOrEmpty(user.PasswordHash) 
+            });
+        }
+
+        [Authorize]
+        [HttpPost("Account/ChangePasswordSubmit")]
+        public async Task<IActionResult> ChangePasswordSubmit([FromForm] ChangePasswordModel model)
+        {
+            try
+            {
+                var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+                if (user == null) return NotFound(new { message = "Không tìm thấy người dùng." });
+
+                var hasPassword = !string.IsNullOrWhiteSpace(user.PasswordHash);
+
+                if (hasPassword)
+                {
+                    if (string.IsNullOrWhiteSpace(model.CurrentPassword))
+                    {
+                        return BadRequest(new { message = "Vui lòng nhập mật khẩu hiện tại." });
+                    }
+
+                    bool isPasswordValid = false;
+                    try
+                    {
+                        // Support both pbkdf2 and bcrypt hashed passwords
+                        var stored = user.PasswordHash ?? string.Empty;
+                        if (stored.StartsWith("pbkdf2$", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // reproduce verification logic used in AuthService
+                            var parts = stored.Split('$');
+                            if (parts.Length == 4 && parts[0] == "pbkdf2")
+                            {
+                                var iter = int.Parse(parts[1]);
+                                var salt = Convert.FromBase64String(parts[2]);
+                                var hash = Convert.FromBase64String(parts[3]);
+
+                                var computed = System.Security.Cryptography.Rfc2898DeriveBytes.Pbkdf2(
+                                    model.CurrentPassword,
+                                    salt,
+                                    iter,
+                                    System.Security.Cryptography.HashAlgorithmName.SHA256,
+                                    hash.Length);
+
+                                isPasswordValid = System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(computed, hash);
+                            }
+                        }
+                        else
+                        {
+                            // fallback to bcrypt
+                            isPasswordValid = BCrypt.Net.BCrypt.Verify(model.CurrentPassword, stored);
+                        }
+                    }
+                    catch
+                    {
+                        isPasswordValid = false;
+                    }
+
+                    if (!isPasswordValid)
+                    {
+                        return BadRequest(new { message = "Mật khẩu hiện tại không chính xác." });
+                    }
+
+                    if (model.CurrentPassword == model.NewPassword)
+                    {
+                        return BadRequest(new { message = "Mật khẩu mới không được trùng với mật khẩu cũ." });
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(model.NewPassword))
+                {
+                    return BadRequest(new { message = "Vui lòng nhập mật khẩu mới." });
+                }
+
+                // Hash new password using bcrypt
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+                _db.Users.Update(user);
+                await _db.SaveChangesAsync();
+
+                return Ok(new { message = hasPassword ? "Đổi mật khẩu thành công!" : "Tạo mật khẩu thành công!" });
+            }
+            catch (Exception ex)
+            {
+                // Return JSON error (avoid HTML stack traces)
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        public class ChangePasswordModel
+        {
+            public string CurrentPassword { get; set; }
+            public string NewPassword { get; set; }
+        }
+
+    }
+}

@@ -1,0 +1,253 @@
+@using System.Linq
+@using MarketConnect.Data
+@using System.Globalization
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "MarketConnect - Thương mại điện tử số 1 Việt Nam";
+    Layout = "_Layout"; 
+}
+
+<style>
+    .product-card-aspect {
+        aspect-ratio: 1 / 1;
+    }
+
+    .shopee-shadow {
+        box-shadow: 0 1px 12px 0 rgba(0,0,0,.05);
+    }
+</style>
+
+<main class="bg-[#f5f5f5] w-full min-h-screen py-5 px-4">
+    <div class="max-w-[1200px] mx-auto">
+        
+        <!-- Banners Section -->
+        <section class="grid grid-cols-12 gap-1.5 mb-6">
+            <div class="col-span-8 relative h-[235px] rounded-sm overflow-hidden shadow-sm">
+                <img alt="Hot Deals Banner" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent flex flex-col justify-end p-5">
+                    <span class="bg-[#f97316] text-white text-[10px] font-bold px-1.5 py-0.5 w-fit mb-1.5 rounded-sm">HOT DEALS</span>
+                    <h2 class="text-white text-2xl font-bold mb-1">Lễ Hội Mua Sắm - Giảm Đến 50%</h2>
+                    <p class="text-white/90 text-xs font-light">Áp dụng cho tất cả ngành hàng. Duy nhất hôm nay!</p>
+                </div>
+            </div>
+            <div class="col-span-4 flex flex-col gap-1.5">
+                <div class="h-[115px] rounded-sm overflow-hidden relative shadow-sm group cursor-pointer">
+                    <img alt="Sub promo" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=500" />
+                    <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+                        <span class="text-white text-[13px] font-bold border border-white/80 px-4 py-1.5 bg-black/20 backdrop-blur-[1px]">XẢ KHO TẾT</span>
+                    </div>
+                </div>
+                <div class="h-[115px] rounded-sm overflow-hidden relative shadow-sm group cursor-pointer">
+                    <img alt="Sub promo" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=500" />
+                    <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+                        <span class="text-white text-[13px] font-bold border border-white/80 px-4 py-1.5 bg-black/20 backdrop-blur-[1px]">DEAL SỐC 1K</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DANH MỤC SẢN PHẨM CHỢ -->
+        <section class="bg-white rounded-xl mb-6 shadow-sm border border-gray-100 p-4">
+            <div class="flex justify-between items-center mb-3 px-1">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#004532] text-[20px]">grid_view</span>
+                    <h3 class="font-bold text-[#004532] uppercase text-xs tracking-wider">DANH MỤC CHỢ NÔNG SẢN & THỰC PHẨM</h3>
+                </div>
+                <!-- Nút điều hướng Carousel Next / Prev -->
+                <div class="flex items-center gap-1.5">
+                    <button id="btnCatPrev" type="button" aria-label="Danh mục trước" class="w-8 h-8 rounded-full border border-gray-200 bg-white hover:bg-[#004532] hover:text-white hover:border-[#004532] text-gray-600 transition-all flex items-center justify-center shadow-sm disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">
+                        <i class="bi bi-chevron-left text-xs"></i>
+                    </button>
+                    <button id="btnCatNext" type="button" aria-label="Danh mục sau" class="w-8 h-8 rounded-full border border-gray-200 bg-white hover:bg-[#004532] hover:text-white hover:border-[#004532] text-gray-600 transition-all flex items-center justify-center shadow-sm disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">
+                        <i class="bi bi-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Carousel Container -->
+            <div id="categoryScrollContainer" class="flex items-stretch gap-3 overflow-x-auto scroll-smooth no-scrollbar py-2 px-1 border-t border-gray-100">
+                @{
+                    var marketCategories = new[] {
+                       new { Text = "Rau củ & Trái cây tươi", Icon = "apple", Bg = "bg-emerald-50 text-emerald-700 border-emerald-100" },
+                       new { Text = "Thịt & Gia cầm", Icon = "egg-fried", Bg = "bg-red-50 text-red-600 border-red-100" },
+                       new { Text = "Thủy hải sản tươi sống", Icon = "water", Bg = "bg-blue-50 text-blue-600 border-blue-100" },
+                       new { Text = "Thực phẩm chế biến sẵn", Icon = "bag-heart", Bg = "bg-amber-50 text-amber-600 border-amber-100" },
+                       new { Text = "Ẩm thực & Chợ ăn vặt", Icon = "cup-straw", Bg = "bg-orange-50 text-[#f97316] border-orange-100" }, 
+                       new { Text = "Gia vị & Đồ khô", Icon = "box-seam", Bg = "bg-purple-50 text-purple-600 border-purple-100" },
+                       new { Text = "Gạo, Nếp & Ngũ cốc", Icon = "moisture", Bg = "bg-emerald-50/80 text-[#004532] border-emerald-100" },
+                       new { Text = "Trứng & Sữa", Icon = "egg", Bg = "bg-yellow-50 text-yellow-700 border-yellow-100" },
+                       new { Text = "Hoa tươi & Đồ thờ cúng", Icon = "brightness-high", Bg = "bg-rose-50 text-rose-600 border-rose-100" }
+                    };
+                }
+
+                @foreach (var cat in marketCategories)
+                {
+                    <a class="shrink-0 w-[120px] md:w-[135px] flex flex-col items-center gap-2.5 p-3 rounded-xl hover:bg-emerald-50/50 border border-gray-100 hover:border-emerald-200 transition-all duration-300 cursor-pointer text-center group bg-white shadow-xs"
+                       href="/Products/Category?category=@Uri.EscapeDataString(cat.Text)">
+                        <div class="w-12 h-12 rounded-2xl @cat.Bg border flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs">
+                            <i class="bi bi-@cat.Icon text-xl"></i>
+                        </div>
+                        <span class="text-[12px] font-semibold text-gray-700 group-hover:text-[#004532] line-clamp-2 min-h-[32px] flex items-center justify-center leading-tight">
+                            @cat.Text
+                        </span>
+                    </a>
+                }
+            </div>
+        </section>
+
+        <!-- FLASH SALE -->
+        <section class="bg-white rounded-sm mb-6 shadow-sm overflow-hidden border border-gray-100">
+            <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-white">
+                <div class="flex items-center gap-4">
+                    <h3 class="font-bold text-xl text-[#f97316] flex items-center gap-1 uppercase italic tracking-tighter">
+                        <i class="bi bi-lightning-fill"></i> FLASH SALE
+                    </h3>
+                    <div class="flex gap-1 items-center font-mono">
+                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">02</span> :
+                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">45</span> :
+                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">12</span>
+                    </div>
+                </div>
+                <a class="text-[#f97316] text-xs font-medium hover:opacity-80 flex items-center gap-0.5" href="#">Xem tất cả <i class="bi bi-chevron-right text-[10px]"></i></a>
+            </div>
+
+            <div class="p-2 grid grid-cols-2 md:grid-cols-6 gap-2">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var p in Model.Take(5))
+                    {
+                        var price = p.Price;
+                        var img = !string.IsNullOrWhiteSpace(p.ImageUrl) ? p.ImageUrl : Url.Content("~/images/placeholder.svg");
+                        
+                        // 🔑 SỬA ĐỔI: Tự tạo slug từ Name để làm group_key và truyền đủ tham số URL
+                        var groupKey = !string.IsNullOrEmpty(p.Name) ? p.Name.ToLower().Replace(" ", "-") : "default-group";
+                        var sellerName = p.Seller != null ? (p.Seller.Name ?? p.Seller.Email) : "Tiểu thương Chợ";
+                        var addressStr = !string.IsNullOrEmpty(p.Address) ? p.Address : "Chợ Đồng Xuân (Hà Nội)";
+                        var productUrl = $"/Products/ProductDetail?id={p.Id}&name={Uri.EscapeDataString(p.Name ?? "")}&price={p.Price}&img={Uri.EscapeDataString(img)}&seller={Uri.EscapeDataString(sellerName)}&address={Uri.EscapeDataString(addressStr)}&group_key={Uri.EscapeDataString(groupKey)}";
+
+                        <a href="@productUrl" class="bg-white border border-transparent hover:border-[#f97316] hover:shadow-lg transition-all relative group cursor-pointer rounded-sm flex flex-col justify-between block no-underline text-inherit">
+                            <div>
+                                <div class="relative product-card-aspect overflow-hidden bg-gray-50">
+                                    <img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+                                         src="@img" onerror="this.onerror=null;this.src='@Url.Content("~/images/placeholder.svg")'" />
+                                    
+                                    <!-- Nhãn Giảm giá -->
+                                    <div class="absolute top-0 right-0 bg-[#ffd839]/95 px-1 py-0.5 text-center flex flex-col items-center z-10 w-[36px]">
+                                        <span class="text-[#f97316] font-bold text-[10px] leading-tight">20%</span>
+                                        <span class="text-white text-[8px] font-bold leading-tight">GIẢM</span>
+                                    </div>
+                                    
+                                    <!-- Nhãn Bán chạy -->
+                                    <div class="absolute top-1 left-[-2px] bg-[#f97316] text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-r-sm z-10 shadow-sm">
+                                        Bán chạy
+                                    </div>
+                                </div>
+                                <div class="p-2 flex flex-col gap-1">
+                                    <h4 class="text-[12px] line-clamp-2 min-h-[36px] text-gray-800 font-normal leading-normal group-hover:text-[#f97316] transition-colors">@p.Name</h4>
+                                </div>
+                            </div>
+                            <div class="p-2 pt-0 flex flex-col">
+                                <span class="text-[#f97316] text-base font-semibold">
+                                     @(p.IsFree ? "Miễn phí" : price.ToString("N0") + "đ")
+                                </span>
+                                <div class="flex items-center gap-1 mt-1.5">
+                                    <div class="flex text-amber-400 text-[9px]">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star text-gray-300"></i>
+                                    </div>
+                                    <span class="text-[10px] text-gray-400">Đã bán 1.2k</span>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
+                <!-- Ô Xem thêm trong Flash sale -->
+                <div class="bg-white flex items-center justify-center border border-gray-100 rounded-sm hover:shadow-md transition-shadow min-h-[250px]">
+                    <div class="flex flex-col items-center gap-2 cursor-pointer group py-8">
+                        <div class="w-10 h-10 border-2 border-[#f97316] rounded-full flex items-center justify-center group-hover:bg-[#f97316]/5 transition-colors">
+                            <i class="bi bi-chevron-right text-[#f97316] font-bold"></i>
+                        </div>
+                        <span class="text-xs font-medium text-[#f97316]">Xem Thêm</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GỢI Ý HÔM NAY -->
+        <section class="mb-6">
+            <div class="bg-white border-b-2 border-[#f97316] sticky top-0 z-20 shadow-sm">
+                <div class="w-[180px] text-center py-3 bg-white border-r border-gray-100">
+                    <h3 class="font-bold text-base text-[#f97316] uppercase tracking-wide">GỢI Ý HÔM NAY</h3>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-2 mt-2">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var p in Model.Skip(5).Take(12))
+                    {
+                        var price = p.Price;
+                        var img = !string.IsNullOrWhiteSpace(p.ImageUrl) ? p.ImageUrl : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400";
+                        
+                        var groupKey = !string.IsNullOrEmpty(p.Name) ? p.Name.ToLower().Replace(" ", "-") : "default-group";
+                        var sellerName = p.Seller != null ? (p.Seller.Name ?? p.Seller.Email) : "Tiểu thương Chợ";
+                        var addressStr = !string.IsNullOrEmpty(p.Address) ? p.Address : "Chợ Đồng Xuân (Hà Nội)";
+                        var productUrl = $"/Products/ProductDetail?id={p.Id}&name={Uri.EscapeDataString(p.Name ?? "")}&price={p.Price}&img={Uri.EscapeDataString(img)}&seller={Uri.EscapeDataString(sellerName)}&address={Uri.EscapeDataString(addressStr)}&group_key={Uri.EscapeDataString(groupKey)}";
+
+                        <a href="@productUrl" class="bg-white border border-transparent hover:border-[#f97316] hover:shadow-lg transition-all relative group cursor-pointer rounded-sm flex flex-col justify-between block no-underline text-inherit">
+                            <div>
+                                <div class="relative product-card-aspect overflow-hidden bg-gray-50">
+                                    <img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200" src="@img" alt="@p.Name" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'" />
+                                </div>
+                                <div class="p-2">
+                                    <h4 class="text-[12px] line-clamp-2 min-h-[36px] text-gray-800 font-normal leading-normal group-hover:text-[#f97316] transition-colors">@p.Name</h4>
+                                </div>
+                            </div>
+                            <div class="p-2 pt-0">
+                                <div class="flex justify-between items-baseline mt-2 flex-wrap gap-1">
+                                    <span class="text-[#f97316] text-[15px] font-semibold">
+                                        @(p.IsFree ? "Miễn phí" : price.ToString("N0") + "đ")
+                                    </span>
+                                    <span class="text-[10px] text-gray-400">Đã bán 5k+</span>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+            </div>
+            
+            <div class="flex justify-center mt-6">
+                <button class="bg-white border border-gray-200 px-16 py-3 rounded-sm text-[13px] hover:bg-gray-50 transition-colors shadow-sm text-gray-600 min-w-[240px] font-medium">Xem Thêm</button>
+            </div>
+        </section>
+        
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('categoryScrollContainer');
+        const btnPrev = document.getElementById('btnCatPrev');
+        const btnNext = document.getElementById('btnCatNext');
+
+        if (container && btnPrev && btnNext) {
+            function updateNavButtons() {
+                const maxScrollLeft = container.scrollWidth - container.clientWidth;
+                btnPrev.disabled = container.scrollLeft <= 5;
+                btnNext.disabled = container.scrollLeft >= maxScrollLeft - 5;
+            }
+
+            btnPrev.addEventListener('click', function () {
+                container.scrollBy({ left: -280, behavior: 'smooth' });
+            });
+
+            btnNext.addEventListener('click', function () {
+                container.scrollBy({ left: 280, behavior: 'smooth' });
+            });
+
+            container.addEventListener('scroll', updateNavButtons);
+            window.addEventListener('resize', updateNavButtons);
+            updateNavButtons();
+        }
+    });
+</script>

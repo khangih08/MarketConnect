@@ -1,0 +1,24 @@
+﻿using MarketConnect.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MarketConnect.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class CategoriesController : ControllerBase
+    {
+        private readonly IProductService _service;
+
+        public CategoriesController(IProductService service)
+        {
+            _service = service;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var items = await _service.GetCategoriesAsync();
+            return Ok(items);
+        }
+    }
+}

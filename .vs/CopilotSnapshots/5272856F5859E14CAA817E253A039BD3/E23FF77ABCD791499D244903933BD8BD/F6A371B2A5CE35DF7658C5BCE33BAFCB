@@ -1,0 +1,28 @@
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MarketConnect.Data
+{
+    public class StallProduct
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [ForeignKey(nameof(Merchant))]
+        public int MerchantId { get; set; }
+
+        [ForeignKey(nameof(Product))]
+        public int ProductId { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Price { get; set; }
+
+        public bool IsTrending { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
+
+        public User? Merchant { get; set; }
+        public Product? Product { get; set; }
+    }
+}

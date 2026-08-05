@@ -1,0 +1,101 @@
+﻿using MarketConnect.Controllers.Dtos;
+using MarketConnect.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using MarketConnect.Data;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+
+namespace MarketConnect.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly ApplicationDbContext _db;
+
+        public AccountController(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+        private readonly ApplicationDbContext _db;
+
+        public AccountController(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        [HttpGet("Account/Login")]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpGet("Account/Profile")]
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> UpdateProfile()
+        {
+            // Ensure user is authenticated via JWT middleware
+            var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(sub) || !int.TryParse(sub, out var userId))
+            {
+                return Unauthorized(new { message = "User not authenticated." });
+            }
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return NotFound(new { message = "User not found." });
+
+            // Read form values
+            var name = Request.Form["Name"].FirstOrDefault();
+            var phone = Request.Form["Phone"].FirstOrDefault();
+            var address = Request.Form["Address"].FirstOrDefault();
+            var gender = Request.Form["Gender"].FirstOrDefault();
+            var dob = Request.Form["DateOfBirth"].FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(name)) user.Name = name;
+            if (!string.IsNullOrWhiteSpace(phone)) user.Phone = phone;
+
+            // NOTE: User entity currently doesn't have Address/Gender/DateOfBirth fields.
+            // To persist those, extend the User model or create a profile table. For now we ignore them.
+
+            await _db.SaveChangesAsync();
+
+            return Json(new { message = "Profile updated" });
+        }
+
+    [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> UpdateProfile([FromForm] ProfileUpdateModel model)
+        {
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized(new { message = "Chưa đăng nhập hoặc phiên làm việc hết hạn." });
+            }
+       
+            var user = await _db.Users.FirstOrDefaultAsync<User>(u => u.Email == userEmail);
+            if (user == null)
+            {
+                return NotFound(new { message = "Không tìm thấy người dùng." });
+            }
+
+            user.Phone = model.Phone;
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Cập nhật hồ sơ thành công!",
+                phone = user.Phone,
+                address = model.Address
+            });
+        }
+    }
+}

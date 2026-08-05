@@ -1,0 +1,88 @@
+﻿using MarketConnect.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MarketConnect.Data;
+
+namespace MarketConnect.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class CategoriesController : ControllerBase
+    {
+        private readonly IProductService _service;
+        private readonly ApplicationDbContext _db;
+
+        public CategoriesController(IProductService service, ApplicationDbContext db)
+        {
+            _service = service;
+            _db = db;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var items = await _service.GetCategoriesAsync();
+            return Ok(items);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var cat = await _db.Categories.FindAsync(id);
+            if (cat == null) return NotFound();
+            return Ok(cat);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] Category category)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var exists = await _db.Categories.AnyAsync(c => c.Name.ToLower() == category.Name.ToLower());
+            if (exists) return Conflict(new { message = "Category with the same name already exists." });
+
+            _db.Categories.Add(category);
+            await _db.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] Category categoryData)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var existingCategory = await _db.Categories.FindAsync(id);
+            if (existingCategory == null) return NotFound(new { message = $"Category with ID {id} not found." });
+
+            var nameExists = await _db.Categories.AnyAsync(c =>
+                c.Id != id && c.Name.ToLower() == categoryData.Name.ToLower());
+
+            if (nameExists) return Conflict(new { message = "Another category with the same name already exists." });
+            existingCategory.Name = categoryData.Name;
+
+            _db.Categories.Update(existingCategory);
+            await _db.SaveChangesAsync();
+
+            return Ok(existingCategory); 
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        
+            var category = await _db.Categories.FindAsync(id);
+            if (category == null) return NotFound(new { message = $"Category with ID {id} not found." });
+
+            var hasProducts = await _db.Products.AnyAsync(p => p.CategoryId == id);
+            if (hasProducts)
+            {
+                return BadRequest(new { message = "Cannot delete this category because it contains active products. Please reassign or delete the products first." });
+            }
+
+            _db.Categories.Remove(category);
+            await _db.SaveChangesAsync();
+
+            return NoContent(); 
+        }
+    }
+}

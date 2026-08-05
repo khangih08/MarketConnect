@@ -1,0 +1,731 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\URL-Shortener\\MarketConnect\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\controllers\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\controllers\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\productservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\productservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\iproductservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\iproductservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\wwwroot\\images\\seed\\coffee-maker.svg||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\wwwroot\\images\\seed\\coffee-maker.svg||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\wwwroot\\images\\seed\\book.svg||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\wwwroot\\images\\seed\\book.svg||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\wwwroot\\images\\seed\\headphones.svg||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\wwwroot\\images\\seed\\headphones.svg||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\home\\privacy.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\home\\privacy.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\shared\\error.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\shared\\error.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\account\\register.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\account\\register.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\wwwroot\\js\\layout-scripts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\wwwroot\\js\\layout-scripts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\account\\profile.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\account\\profile.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\account\\changepassword.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\account\\changepassword.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\account\\addphoneandsetpassword.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\account\\addphoneandsetpassword.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\product\\productdetail.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\product\\productdetail.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|d:\\url-shortener\\marketconnect\\marketconnect.data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|solutionrelative:marketconnect.data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|d:\\url-shortener\\marketconnect\\marketconnect.data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|solutionrelative:marketconnect.data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\productcompareservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\productcompareservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\iproductcompareservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\iproductcompareservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\marketconnect.services.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\marketconnect.services.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\models\\phoneloginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\models\\phoneloginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|d:\\url-shortener\\marketconnect\\marketconnect.data\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|solutionrelative:marketconnect.data\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\userprofiledto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\userprofiledto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\controllers\\dtos\\authdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\controllers\\dtos\\authdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\models\\authmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\models\\authmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\shared\\_layout.cshtml.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\shared\\_layout.cshtml.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\marketconnect.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\marketconnect.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\models\\userprofiledto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\models\\userprofiledto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|d:\\url-shortener\\marketconnect\\marketconnect.services\\iauthservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C52C95B-CF97-A532-21AF-E2890BFD0DEA}|MarketConnect.Services\\MarketConnect.Services.csproj|solutionrelative:marketconnect.services\\iauthservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\controllers\\dtos\\authextendeddtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\controllers\\dtos\\authextendeddtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\controllers\\dtos\\phonelogindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\controllers\\dtos\\phonelogindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\_viewimports.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\_viewimports.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\views\\_viewstart.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\views\\_viewstart.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|d:\\url-shortener\\marketconnect\\marketconnect\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{E8292D0F-31C5-9601-997E-D186C46F8244}|MarketConnect\\MarketConnect.csproj|solutionrelative:marketconnect\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|d:\\url-shortener\\marketconnect\\marketconnect.data\\marketconnect.data.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|solutionrelative:marketconnect.data\\marketconnect.data.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|d:\\url-shortener\\marketconnect\\marketconnect.data\\otpverification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B327802C-3414-CDA3-9A90-7F5FBAF6D766}|MarketConnect.Data\\MarketConnect.Data.csproj|solutionrelative:marketconnect.data\\otpverification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "HomeController.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\HomeController.cs",
+              "RelativeDocumentMoniker": "MarketConnect\\Controllers\\HomeController.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\HomeController.cs",
+              "RelativeToolTip": "MarketConnect\\Controllers\\HomeController.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAA0wDIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-24T04:30:51.925Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "IProductService.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\IProductService.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\IProductService.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\IProductService.cs",
+              "RelativeToolTip": "MarketConnect.Services\\IProductService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-30T02:29:42.832Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Home\\Index.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Home\\Index.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Home\\Index.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Home\\Index.cshtml",
+              "ViewState": "AgIAAFcAAAAAAAAAAAAAAFoAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-23T09:47:00.273Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ProductsController.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\ProductsController.cs",
+              "RelativeDocumentMoniker": "MarketConnect\\Controllers\\ProductsController.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\ProductsController.cs",
+              "RelativeToolTip": "MarketConnect\\Controllers\\ProductsController.cs",
+              "ViewState": "AgIAAHsAAAAAAAAAAAAQwIkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-30T03:36:51.115Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ProductService.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\ProductService.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\ProductService.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\ProductService.cs",
+              "RelativeToolTip": "MarketConnect.Services\\ProductService.cs",
+              "ViewState": "AgIAAEEAAAAAAAAAAAAuwFgAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-30T03:43:25.678Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "MarketConnect\\Controllers\\AccountController.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "MarketConnect\\Controllers\\AccountController.cs",
+              "ViewState": "AgIAAFYAAAAAAAAAAAAzwFEAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-28T10:10:20.822Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "bootstrap-grid.css.map",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+              "RelativeDocumentMoniker": "MarketConnect\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+              "RelativeToolTip": "MarketConnect\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAADP1gIAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-07-30T07:24:37.971Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "book.svg",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\images\\seed\\book.svg",
+              "RelativeDocumentMoniker": "MarketConnect\\wwwroot\\images\\seed\\book.svg",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\images\\seed\\book.svg",
+              "RelativeToolTip": "MarketConnect\\wwwroot\\images\\seed\\book.svg",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAA==",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKTSURBVDhPjVNLSFRRGP7unTsz9w75uOaMZlMNpo1aFFJRodRGN7UwatMiKgga3JgVRBSNSA8RooUFLRycCCpc9ITIFi0EW\u002BhCW/gONYUcxplsQL13nKv3dM6ZGV\u002BE9N37c\u002B455/\u002B\u002B/7s/5whYA7/fP5L63BSCIDxvbGxsAiEktZQEE6Brm6K1tXWS5TU0NNQyjsiZKQgCBgBChQ2Q\u002BfswpytgDLmg9zihD9XBNJfhcrlstPoeqlVPRS6uCBDy1broLnN29PkxPeaFFmpC79gOdEu9sB8KQRt\u002Bz/NUVbUGAoGpJIfc5j2gZIuv3fam/sCNGrdjGLGwE23hR\u002BiMeBCKAbXlOTgfr0VW9QfqD4iEZ5BIJNAWDI5yB75X0tXqwrc1JZk90MKVUEq/4UplFc4W5UKwiHjaO4tx90NWiYfT5cQuj4dRITLrZfn9104XtOD3\u002BE4z7/BrqIoKZ4YM37E8XNifA4vdiuCIApPzWY9Wmy9h6UfOpd13t89FstEceyF2PJlAfNHkm6y6xSbxcTASpyuMyFT4NoeI6PV6mzEvvIy0oO\u002BXPVGULaMs186jVLVil0zzF\u002BI4ki\u002BnqjP\u002BGgemrp0Z\u002BHn8T0d0nyrOTky\u002B8x0tNoxE0iZrcSqXz5lAcroCcXkeBcGpyzcnowRTDk9xoDuEmbkE5vRlfB6cRcWzIXibv\u002BNTf5ST0y7SEBa6MGIaOFje2VUnZSgPTFECMZM9YCeLde6cdwvuVLlXrVMFWXGAHqRRaUlDezyEic6tlbFBbW/oS8nHbf0RDZIooDDLipPeTJwozIJJH4EIoG/y1/6Fe/5bj6lFousa0WjoWjoWiLYhGNidWHcXDNhOsVGWFSg0ZCUdDigbIo11Zv73Oq8C\u002BAsr5V2IWWNA0gAAAABJRU5ErkJggg==",
+              "WhenOpened": "2026-07-30T06:39:05.794Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "headphones.svg",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\images\\seed\\headphones.svg",
+              "RelativeDocumentMoniker": "MarketConnect\\wwwroot\\images\\seed\\headphones.svg",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\images\\seed\\headphones.svg",
+              "RelativeToolTip": "MarketConnect\\wwwroot\\images\\seed\\headphones.svg",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAA==",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKTSURBVDhPjVNLSFRRGP7unTsz9w75uOaMZlMNpo1aFFJRodRGN7UwatMiKgga3JgVRBSNSA8RooUFLRycCCpc9ITIFi0EW\u002BhCW/gONYUcxplsQL13nKv3dM6ZGV\u002BE9N37c\u002B455/\u002B\u002B/7s/5whYA7/fP5L63BSCIDxvbGxsAiEktZQEE6Brm6K1tXWS5TU0NNQyjsiZKQgCBgBChQ2Q\u002BfswpytgDLmg9zihD9XBNJfhcrlstPoeqlVPRS6uCBDy1broLnN29PkxPeaFFmpC79gOdEu9sB8KQRt\u002Bz/NUVbUGAoGpJIfc5j2gZIuv3fam/sCNGrdjGLGwE23hR\u002BiMeBCKAbXlOTgfr0VW9QfqD4iEZ5BIJNAWDI5yB75X0tXqwrc1JZk90MKVUEq/4UplFc4W5UKwiHjaO4tx90NWiYfT5cQuj4dRITLrZfn9104XtOD3\u002BE4z7/BrqIoKZ4YM37E8XNifA4vdiuCIApPzWY9Wmy9h6UfOpd13t89FstEceyF2PJlAfNHkm6y6xSbxcTASpyuMyFT4NoeI6PV6mzEvvIy0oO\u002BXPVGULaMs186jVLVil0zzF\u002BI4ki\u002BnqjP\u002BGgemrp0Z\u002BHn8T0d0nyrOTky\u002B8x0tNoxE0iZrcSqXz5lAcroCcXkeBcGpyzcnowRTDk9xoDuEmbkE5vRlfB6cRcWzIXibv\u002BNTf5ST0y7SEBa6MGIaOFje2VUnZSgPTFECMZM9YCeLde6cdwvuVLlXrVMFWXGAHqRRaUlDezyEic6tlbFBbW/oS8nHbf0RDZIooDDLipPeTJwozIJJH4EIoG/y1/6Fe/5bj6lFousa0WjoWjoWiLYhGNidWHcXDNhOsVGWFSg0ZCUdDigbIo11Zv73Oq8C\u002BAsr5V2IWWNA0gAAAABJRU5ErkJggg==",
+              "WhenOpened": "2026-07-30T06:38:59.799Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Privacy.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Home\\Privacy.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Home\\Privacy.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Home\\Privacy.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Home\\Privacy.cshtml",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAAAAMAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-24T03:10:48.43Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Error.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Shared\\Error.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Shared\\Error.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Shared\\Error.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Shared\\Error.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-27T04:45:31.434Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-24T03:21:39.497Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "coffee-maker.svg",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\images\\seed\\coffee-maker.svg",
+              "RelativeDocumentMoniker": "MarketConnect\\wwwroot\\images\\seed\\coffee-maker.svg",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\images\\seed\\coffee-maker.svg",
+              "RelativeToolTip": "MarketConnect\\wwwroot\\images\\seed\\coffee-maker.svg",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAA==",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKTSURBVDhPjVNLSFRRGP7unTsz9w75uOaMZlMNpo1aFFJRodRGN7UwatMiKgga3JgVRBSNSA8RooUFLRycCCpc9ITIFi0EW\u002BhCW/gONYUcxplsQL13nKv3dM6ZGV\u002BE9N37c\u002B455/\u002B\u002B/7s/5whYA7/fP5L63BSCIDxvbGxsAiEktZQEE6Brm6K1tXWS5TU0NNQyjsiZKQgCBgBChQ2Q\u002BfswpytgDLmg9zihD9XBNJfhcrlstPoeqlVPRS6uCBDy1broLnN29PkxPeaFFmpC79gOdEu9sB8KQRt\u002Bz/NUVbUGAoGpJIfc5j2gZIuv3fam/sCNGrdjGLGwE23hR\u002BiMeBCKAbXlOTgfr0VW9QfqD4iEZ5BIJNAWDI5yB75X0tXqwrc1JZk90MKVUEq/4UplFc4W5UKwiHjaO4tx90NWiYfT5cQuj4dRITLrZfn9104XtOD3\u002BE4z7/BrqIoKZ4YM37E8XNifA4vdiuCIApPzWY9Wmy9h6UfOpd13t89FstEceyF2PJlAfNHkm6y6xSbxcTASpyuMyFT4NoeI6PV6mzEvvIy0oO\u002BXPVGULaMs186jVLVil0zzF\u002BI4ki\u002BnqjP\u002BGgemrp0Z\u002BHn8T0d0nyrOTky\u002B8x0tNoxE0iZrcSqXz5lAcroCcXkeBcGpyzcnowRTDk9xoDuEmbkE5vRlfB6cRcWzIXibv\u002BNTf5ST0y7SEBa6MGIaOFje2VUnZSgPTFECMZM9YCeLde6cdwvuVLlXrVMFWXGAHqRRaUlDezyEic6tlbFBbW/oS8nHbf0RDZIooDDLipPeTJwozIJJH4EIoG/y1/6Fe/5bj6lFousa0WjoWjoWiLYhGNidWHcXDNhOsVGWFSg0ZCUdDigbIo11Zv73Oq8C\u002BAsr5V2IWWNA0gAAAABJRU5ErkJggg==",
+              "WhenOpened": "2026-07-30T06:39:13.252Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "Register.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\Register.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Account\\Register.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\Register.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Account\\Register.cshtml",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAAAAIAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-28T09:18:48.2Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Login.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\Login.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Account\\Login.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\Login.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Account\\Login.cshtml",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAAAAgAAABEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-24T03:57:47.51Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "layout-scripts.js",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\js\\layout-scripts.js",
+              "RelativeDocumentMoniker": "MarketConnect\\wwwroot\\js\\layout-scripts.js",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\wwwroot\\js\\layout-scripts.js",
+              "RelativeToolTip": "MarketConnect\\wwwroot\\js\\layout-scripts.js",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAAAB0AAABTAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-07-28T04:32:52.457Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Profile.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\Profile.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Account\\Profile.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\Profile.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Account\\Profile.cshtml",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAAAAIAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-24T07:14:43.28Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "ChangePassword.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\ChangePassword.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Account\\ChangePassword.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\ChangePassword.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Account\\ChangePassword.cshtml",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAAAAIAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-29T07:56:43.536Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "AddPhoneAndSetPassword.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\AddPhoneAndSetPassword.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Account\\AddPhoneAndSetPassword.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Account\\AddPhoneAndSetPassword.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Account\\AddPhoneAndSetPassword.cshtml",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAAAAIAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-29T09:19:48.159Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Program.cs",
+              "RelativeDocumentMoniker": "MarketConnect\\Program.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Program.cs",
+              "RelativeToolTip": "MarketConnect\\Program.cs",
+              "ViewState": "AgIAADEAAAAAAAAAAAAEwDwAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-24T02:10:45.593Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "ProductDetail.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Product\\ProductDetail.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Product\\ProductDetail.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Product\\ProductDetail.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\Product\\ProductDetail.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-29T10:21:06.405Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "AuthService.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\AuthService.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\AuthService.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\AuthService.cs",
+              "RelativeToolTip": "MarketConnect.Services\\AuthService.cs",
+              "ViewState": "AgIAAEMAAAAAAAAAAAAcwBoBAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-23T07:11:32.16Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Data\\ApplicationDbContext.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\ApplicationDbContext.cs",
+              "RelativeToolTip": "MarketConnect.Data\\ApplicationDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-23T07:24:19.522Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "SeedData.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\SeedData.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Data\\SeedData.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\SeedData.cs",
+              "RelativeToolTip": "MarketConnect.Data\\SeedData.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAawBsAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-30T04:21:39.916Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "ProductCompareService.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\ProductCompareService.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\ProductCompareService.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\ProductCompareService.cs",
+              "RelativeToolTip": "MarketConnect.Services\\ProductCompareService.cs",
+              "ViewState": "AgIAAHQAAAAAAAAAAADwv3YAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-30T02:46:37.526Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "IProductCompareService.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\IProductCompareService.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\IProductCompareService.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\IProductCompareService.cs",
+              "RelativeToolTip": "MarketConnect.Services\\IProductCompareService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-30T02:46:19.592Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "MarketConnect.Services.csproj",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\MarketConnect.Services.csproj",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj",
+              "RelativeToolTip": "MarketConnect.Services\\MarketConnect.Services.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-07-28T04:21:11.525Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "PhoneLoginRequest.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\Models\\PhoneLoginRequest.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\Models\\PhoneLoginRequest.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\Models\\PhoneLoginRequest.cs",
+              "RelativeToolTip": "MarketConnect.Services\\Models\\PhoneLoginRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-23T09:35:10.33Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "User.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\User.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Data\\User.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\User.cs",
+              "RelativeToolTip": "MarketConnect.Data\\User.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAgwCIAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-28T07:41:57.143Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "MarketConnect\\Controllers\\AuthController.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "MarketConnect\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAAEAAAAAAAAAAAAAuwE0AAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-23T09:00:12.879Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "UserProfileDto.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\UserProfileDto.cs",
+              "RelativeDocumentMoniker": "MarketConnect\\UserProfileDto.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\UserProfileDto.cs",
+              "RelativeToolTip": "MarketConnect\\UserProfileDto.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAIA5wAoAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-27T03:08:01.381Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "AuthDtos.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\Dtos\\AuthDtos.cs",
+              "RelativeDocumentMoniker": "MarketConnect\\Controllers\\Dtos\\AuthDtos.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\Dtos\\AuthDtos.cs",
+              "RelativeToolTip": "MarketConnect\\Controllers\\Dtos\\AuthDtos.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAUAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-27T03:08:40.406Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "AuthModels.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\Models\\AuthModels.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\Models\\AuthModels.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\Models\\AuthModels.cs",
+              "RelativeToolTip": "MarketConnect.Services\\Models\\AuthModels.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAA0wBkAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-28T07:35:22.574Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "_Layout.cshtml.css",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Shared\\_Layout.cshtml.css",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\Shared\\_Layout.cshtml.css",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\Shared\\_Layout.cshtml.css",
+              "RelativeToolTip": "MarketConnect\\Views\\Shared\\_Layout.cshtml.css",
+              "ViewState": "AgIAAFIAAAAAAAAAAIBJwFUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-07-28T06:38:31.072Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
+              "Title": "MarketConnect.csproj",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\MarketConnect.csproj",
+              "RelativeDocumentMoniker": "MarketConnect\\MarketConnect.csproj",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\MarketConnect.csproj",
+              "RelativeToolTip": "MarketConnect\\MarketConnect.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-07-28T04:21:20.14Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 42,
+              "Title": "MarketConnect.Data.csproj",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj",
+              "RelativeDocumentMoniker": "MarketConnect.Data\\MarketConnect.Data.csproj",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj",
+              "RelativeToolTip": "MarketConnect.Data\\MarketConnect.Data.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-07-28T04:11:12.429Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "UserProfileDto.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\Models\\UserProfileDto.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\Models\\UserProfileDto.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\Models\\UserProfileDto.cs",
+              "RelativeToolTip": "MarketConnect.Services\\Models\\UserProfileDto.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAxwAYAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-27T03:28:44.156Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 36,
+              "Title": "IAuthService.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\IAuthService.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Services\\IAuthService.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\IAuthService.cs",
+              "RelativeToolTip": "MarketConnect.Services\\IAuthService.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAADwvw4AAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-23T07:24:34.535Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 38,
+              "Title": "PhoneLoginDto.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\Dtos\\PhoneLoginDto.cs",
+              "RelativeDocumentMoniker": "MarketConnect\\Controllers\\Dtos\\PhoneLoginDto.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\Dtos\\PhoneLoginDto.cs",
+              "RelativeToolTip": "MarketConnect\\Controllers\\Dtos\\PhoneLoginDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-23T08:56:25.516Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 37,
+              "Title": "AuthExtendedDtos.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\Dtos\\AuthExtendedDtos.cs",
+              "RelativeDocumentMoniker": "MarketConnect\\Controllers\\Dtos\\AuthExtendedDtos.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Controllers\\Dtos\\AuthExtendedDtos.cs",
+              "RelativeToolTip": "MarketConnect\\Controllers\\Dtos\\AuthExtendedDtos.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-23T07:26:06.815Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 39,
+              "Title": "_ViewImports.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\_ViewImports.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\_ViewImports.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\_ViewImports.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\_ViewImports.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-24T03:10:36.172Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 40,
+              "Title": "_ViewStart.cshtml",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\_ViewStart.cshtml",
+              "RelativeDocumentMoniker": "MarketConnect\\Views\\_ViewStart.cshtml",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\Views\\_ViewStart.cshtml",
+              "RelativeToolTip": "MarketConnect\\Views\\_ViewStart.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-24T03:10:39.901Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 43,
+              "Title": "OtpVerification.cs",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\OtpVerification.cs",
+              "RelativeDocumentMoniker": "MarketConnect.Data\\OtpVerification.cs",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\OtpVerification.cs",
+              "RelativeToolTip": "MarketConnect.Data\\OtpVerification.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-23T07:24:04.257Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 41,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\appsettings.json",
+              "RelativeDocumentMoniker": "MarketConnect\\appsettings.json",
+              "ToolTip": "D:\\URL-Shortener\\MarketConnect\\MarketConnect\\appsettings.json",
+              "RelativeToolTip": "MarketConnect\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-07-22T01:47:29.308Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,341 @@
+﻿@using System.Linq
+@using MarketConnect.Data
+@using System.Globalization
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "MarketConnect - Thương mại điện tử số 1 Việt Nam";
+}
+
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+    <!-- Sử dụng Bootstrap Icons để thay thế, đảm bảo 100% không lỗi hiện chữ -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <script id="tailwind-config">
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        "colors": {
+                            "primary": "#004532",
+                            "secondary": "#f97316",
+                            "surface": "#f9f9ff",
+                            "background": "#f5f5fa",
+                            "on-background": "#151c27",
+                            "outline-variant": "#dee2e6"
+                        },
+                        "fontFamily": {
+                            "sans": ["Hanken Grotesk", "sans-serif"]
+                        }
+                    },
+                },
+            }
+    </script>
+    <style>
+            body {
+                font-family: 'Hanken Grotesk', sans-serif;
+                background-color: #f5f5fa;
+            }
+
+            .product-card-aspect {
+                aspect-ratio: 1 / 1;
+            }
+
+            .shopee-shadow {
+                box-shadow: 0 1px 12px 0 rgba(0,0,0,.05);
+            }
+    </style>
+</head>
+<body class="text-on-background text-sm">
+    <!-- Header chuẩn ảnh 3 -->
+    <header class="w-full sticky top-0 bg-white z-50 border-b border-gray-200 shadow-sm">
+        <!-- Top bar màu xanh lá đậm -->
+        <div class="bg-[#004d38] text-white text-[12px] py-1.5 px-16 hidden md:flex justify-between items-center">
+            <div class="flex gap-4">
+                <a class="hover:opacity-80" href="#">Kênh Người Bán</a>
+                <a class="hover:opacity-80" href="#">Tải ứng dụng</a>
+                <a class="hover:opacity-80" href="#">Kết nối</a>
+            </div>
+            <div class="flex gap-4 items-center">
+                <a class="flex items-center gap-1 hover:opacity-80" href="#"><i class="bi bi-bell text-[13px]"></i> Thông báo</a>
+                <a class="flex items-center gap-1 hover:opacity-80" href="#"><i class="bi bi-question-circle text-[13px]"></i> Hỗ trợ</a>
+                <a class="font-medium hover:opacity-80" href="#">Đăng ký</a>
+                <div class="w-[1px] h-3 bg-white/30"></div>
+                <a class="font-medium hover:opacity-80" href="#">Đăng nhập</a>
+            </div>
+        </div>
+
+        <!-- Main Header -->
+        <div class="px-16 py-4 flex items-center justify-between gap-8">
+            <!-- Logo -->
+            <div class="flex items-center gap-2 shrink-0">
+                <i class="bi bi-bag-fill text-[#f97316] text-3xl"></i>
+                <h1 class="font-bold text-2xl text-[#004d38] tracking-tight">MarketConnect</h1>
+            </div>
+
+            <!-- Search Bar Viền Cam giống ảnh 3 -->
+            <div class="flex-grow max-w-3xl">
+                <form method="get" asp-action="Index" class="flex bg-white border-2 border-[#f97316] rounded-sm p-[2px]">
+                    <input name="q" value="@Context.Request.Query["q"]" class="flex-grow border-none focus:ring-0 px-4 text-sm" placeholder="Săn Deal 11.11 - Miễn phí vận chuyển toàn quốc..." type="text" />
+                    <button type="submit" class="bg-[#f97316] text-white px-7 py-2 flex items-center justify-center hover:opacity-95 transition-all">
+                        <i class="bi bi-search text-base"></i>
+                    </button>
+                </form>
+                <!-- Từ khóa phổ biến bên dưới -->
+                <div class="flex gap-4 mt-1.5 text-[12px] text-gray-500 overflow-hidden h-4">
+                    <a class="hover:text-[#f97316]" href="#">Đồ gia dụng</a>
+                    <a class="hover:text-[#f97316]" href="#">Ốp lưng iPhone</a>
+                    <a class="hover:text-[#f97316]" href="#">Áo thun nam</a>
+                    <a class="hover:text-[#f97316]" href="#">Voucher ăn uống</a>
+                    <a class="hover:text-[#f97316]" href="#">Mỹ phẩm nội địa</a>
+                    <a class="hover:text-[#f97316]" href="#">Giày sneaker</a>
+                </div>
+            </div>
+
+            <!-- Giỏ hàng -->
+            <div class="flex items-center pr-4">
+                <div class="relative cursor-pointer group">
+                    <i class="bi bi-cart3 text-[#004d38] text-2xl"></i>
+                    <span class="absolute -top-2 -right-2 bg-[#f97316] text-white text-[10px] px-1.5 rounded-full border-2 border-white font-bold">5</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[1200px] mx-auto py-4 px-4">
+        <!-- Banners Section giống ảnh 3 -->
+        <section class="grid grid-cols-12 gap-2 mb-6">
+            <div class="col-span-8 relative h-[280px] rounded-sm overflow-hidden">
+                <img alt="Hot Deals Banner" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-4">
+                    <span class="bg-[#f97316] text-white text-[10px] font-bold px-1.5 py-0.5 w-fit mb-1 rounded-sm">HOT DEALS</span>
+                    <h2 class="text-white text-2xl font-bold mb-1">Lễ Hội Mua Sắm - Giảm Đến 50%</h2>
+                    <p class="text-white/90 text-xs">Áp dụng cho tất cả ngành hàng. Duy nhất hôm nay!</p>
+                </div>
+            </div>
+            <div class="col-span-4 flex flex-col gap-2">
+                <div class="h-[136px] rounded-sm overflow-hidden relative">
+                    <img alt="Sub promo" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=500" />
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+                        <span class="text-white text-xs font-bold border border-white px-3 py-1 bg-black/10">XẢ KHO TẾT</span>
+                    </div>
+                </div>
+                <div class="h-[136px] rounded-sm overflow-hidden relative">
+                    <img alt="Sub promo" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=500" />
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+                        <span class="text-white text-xs font-bold border border-white px-3 py-1 bg-black/10">DEAL SỐC 1K</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DANH MỤC hiện icon cam tròn chuẩn ảnh 3 -->
+        <section class="bg-white p-4 rounded-sm mb-6 shopee-shadow">
+            <h3 class="font-bold text-gray-400 uppercase text-xs mb-4">DANH MỤC</h3>
+            <div class="grid grid-cols-5 md:grid-cols-10 gap-4">
+                @{
+                    var categories = new[] {
+                        new { Icon = "utensils", Text = "Đồ ăn", Bi = "bi-restaurant" },
+                        new { Icon = "eco", Text = "Tươi sống", Bi = "bi-flower1" },
+                        new { Icon = "shirt", Text = "Thời trang", Bi = "bi-binoculars" },
+                        new { Icon = "basket", Text = "Nhu yếu phẩm", Bi = "bi-basket" },
+                        new { Icon = "tool", Text = "Tiện ích", Bi = "bi-tools" },
+                        new { Icon = "phone", Text = "Điện tử", Bi = "bi-laptop" },
+                        new { Icon = "face", Text = "Làm đẹp", Bi = "bi-heart-pulse" },
+                        new { Icon = "game", Text = "Đồ chơi", Bi = "bi-controller" },
+                        new { Icon = "book", Text = "Sách", Bi = "bi-book" },
+                        new { Icon = "all", Text = "Tất cả", Bi = "bi-grid-3x3-gap" }
+                    };
+                }
+                @foreach (var cat in categories)
+                {
+                    <a class="flex flex-col items-center gap-2 group" href="#">
+                        <div class="w-12 h-12 rounded-lg bg-orange-50 flex items-center justify-center group-hover:-translate-y-0.5 transition-transform">
+                            <i class="bi @cat.Bi text-[#f97316] text-xl"></i>
+                        </div>
+                        <span class="text-[12px] text-gray-700 text-center">@cat.Text</span>
+                    </a>
+                }
+            </div>
+        </section>
+
+        <!-- FLASH SALE -->
+        <section class="bg-white rounded-sm mb-6 shopee-shadow overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-gray-100">
+                <div class="flex items-center gap-4">
+                    <h3 class="font-bold text-xl text-[#f97316] flex items-center gap-1 uppercase italic tracking-tighter">
+                        <i class="bi bi-lightning-fill"></i> FLASH SALE
+                    </h3>
+                    <div class="flex gap-1 items-center font-mono">
+                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">02</span> :
+                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">45</span> :
+                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">12</span>
+                    </div>
+                </div>
+                <a class="text-gray-500 text-xs hover:text-[#f97316] flex items-center gap-0.5" href="#">Xem tất cả <i class="bi bi-chevron-right text-[10px]"></i></a>
+            </div>
+
+            <div class="p-4 grid grid-cols-2 md:grid-cols-6 gap-4">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var p in Model.Take(5))
+                    {
+                        var price = p.StallProducts?.FirstOrDefault()?.Price;
+                        var img = !string.IsNullOrWhiteSpace(p.ImageUrl) ? p.ImageUrl : "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400";
+
+                        <div class="bg-white border border-gray-100 hover:border-[#f97316] hover:shadow-md transition-all relative group cursor-pointer rounded-sm">
+                            <div class="relative product-card-aspect overflow-hidden bg-gray-50">
+                                <img class="w-full h-full object-cover" src="@img" alt="@p.Name" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400'" />
+                                <div class="absolute top-0 right-0 bg-[#ffd839] px-1 py-0.5 text-center flex flex-col items-center">
+                                    <span class="text-[#f97316] font-bold text-[10px] leading-tight">-20%</span>
+                                    <span class="text-white text-[8px] font-bold leading-tight">GIẢM</span>
+                                </div>
+                            </div>
+                            <div class="p-2 flex flex-col gap-1">
+                                <h4 class="text-xs line-clamp-2 min-h-[36px] text-gray-800 font-normal">@p.Name</h4>
+                                <div class="flex flex-col mt-1">
+                                    <span class="text-[#f97316] text-base font-medium">
+                                        @(price.HasValue ? price.Value.ToString("N0") + "đ" : "Liên hệ")
+                                    </span>
+                                    <div class="flex items-center gap-1 mt-1">
+                                        <div class="flex text-amber-400 text-[10px]">
+                                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i>
+                                        </div>
+                                        <span class="text-[10px] text-gray-400">Đã bán 1.2k</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <!-- Nút Xem Thêm Tròn giống hệt ảnh 3 -->
+                <div class="bg-white flex items-center justify-center border border-gray-100 rounded-sm">
+                    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                        <div class="w-10 h-10 border border-gray-300 rounded-full flex items-center justify-center group-hover:border-[#f97316] transition-colors">
+                            <i class="bi bi-chevron-right text-gray-500 group-hover:text-[#f97316]"></i>
+                        </div>
+                        <span class="text-xs text-gray-500 group-hover:text-[#f97316]">Xem Thêm</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GỢI Ý HÔM NAY -->
+        <section class="mb-6">
+            <div class="border-b-2 border-[#f97316] w-full pb-2 mb-4">
+                <h3 class="font-bold text-base text-[#f97316] uppercase tracking-wide">GỢI Ý HÔM NAY</h3>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var p in Model.Skip(5).Take(6))
+                    {
+                        var price = p.StallProducts?.FirstOrDefault()?.Price;
+                        var img = !string.IsNullOrWhiteSpace(p.ImageUrl) ? p.ImageUrl : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400";
+
+                        <div class="bg-white border border-transparent hover:border-[#f97316] hover:shadow-md transition-all relative group cursor-pointer rounded-sm">
+                            <div class="relative product-card-aspect overflow-hidden">
+                                <img class="w-full h-full object-cover" src="@img" alt="@p.Name" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'" />
+                            </div>
+                            <div class="p-2">
+                                <h4 class="text-xs line-clamp-2 min-h-[32px] mb-2 text-gray-700">@p.Name</h4>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-[#f97316] font-semibold">
+                                        @(price.HasValue ? price.Value.ToString("N0") + "đ" : "Liên hệ")
+                                    </span>
+                                    <span class="text-[10px] text-gray-400">Đã bán 5k+</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            <div class="flex justify-center mt-6">
+                <button class="bg-white border border-gray-300 px-16 py-2.5 rounded-sm text-xs hover:bg-gray-50 transition-colors shadow-sm text-gray-600">Xem Thêm</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer chuẩn ảnh 3 -->
+    <footer class="bg-white border-t border-gray-200 pt-8 mt-12">
+        <div class="max-w-[1200px] mx-auto px-4 grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div>
+                <h4 class="font-bold text-[11px] uppercase mb-3 text-gray-700">CHĂM SÓC KHÁCH HÀNG</h4>
+                <ul class="flex flex-col gap-1.5 text-[12px] text-gray-500">
+                    <li><a class="hover:text-[#f97316]" href="#">Trung Tâm Trợ Giúp</a></li>
+                    <li><a class="hover:text-[#f97316]" href="#">MarketConnect Blog</a></li>
+                    <li><a class="hover:text-[#f97316]" href="#">Hướng Dẫn Mua Hàng</a></li>
+                    <li><a class="hover:text-[#f97316]" href="#">Thanh Toán</a></li>
+                    <li><a class="hover:text-[#f97316]" href="#">Trả Hàng &amp; Hoàn Tiền</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-[11px] uppercase mb-3 text-gray-700">VỀ MARKETCONNECT</h4>
+                <ul class="flex flex-col gap-1.5 text-[12px] text-gray-500">
+                    <li><a class="hover:text-[#f97316]" href="#">Giới Thiệu</a></li>
+                    <li><a class="hover:text-[#f97316]" href="#">Tuyển Dụng</a></li>
+                    <li><a class="hover:text-[#f97316]" href="#">Điều Khoản</a></li>
+                    <li><a class="hover:text-[#f97316]" href="#">Chính Sách Bảo Mật</a></li>
+                    <li><a class="hover:text-[#f97316]" href="#">Flash Sales</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-[11px] uppercase mb-3 text-gray-700">THANH TOÁN</h4>
+                <div class="flex gap-2 flex-wrap mb-4">
+                    <div class="w-12 h-7 bg-gray-100 border border-gray-200 rounded-sm flex items-center justify-center text-[10px] text-gray-400 font-bold">VISA</div>
+                    <div class="w-12 h-7 bg-gray-100 border border-gray-200 rounded-sm flex items-center justify-center text-[10px] text-gray-400 font-bold">COD</div>
+                    <div class="w-12 h-7 bg-gray-100 border border-gray-200 rounded-sm flex items-center justify-center text-[10px] text-gray-400 font-bold">VNPAY</div>
+                </div>
+                <h4 class="font-bold text-[11px] uppercase mb-2 text-gray-700">ĐƠN VỊ VẬN CHUYỂN</h4>
+                <div class="flex gap-2 flex-wrap">
+                    <div class="w-12 h-7 bg-gray-100 border border-gray-200 rounded-sm flex items-center justify-center text-[9px] text-gray-400 font-bold">SPX</div>
+                    <div class="w-12 h-7 bg-gray-100 border border-gray-200 rounded-sm flex items-center justify-center text-[9px] text-gray-400 font-bold">GHN</div>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-bold text-[11px] uppercase mb-3 text-gray-700">THEO DÕI CHÚNG TÔI</h4>
+                <ul class="flex flex-col gap-2 text-[12px] text-gray-500">
+                    <li class="flex items-center gap-2"><i class="bi bi-facebook text-base text-gray-600"></i> Facebook</li>
+                    <li class="flex items-center gap-2"><i class="bi bi-instagram text-base text-gray-600"></i> Instagram</li>
+                    <li class="flex items-center gap-2"><i class="bi bi-linkedin text-base text-gray-600"></i> LinkedIn</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-[11px] uppercase mb-3 text-gray-700">TẢI ỨNG DỤNG</h4>
+                <div class="flex gap-2">
+                    <div class="w-16 h-16 bg-gray-50 border border-gray-200 flex items-center justify-center text-[8px] text-center text-gray-400 font-bold p-1">QR CODE</div>
+                    <div class="flex flex-col gap-1 justify-between">
+                        <div class="px-2 py-1 bg-gray-800 rounded text-white text-[9px] text-center cursor-pointer font-medium"><i class="bi bi-apple"></i> App Store</div>
+                        <div class="px-2 py-1 bg-gray-800 rounded text-white text-[9px] text-center cursor-pointer font-medium"><i class="bi bi-play-btn-fill"></i> Google Play</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom copyright -->
+        <div class="bg-[#f5f5f5] py-6 border-t border-gray-200 text-gray-500 text-[12px]">
+            <div class="max-w-[1200px] mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-2">
+                    <p>© 2026 MarketConnect. Tất cả các quyền được bảo lưu.</p>
+                    <p>Quốc gia & Khu vực: Việt Nam | Singapore | Indonesia | Thái Lan</p>
+                </div>
+                <div class="flex flex-col items-center mt-6 gap-2 text-center border-t border-gray-200 pt-4 text-gray-400">
+                    <div class="flex gap-4 uppercase font-medium flex-wrap justify-center text-[11px]">
+                        <a href="#" class="hover:text-[#f97316]">CHÍNH SÁCH BẢO MẬT</a>
+                        <a href="#" class="hover:text-[#f97316]">QUY CHẾ HOẠT ĐỘNG</a>
+                        <a href="#" class="hover:text-[#f97316]">CHÍNH SÁCH VẬN CHUYỂN</a>
+                    </div>
+                    <p class="mt-2 text-[11px] max-w-2xl">Địa chỉ: Tầng 4-5-6, Tòa nhà Capital Place, số 29 đường Liễu Giai, Phường Ngọc Khánh, Quận Ba Đình, Thành phố Hà Nội, Việt Nam. Tổng đài hỗ trợ: 19001221 - Email: cskh@marketconnect.vn</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

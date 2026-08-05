@@ -1,0 +1,62 @@
+﻿using MarketConnect.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace MarketConnect.Services
+{
+    public class ProductService : IProductService
+    {
+        private readonly ApplicationDbContext _db;
+
+        public ProductService(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        public async Task<Product> CreateAsync(Product product)
+        {
+            _db.Products.Add(product);
+            await _db.SaveChangesAsync();
+            return product;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var existing = await _db.Products.FindAsync(id);
+            if (existing == null) return false;
+            _db.Products.Remove(existing);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<IEnumerable<Product>> GetAllAsync()
+        {
+            return await _db.Products.Include(p => p.Category).ToListAsync();
+        }
+
+        public async Task<Product?> GetByIdAsync(int id)
+        {
+            return await _db.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<IEnumerable<Category>> GetCategoriesAsync()
+        {
+            return await _db.Categories.ToListAsync();
+        }
+
+        public async Task<Product?> UpdateAsync(int id, Product product)
+        {
+            var existing = await _db.Products.FindAsync(id);
+            if (existing == null) return null;
+
+            existing.Name = product.Name;
+            existing.Description = product.Description;
+            existing.ImageUrl = product.ImageUrl;
+            existing.CategoryId = product.CategoryId;
+
+            await _db.SaveChangesAsync();
+            return existing;
+        }
+    }
+}

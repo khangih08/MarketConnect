@@ -1,0 +1,15 @@
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\bin\Debug\net10.0\MarketConnect.Services.deps.json
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\bin\Debug\net10.0\MarketConnect.Services.dll
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\bin\Debug\net10.0\MarketConnect.Services.pdb
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\bin\Debug\net10.0\MarketConnect.Data.dll
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\bin\Debug\net10.0\MarketConnect.Data.pdb
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketConnect.Services.csproj.AssemblyReference.cache
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketConnect.Services.GeneratedMSBuildEditorConfig.editorconfig
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketConnect.Services.AssemblyInfoInputs.cache
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketConnect.Services.AssemblyInfo.cs
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketConnect.Services.csproj.CoreCompileInputs.cache
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketCo.F2959E24.Up2Date
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketConnect.Services.dll
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\refint\MarketConnect.Services.dll
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketConnect.Services.pdb
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\ref\MarketConnect.Services.dll

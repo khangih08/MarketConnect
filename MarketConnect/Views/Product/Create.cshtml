@@ -1,0 +1,278 @@
+@model MarketConnect.Services.ProductCreateDto
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Đăng tin bán hàng | MarketConnect";
+    var categories = ViewBag.Categories as IEnumerable<MarketConnect.Data.Category> ?? new List<MarketConnect.Data.Category>();
+}
+
+<main class="max-w-[860px] mx-auto px-4 py-8">
+    <div class="bg-white rounded-2xl p-6 md:p-8 border border-gray-200 shadow-sm">
+        <h1 class="text-xl md:text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-4">
+            <span class="material-symbols-outlined text-[#f97316]">add_circle</span>
+            Đăng tin bán hàng mới
+        </h1>
+
+        <form action="/Product/Create" method="post" enctype="multipart/form-data" class="space-y-6">
+            <!-- 1. HÌNH ẢNH & VIDEO (TẢI TỪ MÁY TÍNH) -->
+            <div class="space-y-3">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Hình ảnh / Video sản phẩm (Tải từ máy tính) <span class="text-red-500">*</span>
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Ảnh đại diện chính -->
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-[#f97316] transition-colors bg-gray-50/50">
+                        <label class="cursor-pointer block">
+                            <span class="material-symbols-outlined text-3xl text-gray-400 mb-1">add_a_photo</span>
+                            <span class="text-xs font-bold text-gray-700 block">Chọn ảnh đại diện chính từ máy *</span>
+                            <span class="text-[11px] text-gray-400 block mt-0.5">PNG, JPG, WEBP tối đa 10MB</span>
+                            <input id="inputImageFile" name="ImageFile" type="file" accept="image/*" required class="hidden" onchange="previewMainImage(this)" />
+                        </label>
+                        <div id="mainImagePreview" class="mt-3 hidden relative rounded-lg overflow-hidden border border-gray-200 aspect-video bg-gray-100">
+                            <img id="imgPreview" class="w-full h-full object-cover" src="#" alt="Preview" />
+                        </div>
+                    </div>
+
+                    <!-- Ảnh / Video bổ sung -->
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-[#f97316] transition-colors bg-gray-50/50">
+                        <label class="cursor-pointer block">
+                            <span class="material-symbols-outlined text-3xl text-gray-400 mb-1">collections</span>
+                            <span class="text-xs font-bold text-gray-700 block">Chọn thêm các ảnh/video khác từ máy</span>
+                            <span class="text-[11px] text-gray-400 block mt-0.5">Có thể chọn nhiều tệp cùng lúc</span>
+                            <input id="inputMediaFiles" name="MediaFiles" type="file" accept="image/*,video/*" multiple class="hidden" onchange="previewGalleryImages(this)" />
+                        </label>
+                        <div id="galleryPreviewContainer" class="mt-3 hidden grid grid-cols-3 gap-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. THÔNG TIN CƠ BẢN TIN ĐĂNG -->
+            <div class="space-y-4 pt-2">
+                <!-- Tiêu đề tin đăng -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                        Tiêu đề tin đăng <span class="text-red-500">*</span>
+                    </label>
+                    <input name="Title" value="@Model?.Title" required type="text" 
+                           class="w-full border-red-200 focus:border-red-500 rounded-xl p-3 text-sm focus:ring-red-400 border font-medium text-gray-800" 
+                           placeholder="Ví dụ: Microsoft Visual Studio 2026 Insiders / Tai nghe Sony WH-1000XM5" />
+                </div>
+
+                <!-- Giá bán & Checkbox Miễn phí -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Giá bán <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input id="inputPrice" name="Price" value="@(Model?.Price > 0 ? Model.Price : "")" type="number" min="0" step="1000"
+                               class="w-full border-red-300 rounded-xl p-3 pr-8 text-sm focus:ring-red-500 focus:border-red-500 border text-red-600 font-bold" 
+                               placeholder="Vui lòng điền giá bán sản phẩm..." />
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">đ</span>
+                    </div>
+                    <div class="flex items-center gap-2 pt-1">
+                        <input id="checkboxIsFree" name="IsFree" value="true" type="checkbox" @(Model?.IsFree == true ? "checked" : "") 
+                               class="w-4 h-4 text-[#004532] rounded border-gray-300 focus:ring-[#004532]" />
+                        <label for="checkboxIsFree" class="text-xs text-gray-600 font-medium cursor-pointer">
+                            Tôi muốn cho tặng miễn phí
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Chọn Chợ đăng tin bán -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                        Chọn chợ đăng tin bán <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-1.5">
+                        <select id="selectMarketName" name="MarketName" required class="w-full border-emerald-300 rounded-xl p-3 text-sm focus:ring-[#004d38] focus:border-[#004d38] border font-bold text-[#004d38] bg-emerald-50/60 cursor-pointer">
+                            <option value="Chợ Đồng Xuân">Chợ Đồng Xuân (Quận Hoàn Kiếm)</option>
+                            <option value="Chợ Hàng Bè">Chợ Hàng Bè (Quận Hoàn Kiếm)</option>
+                            <option value="Chợ Long Biên">Chợ Long Biên (Quận Ba Đình)</option>
+                            <option value="Chợ Thành Công">Chợ Thành Công (Quận Ba Đình)</option>
+                            <option value="Chợ Ngọc Hà">Chợ Ngọc Hà (Quận Ba Đình)</option>
+                            <option value="Chợ Ngã Tư Sở">Chợ Ngã Tư Sở (Quận Đống Đa)</option>
+                            <option value="Chợ Nam Đồng">Chợ Nam Đồng (Quận Đống Đa)</option>
+                            <option value="Chợ Láng Hạ">Chợ Láng Hạ (Quận Đống Đa)</option>
+                            <option value="Chợ Hôm">Chợ Hôm (Quận Hai Bà Trưng)</option>
+                            <option value="Chợ Mơ">Chợ Mơ (Quận Hai Bà Trưng)</option>
+                            <option value="Chợ Nguyễn Công Trứ">Chợ Nguyễn Công Trứ (Quận Hai Bà Trưng)</option>
+                            <option value="Chợ Nhà Xanh">Chợ Nhà Xanh (Quận Cầu Giấy)</option>
+                            <option value="Chợ Nghĩa Tân">Chợ Nghĩa Tân (Quận Cầu Giấy)</option>
+                            <option value="Chợ Dịch Vọng">Chợ Dịch Vọng (Quận Cầu Giấy)</option>
+                            <option value="Chợ Nhân Chính">Chợ Nhân Chính (Quận Thanh Xuân)</option>
+                            <option value="Chợ Bưởi">Chợ Bưởi (Quận Tây Hồ)</option>
+                        </select>
+                        <p class="text-[11px] text-gray-500 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px] text-emerald-600">info</span>
+                            <span>Hệ thống tự chọn Chợ bạn đang gán ở góc Header. Tin đăng sẽ hiển thị trực tiếp cho người đi chợ khu vực này.</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Địa chỉ giao dịch -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                        Địa chỉ giao dịch <span class="text-red-500">*</span>
+                    </label>
+                    <input id="inputAddress" name="Address" value="@Model?.Address" required type="text" 
+                           class="w-full border-red-300 rounded-xl p-3 text-sm focus:ring-red-500 focus:border-red-500 border text-gray-800" 
+                           placeholder="Địa chỉ cụ thể (Ví dụ: Chợ Đồng Xuân, Quận Hoàn Kiếm, Hà Nội)" />
+                </div>
+            </div>
+
+            <!-- 3. MÔ TẢ TIN ĐĂNG -->
+            <div class="pt-2">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Mô tả tin đăng
+                </label>
+                <textarea name="Description" rows="4" 
+                          class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-[#004532] focus:border-[#004532] border resize-y" 
+                          placeholder="Mô tả chi tiết về tình trạng sản phẩm, phụ kiện đi kèm, lý do bán..."></textarea>
+            </div>
+
+            <!-- 4. THÔNG TIN CHI TIẾT -->
+            <div class="border-t border-gray-100 pt-6 space-y-4">
+                <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#004532]">tune</span>
+                    Thông tin bổ sung
+                </h3>
+
+                <!-- Danh mục -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">
+                        Danh mục <span class="text-red-500">*</span>
+                    </label>
+                    <select name="CategoryId" class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-[#004532] focus:border-[#004532] border font-medium text-gray-800 bg-white">
+                        @foreach (var cat in categories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                        @if (!categories.Any())
+                        {
+                            <option value="1">Rau củ & Trái cây tươi</option>
+                            <option value="2">Thịt & Gia cầm</option>
+                            <option value="3">Thủy hải sản tươi sống</option>
+                            <option value="4">Thực phẩm chế biến sẵn</option>
+                            <option value="5">Ẩm thực & Chợ ăn vặt</option>
+                            <option value="6">Gia vị & Đồ khô</option>
+                            <option value="7">Gạo, Nếp & Ngũ cốc</option>
+                            <option value="8">Trứng & Sữa</option>
+                            <option value="9">Đồ gia dụng & Tiện ích</option>
+                            <option value="10">Hoa tươi & Đồ thờ cúng</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Tình trạng -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">
+                            Tình trạng hàng hóa <span class="text-red-500">*</span>
+                        </label>
+                        <select name="Condition" class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-[#004532] focus:border-[#004532] border font-medium text-gray-800 bg-white">
+                            <option value="Tươi mới về trong ngày">Tươi mới về trong ngày</option>
+                            <option value="Đã sơ chế sạch sẽ">Đã sơ chế sạch sẽ</option>
+                            <option value="Cấp đông tiêu chuẩn">Cấp đông tiêu chuẩn</option>
+                            <option value="Mới 100% (nguyên màng bọc)">Mới 100% (nguyên màng bọc)</option>
+                            <option value="Đồ khô/Hàng bảo quản">Đồ khô/Hàng bảo quản</option>
+                        </select>
+                    </div>
+
+                    <!-- Phân loại phụ -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">
+                            Phân loại sản phẩm / Phân nhóm
+                        </label>
+                        <input name="SubCategory" type="text" 
+                               class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-[#004532] focus:border-[#004532] border" 
+                               placeholder="Ví dụ: Trái cây nhập khẩu, Thịt bò Úc, Cá hồi phi lê..." />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Xuất xứ -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Xuất xứ / Nguồn gốc</label>
+                        <input name="Origin" type="text" 
+                               class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-[#004532] focus:border-[#004532] border" 
+                               placeholder="Ví dụ: Đà Lạt, Tiền Giang, Mỹ, Na Uy, Việt Nam..." />
+                    </div>
+
+                    <!-- Hạn sử dụng / Cam kết -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Hạn sử dụng / Hướng dẫn bảo quản</label>
+                        <input name="Warranty" type="text" 
+                               class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-[#004532] focus:border-[#004532] border" 
+                               placeholder="Ví dụ: Sử dụng trong ngày, HSD 12 tháng, Bảo quản lạnh..." />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nút đăng tin -->
+            <div class="pt-6 border-t border-gray-100 flex items-center justify-end gap-4">
+                <a href="/" class="text-gray-500 font-bold text-sm hover:underline">Hủy bỏ</a>
+                <button type="submit" class="bg-[#f97316] hover:bg-orange-600 text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-md flex items-center gap-2 text-sm">
+                    <span class="material-symbols-outlined text-[18px]">publish</span>
+                    Đăng tin ngay
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            alert('Vui lòng đăng nhập để đăng tin bán hàng!');
+            window.location.href = '/Account/Login';
+        }
+
+        const savedMarket = localStorage.getItem('selected_market') || 'Chợ Đồng Xuân';
+        const selectMarket = document.getElementById('selectMarketName');
+        const inputAddr = document.getElementById('inputAddress');
+        if (selectMarket) {
+            for (let i = 0; i < selectMarket.options.length; i++) {
+                if (selectMarket.options[i].value.toLowerCase() === savedMarket.toLowerCase()) {
+                    selectMarket.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        if (inputAddr && !inputAddr.value) {
+            inputAddr.value = `${savedMarket} (Hà Nội)`;
+        }
+    });
+
+    document.getElementById('checkboxIsFree')?.addEventListener('change', function() {
+        const inputPrice = document.getElementById('inputPrice');
+        if (this.checked) {
+            inputPrice.value = '0';
+            inputPrice.disabled = true;
+        } else {
+            inputPrice.disabled = false;
+        }
+    });
+
+    function previewMainImage(input) {
+        const previewContainer = document.getElementById('mainImagePreview');
+        const imgPreview = document.getElementById('imgPreview');
+        if (input.files && input.files[0]) {
+            imgPreview.src = URL.createObjectURL(input.files[0]);
+            previewContainer.classList.remove('hidden');
+        }
+    }
+
+    function previewGalleryImages(input) {
+        const container = document.getElementById('galleryPreviewContainer');
+        container.innerHTML = '';
+        if (input.files && input.files.length > 0) {
+            container.classList.remove('hidden');
+            Array.from(input.files).forEach(file => {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.className = 'w-full h-16 object-cover rounded-md border border-gray-200';
+                container.appendChild(img);
+            });
+        }
+    }
+</script>

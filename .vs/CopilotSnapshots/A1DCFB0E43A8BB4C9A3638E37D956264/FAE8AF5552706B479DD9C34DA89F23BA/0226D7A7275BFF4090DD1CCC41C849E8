@@ -1,0 +1,94 @@
+﻿using MarketConnect.Data;
+using MarketConnect.Services;
+using MarketConnect.Services.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Bind and register AuthService + JwtSettings
+builder.Services.AddAuthService(builder.Configuration);
+
+// Configure JWT authentication
+var jwt = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? new JwtSettings();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwt.Issuer,
+        ValidateAudience = true,
+        ValidAudience = jwt.Audience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret)),
+        ValidateLifetime = true
+    };
+});
+
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+});
+
+var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MarketConnect API V1");
+    });
+}
+
+// app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Map attribute-routed API controllers (e.g., [ApiController], [Route("api/...")])
+app.MapControllers();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Provide a minimal API POST for creating categories so POST /api/Categories is available
+app.MapPost("/api/Categories", async (ApplicationDbContext db, MarketConnect.Data.Category category) =>
+{
+    if (string.IsNullOrWhiteSpace(category?.Name)) return Results.BadRequest(new { message = "Name is required." });
+
+    var exists = await db.Categories.AnyAsync(c => c.Name.ToLower() == category.Name.ToLower());
+    if (exists) return Results.Conflict(new { message = "Category with the same name already exists." });
+
+    db.Categories.Add(category);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/Categories/{category.Id}", category);
+}).WithName("CreateCategory").Accepts<MarketConnect.Data.Category>("application/json").Produces<MarketConnect.Data.Category>(201);
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+app.Run();

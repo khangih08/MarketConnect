@@ -1,0 +1,291 @@
+﻿using MarketConnect.Data;
+using MarketConnect.Services.Models;
+using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+
+namespace MarketConnect.Services
+{
+    public class AuthService : IAuthService
+    {
+        private readonly ApplicationDbContext _db;
+        private readonly JwtSettings _jwt;
+        private readonly IConfiguration _configuration;
+
+        public AuthService(ApplicationDbContext db, JwtSettings jwtSettings, IConfiguration configuration)
+        {
+            _db = db;
+            _jwt = jwtSettings;
+            _configuration = configuration;
+        }
+
+        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+        {
+            var existing = await _db.Users.Where(u => u.Email == request.Email).FirstOrDefaultAsync();
+            if (existing != null)
+                throw new InvalidOperationException("Email already registered");
+
+            var user = new User
+            {
+                Email = request.Email,
+                Name = request.Name,
+                Phone = request.Phone,
+                Role = request.Role
+            };
+
+            user.PasswordHash = HashPassword(request.Password);
+
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+
+            var token = GenerateJwtToken(user);
+            return new AuthResponse
+            {
+                Token = token.token,
+                ExpiresAt = token.expiresAt,
+                Email = user.Email,
+                Role = user.Role
+            };
+        }
+
+        public async Task<AuthResponse?> LoginAsync(LoginRequest request)
+        {
+            // Allow login by email or by username (Name)
+            var identifier = (request.Email ?? string.Empty).Trim();
+
+            User? user = null;
+            if (!string.IsNullOrEmpty(identifier))
+            {
+                // try find by exact email
+                user = await _db.Users.Where(u => u.Email == identifier).FirstOrDefaultAsync();
+            }
+
+            if (user == null)
+            {
+                // fallback: try username (Name)
+                user = await _db.Users.Where(u => u.Name != null && u.Name == identifier).FirstOrDefaultAsync();
+            }
+
+            if (user == null)
+                return null;
+
+            if (!VerifyPassword(request.Password, user.PasswordHash))
+                return null;
+
+            var token = GenerateJwtToken(user);
+            return new AuthResponse
+            {
+                Token = token.token,
+                ExpiresAt = token.expiresAt,
+                Email = user.Email,
+                Role = user.Role
+            };
+        }
+
+        // PBKDF2 password hashing
+        private static string HashPassword(string password)
+        {
+            // format: pbkdf2$iter$saltBase64$hashBase64
+            const int iter = 100_000;
+            using var rng = RandomNumberGenerator.Create();
+            var salt = new byte[16];
+            rng.GetBytes(salt);
+
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iter, HashAlgorithmName.SHA256);
+            var hash = pbkdf2.GetBytes(32);
+
+            return $"pbkdf2${iter}${Convert.ToBase64String(salt)}${Convert.ToBase64String(hash)}";
+        }
+
+        private static bool VerifyPassword(string password, string storedHash)
+        {
+            try
+            {
+                var parts = storedHash.Split('$');
+                if (parts.Length != 4) return false;
+                if (parts[0] != "pbkdf2") return false;
+
+                var iter = int.Parse(parts[1]);
+                var salt = Convert.FromBase64String(parts[2]);
+                var hash = Convert.FromBase64String(parts[3]);
+
+                using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iter, HashAlgorithmName.SHA256);
+                var computed = pbkdf2.GetBytes(hash.Length);
+
+                return CryptographicOperations.FixedTimeEquals(computed, hash);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private (string token, DateTime expiresAt) GenerateJwtToken(User user)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var expires = DateTime.UtcNow.AddMinutes(_jwt.ExpiryMinutes);
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: _jwt.Issuer,
+                audience: _jwt.Audience,
+                claims: claims,
+                expires: expires,
+                signingCredentials: creds);
+
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            return (tokenString, expires);
+        }
+
+        // ---------------------------
+        // Google login flow
+        // ---------------------------
+        public async Task<AuthResponse> GoogleLoginAsync(string idToken)
+        {
+            // Validate IdToken using Google API client. Requires Google.Apis.Auth package.
+            try
+            {
+                var settings = new Google.Apis.Auth.GoogleJsonWebSignature.ValidationSettings();
+                // If configured, validate audience against client id
+                var clientId = _configuration["Google:ClientId"];
+                if (!string.IsNullOrWhiteSpace(clientId))
+                {
+                    settings.Audience = new[] { clientId };
+                }
+
+                var payload = await Google.Apis.Auth.GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+
+                var email = payload.Email;
+                var name = payload.Name;
+                var picture = payload.Picture;
+
+                var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (user == null)
+                {
+                    // create new user. PasswordHash required, so generate a random password hash
+                    user = new User
+                    {
+                        Email = email,
+                        Name = name,
+                        Phone = null,
+                        Role = UserRole.Buyer,
+                        PasswordHash = HashPassword(Guid.NewGuid().ToString())
+                    };
+                    _db.Users.Add(user);
+                    await _db.SaveChangesAsync();
+                }
+
+                var token = GenerateJwtToken(user);
+                return new AuthResponse
+                {
+                    Token = token.token,
+                    ExpiresAt = token.expiresAt,
+                    Email = user.Email,
+                    Role = user.Role
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Invalid Google token.", ex);
+            }
+        }
+
+        // ---------------------------
+        // Phone registration + OTP
+        // ---------------------------
+        public async Task RequestRegisterOtpAsync(string phoneNumber, string fullName, string password)
+        {
+            // normalize phone
+            var phone = (phoneNumber ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(phone)) throw new ArgumentException("Phone number is required.");
+
+            // check existing user by phone
+            var exists = await _db.Users.AnyAsync(u => u.Phone == phone);
+            if (exists) throw new InvalidOperationException("Phone number already registered.");
+
+            // create OTP and store temp record
+            var otp = new Random().Next(100000, 999999).ToString();
+            var expires = DateTime.UtcNow.AddMinutes(5);
+
+            var verification = new OtpVerification
+            {
+                PhoneNumber = phone,
+                FullName = fullName,
+                PasswordHash = HashPassword(password),
+                OtpCode = otp,
+                ExpiresAt = expires,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // upsert: remove any existing pending for this phone
+            var existing = await _db.OtpVerifications.FirstOrDefaultAsync(o => o.PhoneNumber == phone);
+            if (existing != null) {
+                _db.OtpVerifications.Remove(existing);
+            }
+
+            _db.OtpVerifications.Add(verification);
+            await _db.SaveChangesAsync();
+
+            // simulate sending OTP via SMS: print to console (replace with SMS provider in prod)
+            Console.WriteLine($"[OTP] Phone: {phone} Code: {otp} (expires at {expires:O})");
+        }
+
+        public async Task<AuthResponse> VerifyOtpAsync(string phoneNumber, string otpCode)
+        {
+            var phone = (phoneNumber ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(phone)) throw new ArgumentException("Phone number required.");
+
+            var record = await _db.OtpVerifications.FirstOrDefaultAsync(o => o.PhoneNumber == phone);
+            if (record == null) throw new InvalidOperationException("No pending verification found.");
+
+            if (record.ExpiresAt < DateTime.UtcNow) {
+                _db.OtpVerifications.Remove(record);
+                await _db.SaveChangesAsync();
+                throw new InvalidOperationException("OTP expired.");
+            }
+
+            if (record.OtpCode != otpCode) throw new InvalidOperationException("Invalid OTP code.");
+
+            // Create final user. Email is required by User model, so synthesize a placeholder email from phone
+            var email = $"{phone}@phone.local";
+
+            var user = new User
+            {
+                Email = email,
+                Name = record.FullName,
+                Phone = phone,
+                Role = UserRole.Buyer,
+                PasswordHash = record.PasswordHash
+            };
+
+            _db.Users.Add(user);
+            // remove pending record
+            _db.OtpVerifications.Remove(record);
+            await _db.SaveChangesAsync();
+
+            var token = GenerateJwtToken(user);
+            return new AuthResponse
+            {
+                Token = token.token,
+                ExpiresAt = token.expiresAt,
+                Email = user.Email,
+                Role = user.Role
+            };
+        }
+    }
+}

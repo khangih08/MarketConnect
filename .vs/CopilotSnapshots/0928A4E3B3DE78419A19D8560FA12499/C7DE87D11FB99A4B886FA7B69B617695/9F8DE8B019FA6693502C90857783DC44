@@ -1,0 +1,82 @@
+﻿using MarketConnect.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MarketConnect.Data;
+
+namespace MarketConnect.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class CategoriesController : ControllerBase
+    {
+        private readonly ICategoryService _service;
+
+        public CategoriesController(ICategoryService service)
+        {
+            _service = service;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var items = await _service.GetCategoriesAsync();
+            return Ok(items);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var cat = await _service.GetByIdAsync(id);
+            if (cat == null) return NotFound();
+            return Ok(cat);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] Category category)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var exists = await _service.ExistsByNameAsync(category.Name);
+            if (exists) return Conflict(new { message = "Category with the same name already exists." });
+
+            var created = await _service.CreateAsync(category);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] Category categoryData)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var existingCategory = await _service.GetByIdAsync(id);
+            if (existingCategory == null) return NotFound(new { message = $"Category with ID {id} not found." });
+
+            var nameExists = await _service.ExistsByNameAsync(categoryData.Name, id);
+
+            if (nameExists) return Conflict(new { message = "Another category with the same name already exists." });
+            existingCategory.Name = categoryData.Name;
+
+            await _service.UpdateAsync(existingCategory);
+
+            return Ok(existingCategory); 
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var category = await _service.GetByIdAsync(id);
+            if (category == null) return NotFound(new { message = $"Category with ID {id} not found." });
+
+            var hasProducts = await _service.HasProductsAsync(id);
+            if (hasProducts)
+            {
+                return BadRequest(new { message = "Cannot delete this category because it contains active products. Please reassign or delete the products first." });
+            }
+
+            await _service.DeleteAsync(id);
+
+            return NoContent(); 
+        }
+    }
+}

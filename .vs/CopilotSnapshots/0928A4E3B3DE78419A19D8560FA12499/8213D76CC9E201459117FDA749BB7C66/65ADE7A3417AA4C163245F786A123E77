@@ -1,0 +1,37 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MarketConnect.Controllers.Dtos
+{
+    public class RegisterDto
+    {
+        [Required]
+        [MaxLength(150)]
+        public string Username { get; set; } = null!;
+
+        [Required]
+        [EmailAddress]
+        [MaxLength(150)]
+        public string Email { get; set; } = null!;
+
+        [Required]
+        [MinLength(6)]
+        public string Password { get; set; } = null!;
+    }
+
+    public class LoginDto
+    {
+        [Required]
+        public string Username { get; set; } = null!; // can be email or username
+
+        [Required]
+        public string Password { get; set; } = null!;
+    }
+
+    public class AuthResponseDto
+    {
+        public string Token { get; set; } = null!;
+        public string Username { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public DateTime ExpiresAt { get; set; }
+    }
+}

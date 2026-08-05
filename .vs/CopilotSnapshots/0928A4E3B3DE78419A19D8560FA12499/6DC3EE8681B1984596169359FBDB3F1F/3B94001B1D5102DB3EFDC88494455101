@@ -1,0 +1,164 @@
+﻿using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Core.Search;
+using Elastic.Clients.Elasticsearch.QueryDsl;
+using MarketConnect.Services;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class ProductCompareService : IProductCompareService
+{
+    private readonly ElasticsearchClient _elasticClient;
+
+    public ProductCompareService(ElasticsearchClient elasticClient)
+    {
+        _elasticClient = elasticClient;
+    }
+
+    public async Task<ProductCompareResultDto?> GetPriceComparisonAsync(CompareFilterDto filter)
+    {
+        // --- Xử lý động bộ lọc (Filter) chuẩn Elastic v8 ---
+        var filterQueries = new List<Action<QueryDescriptor<ProductDocument>>>();
+
+        // Lọc khoảng giá
+        if (filter.MinPrice.HasValue || filter.MaxPrice.HasValue)
+        {
+            filterQueries.Add(q => q.Range(r => r
+                .NumberRange(nr => nr
+                    .Field(p => p.Price)
+                    .Gte(filter.MinPrice)
+                    .Lte(filter.MaxPrice)
+                )
+            ));
+        }
+
+        // Lọc theo vị trí địa lý
+        if (!string.IsNullOrEmpty(filter.Location) && !filter.Location.Equals("all", StringComparison.OrdinalIgnoreCase))
+        {
+            filterQueries.Add(q => q.Term(t => t
+                .Field(p => p.Province)
+                .Value(filter.Location)
+            ));
+        }
+
+        // --- Thực hiện gọi Elasticsearch ---
+        var searchResponse = await _elasticClient.SearchAsync<ProductDocument>(s => s
+            .Index("products")
+            .Query(q => q.Bool(b => b
+                .Must(m => m.Term(t => t.Field(f => f.GroupKey).Value(filter.GroupKey ?? string.Empty)))
+                .Filter(filterQueries.ToArray()) // Truyền mảng filter động vào đây
+            ))
+            .Collapse(c => c
+                .Field(f => f.GroupKey)
+                .InnerHits(ih => ih
+                    .Name("other_shops")
+                    .Size(30)
+                    .Sort(so =>
+                    {
+                        if (filter.SortBy == "price_desc")
+                            so.Field(f => f.Price, g => g.Order(SortOrder.Desc));
+                        else if (filter.SortBy == "sold_desc")
+                            so.Field(f => f.SoldCount, g => g.Order(SortOrder.Desc));
+                        else if (filter.SortBy == "rating_desc")
+                            so.Field(f => f.Rating, g => g.Order(SortOrder.Desc));
+                        else
+                            so.Field(f => f.Price, g => g.Order(SortOrder.Asc));
+                    })
+                )
+            )
+        );
+
+        if (!searchResponse.IsValidResponse || searchResponse.Hits == null || !searchResponse.Hits.Any())
+            return null;
+
+        var hit = searchResponse.Hits.FirstOrDefault();
+        if (hit == null || hit.InnerHits == null || !hit.InnerHits.ContainsKey("other_shops"))
+            return null;
+
+        var innerHitsMetaData = hit.InnerHits["other_shops"];
+
+        var innerHitsResult = innerHitsMetaData.Hits.Hits
+            .Select(h => h.Source)
+            .Where(p => p != null)
+            .Cast<ProductDocument>()
+            .ToList();
+
+        if (!innerHitsResult.Any())
+            return null;
+
+        return new ProductCompareResultDto
+        {
+            MinPrice = innerHitsResult.Min(p => p.Price),
+            MaxPrice = innerHitsResult.Max(p => p.Price),
+            Shops = innerHitsResult.Select(p => new ShopProductDetailDto
+            {
+                ProductId = p.Id ?? string.Empty,
+                ShopId = p.ShopId ?? string.Empty,
+                ShopName = p.ShopName ?? string.Empty,
+                VariantName = p.VariantName ?? string.Empty,
+                Price = p.Price,
+                Province = p.Province ?? string.Empty,
+                SoldCount = p.SoldCount,
+                Rating = p.Rating
+            }).ToList()
+        };
+    }
+
+    public async Task<ProductDocument?> GetProductByIdAsync(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return null;
+
+        var response = await _elasticClient.GetAsync<ProductDocument>(id, g => g.Index("products"));
+
+        if (!response.IsValidResponse || !response.Found)
+            return null;
+
+        return response.Source;
+    }
+}
+
+// --- Giữ nguyên cấu trúc DTO Models để dập tắt Warning CS8618 ---
+
+public class ProductDocument
+{
+    public string? Id { get; set; }
+    public string? ProductName { get; set; }
+    public string? GroupKey { get; set; }
+    public string? ShopId { get; set; }
+    public string? ShopName { get; set; }
+    public string? VariantName { get; set; }
+    public double Price { get; set; }
+    public string? Province { get; set; }
+    public int SoldCount { get; set; }
+    public double Rating { get; set; }
+}
+
+public class CompareFilterDto
+{
+    public string? GroupKey { get; set; }
+    public string? SortBy { get; set; }
+    public string? Location { get; set; }
+    public double? MinPrice { get; set; }
+    public double? MaxPrice { get; set; }
+}
+
+public class ProductCompareResultDto
+{
+    public double MinPrice { get; set; }
+    public double MaxPrice { get; set; }
+    public List<ShopProductDetailDto> Shops { get; set; } = new List<ShopProductDetailDto>();
+}
+
+public class ShopProductDetailDto
+{
+    public string ProductId { get; set; } = string.Empty;
+    public string ShopId { get; set; } = string.Empty;
+    public string ShopName { get; set; } = string.Empty;
+    public string VariantName { get; set; } = string.Empty;
+    public double Price { get; set; }
+    public string Province { get; set; } = string.Empty;
+    public int SoldCount { get; set; }
+    public double Rating { get; set; }
+}

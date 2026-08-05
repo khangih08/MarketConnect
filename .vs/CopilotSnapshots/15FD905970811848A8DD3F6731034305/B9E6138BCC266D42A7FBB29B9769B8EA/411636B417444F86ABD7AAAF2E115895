@@ -1,0 +1,165 @@
+﻿@using MarketConnect.Data
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero -->
+<section class="hero mb-5">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content text-center text-white">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-lg-start">
+                <h1 class="display-5 fw-bold">Kết nối nhu cầu,\nGiao hàng nhanh chóng</h1>
+                <p class="lead">Shop fresh food, stylish wear, and personal care delivered fast.</p>
+                <form class="hero-search d-flex align-items-center mt-4" method="get" asp-action="Index">
+                    <select class="form-select location me-2" style="max-width:160px;">
+                        <option>Hồ Chí Minh</option>
+                        <option>Hà Nội</option>
+                    </select>
+                    <input type="text" name="q" value="@Context.Request.Query["q"]" class="form-control me-2" placeholder="Tìm kiếm sản phẩm, thương hiệu..." />
+                    <button class="btn search-btn">Tìm kiếm</button>
+                </form>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <!-- decorative image handled by CSS background -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Category icons -->
+<section class="container category-icons mb-5">
+    <div class="row text-center">
+        <div class="col-6 col-md-2 mb-4">
+            <div class="icon-circle">🍽️</div>
+            <div class="mt-2">Đồ ăn & Uống</div>
+        </div>
+        <div class="col-6 col-md-2 mb-4">
+            <div class="icon-circle">🥦</div>
+            <div class="mt-2">Thực phẩm tươi</div>
+        </div>
+        <div class="col-6 col-md-2 mb-4">
+            <div class="icon-circle">👟</div>
+            <div class="mt-2">Thời trang</div>
+        </div>
+        <div class="col-6 col-md-2 mb-4">
+            <div class="icon-circle">🛒</div>
+            <div class="mt-2">Nhu yếu phẩm</div>
+        </div>
+        <div class="col-6 col-md-2 mb-4">
+            <div class="icon-circle">🏠</div>
+            <div class="mt-2">Tiện ích gia đình</div>
+        </div>
+    </div>
+</section>
+
+<!-- Products grid -->
+<section class="container mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Dành cho bạn</h3>
+        <a href="#">Xem tất cả →</a>
+    </div>
+
+    <div id="productContainer">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info">No products found.</div>
+        }
+        else
+        {
+            <div class="row row-cols-2 row-cols-md-5 g-3 server-rendered">
+                @foreach (var p in Model.Take(10))
+                {
+                    <div class="col">
+                        <div class="card h-100 product-card">
+                            <div class="card-img-top product-img" style="background-image:url('@(string.IsNullOrEmpty(p.ImageUrl) ? "/images/no-image.png" : p.ImageUrl)')"></div>
+                            <div class="card-body">
+                                <h6 class="card-title">@p.Name</h6>
+                                @{
+                                    var price = p.StallProducts?.FirstOrDefault()?.Price;
+                                }
+                                <div class="price text-danger">@(price.HasValue ? String.Format("{0:N0}đ", price.Value) : "")</div>
+                            </div>
+                            <div class="card-footer border-0 bg-white">
+                                <button class="btn btn-sm btn-outline-success">Add</button>
+                                <button class="btn btn-sm btn-light float-end">♡</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Newsletter CTA -->
+<section class="newsletter mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-7 text-white">
+                <h3>Nhận ưu đãi 10% cho đơn hàng đầu tiên</h3>
+                <p>Đăng ký bản tin để không bỏ lỡ các sản phẩm mới và chương trình khuyến mãi độc quyền từ MarketConnect.</p>
+                <form class="d-flex newsletter-form" method="post" action="#">
+                    <input type="email" class="form-control me-2" placeholder="Địa chỉ email của bạn" />
+                    <button class="btn btn-primary">Đăng ký</button>
+                </form>
+            </div>
+            <div class="col-md-5 d-none d-md-block">
+                <!-- image placeholder -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        const form = document.querySelector('form[asp-action="Index"]');
+        const input = form ? form.querySelector('input[name="q"]') : null;
+        const container = document.getElementById('productContainer');
+
+        async function renderProducts(q) {
+            const url = '/api/products' + (q ? '?q=' + encodeURIComponent(q) : '');
+            try {
+                const res = await fetch(url);
+                if (!res.ok) return;
+                const items = await res.json();
+                if (!Array.isArray(items) || items.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">No products found.</div>';
+                    return;
+                }
+                const row = document.createElement('div');
+                row.className = 'row row-cols-2 row-cols-md-5 g-3';
+                for (const p of items.slice(0,10)) {
+                    const col = document.createElement('div');
+                    col.className = 'col';
+                    col.innerHTML = `
+                        <div class="card h-100 product-card">
+                            <div class="card-img-top product-img" style="background-image:url('${p.imageUrl || '/images/no-image.png'}')"></div>
+                            <div class="card-body">
+                                <h6 class="card-title">${p.name}</h6>
+                                <div class="price text-danger">${(p.price||0).toLocaleString()}đ</div>
+                            </div>
+                            <div class="card-footer border-0 bg-white">
+                                <button class="btn btn-sm btn-outline-success">Add</button>
+                                <button class="btn btn-sm btn-light float-end">♡</button>
+                            </div>
+                        </div>
+                    `;
+                    row.appendChild(col);
+                }
+                container.innerHTML = '';
+                container.appendChild(row);
+            } catch (err) { console.error(err); }
+        }
+
+        if (form && input) {
+            form.addEventListener('submit', function (e) {
+                // when user searches in hero, use API render
+                e.preventDefault();
+                renderProducts(input.value);
+            });
+        }
+    })();
+</script>
+

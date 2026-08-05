@@ -1,0 +1,14 @@
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\bin\Debug\net10.0\MarketConnect.Data.deps.json
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\bin\Debug\net10.0\MarketConnect.Data.runtimeconfig.json
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\bin\Debug\net10.0\MarketConnect.Data.dll
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\bin\Debug\net10.0\MarketConnect.Data.pdb
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.csproj.AssemblyReference.cache
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.GeneratedMSBuildEditorConfig.editorconfig
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.AssemblyInfoInputs.cache
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.AssemblyInfo.cs
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.csproj.CoreCompileInputs.cache
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.dll
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\refint\MarketConnect.Data.dll
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.pdb
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.genruntimeconfig.cache
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\ref\MarketConnect.Data.dll

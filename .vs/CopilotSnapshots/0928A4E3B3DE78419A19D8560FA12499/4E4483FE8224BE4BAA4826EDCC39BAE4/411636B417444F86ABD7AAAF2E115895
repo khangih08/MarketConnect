@@ -1,0 +1,236 @@
+﻿@using System.Linq
+@using MarketConnect.Data
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "MarketConnect - Kết nối nhu cầu, Giao hàng nhanh chóng";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Hanken Grotesk', sans-serif; background-color: #FDFBF7; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400; }
+        .filled-icon { font-variation-settings: 'FILL' 1; }
+        .product-card-aspect { aspect-ratio: 1 / 1; }
+    </style>
+    </head>
+<body class="text-on-background">
+
+    <!-- Top Navigation Bar -->
+    <header class="w-full top-0 sticky bg-white z-40 border-b px-16 py-2 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <span class="material-symbols-outlined text-green-800 text-2xl">storefront</span>
+            <h1 class="text-xl font-semibold text-green-800">MarketConnect</h1>
+        </div>
+        <nav class="hidden md:flex items-center gap-8">
+            <a href="#" class="font-medium text-gray-700">Home</a>
+            <a href="#" class="text-gray-500">Categories</a>
+            <a href="#" class="text-gray-500">Deals</a>
+            <a href="#" class="text-gray-500">Flash Sale</a>
+        </nav>
+        <div class="flex items-center gap-4">
+            <button class="material-symbols-outlined">search</button>
+            <button class="material-symbols-outlined">notifications</button>
+            <button class="material-symbols-outlined">shopping_cart</button>
+            <div class="h-8 w-px bg-gray-200"></div>
+            <button class="flex items-center gap-2 text-sm text-gray-700">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span>Tài khoản</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-[1200px] mx-auto">
+        <!-- Hero Section -->
+        <section class="relative w-full h-[520px] flex flex-col justify-center items-center px-16 overflow-hidden mt-6">
+            <div class="absolute inset-0 z-0">
+                <img src="/images/hero.jpg" alt="Hero" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-r from-white/60 to-transparent"></div>
+            </div>
+            <div class="relative z-10 w-full max-w-4xl text-center flex flex-col items-center">
+                <h2 class="text-4xl font-bold text-green-800 mb-6">Kết nối nhu cầu,<br/>Giao hàng nhanh chóng</h2>
+                <form method="get" asp-action="Index" class="w-full max-w-2xl bg-white rounded-full flex items-center p-3 border shadow-sm">
+                    <div class="flex items-center px-4 border-r min-w-[160px]">
+                        <span class="material-symbols-outlined text-green-700 mr-2">location_on</span>
+                        <select class="border-none bg-transparent">
+                            <option>Hồ Chí Minh</option>
+                            <option>Hà Nội</option>
+                        </select>
+                    </div>
+                    <input type="text" name="q" value="@Context.Request.Query["q"]" class="flex-1 px-4 border-none focus:ring-0" placeholder="Tìm kiếm sản phẩm, thương hiệu..." />
+                    <button class="bg-orange-600 text-white px-6 py-2 rounded-full ml-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined">search</span> Tìm kiếm
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Categories Row -->
+        <section class="py-8 bg-gray-50 border-t border-b">
+            <div class="flex justify-center gap-8 overflow-x-auto px-6 py-4">
+                <a class="flex flex-col items-center gap-2 min-w-[100px]" href="#">
+                    <img class="w-16 h-16 rounded-full object-cover" src="https://via.placeholder.com/64" alt="food" />
+                    <span class="text-sm text-gray-600">Đồ ăn & Uống</span>
+                </a>
+                <a class="flex flex-col items-center gap-2 min-w-[100px]" href="#">
+                    <img class="w-16 h-16 rounded-full object-cover" src="https://via.placeholder.com/64" alt="fresh" />
+                    <span class="text-sm text-gray-600">Thực phẩm tươi</span>
+                </a>
+                <a class="flex flex-col items-center gap-2 min-w-[100px]" href="#">
+                    <img class="w-16 h-16 rounded-full object-cover" src="https://via.placeholder.com/64" alt="fashion" />
+                    <span class="text-sm text-gray-600">Thời trang</span>
+                </a>
+                <a class="flex flex-col items-center gap-2 min-w-[100px]" href="#">
+                    <img class="w-16 h-16 rounded-full object-cover" src="https://via.placeholder.com/64" alt="essentials" />
+                    <span class="text-sm text-gray-600">Nhu yếu phẩm</span>
+                </a>
+                <a class="flex flex-col items-center gap-2 min-w-[100px]" href="#">
+                    <img class="w-16 h-16 rounded-full object-cover" src="https://via.placeholder.com/64" alt="home" />
+                    <span class="text-sm text-gray-600">Tiện ích gia đình</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <section class="py-10 px-4">
+            <div class="flex justify-between items-end mb-6 px-2">
+                <div>
+                    <h3 class="text-2xl font-semibold text-gray-800">Dành cho bạn</h3>
+                    <p class="text-sm text-gray-500">Gợi ý sản phẩm dựa trên sở thích của bạn</p>
+                </div>
+                <button class="text-orange-600 flex items-center gap-2">Xem tất cả <span class="material-symbols-outlined">arrow_forward</span></button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                @if (Model != null && Model.Any())
+                {
+                @foreach (var p in Model.Take(5))
+                {
+                    var price = p.StallProducts?.FirstOrDefault()?.Price;
+                    <div class="bg-white border rounded-lg overflow-hidden">
+                        <div class="product-card-aspect relative overflow-hidden">
+                            <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? "/images/no-image.png" : p.ImageUrl)" alt="@p.Name" class="w-full h-full object-cover" />
+                            <button class="absolute top-2 right-2 bg-white/80 rounded-full w-9 h-9 flex items-center justify-center">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                        </div>
+                        <div class="p-3">
+                            <h4 class="text-sm font-medium text-gray-800 truncate">@p.Name</h4>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="text-amber-400 flex">
+                                    <span class="material-symbols-outlined filled-icon text-[16px]">star</span>
+                                    <span class="material-symbols-outlined filled-icon text-[16px]">star</span>
+                                    <span class="material-symbols-outlined filled-icon text-[16px]">star</span>
+                                    <span class="material-symbols-outlined filled-icon text-[16px]">star</span>
+                                    <span class="material-symbols-outlined text-[16px]">star</span>
+                                </div>
+                                <span class="text-xs text-gray-500">(@(p.Wishlists?.Count() ?? 0))</span>
+                            </div>
+                            <div class="flex justify-between items-center mt-3">
+                                <span class="text-lg font-bold text-orange-600">@(price.HasValue ? price.Value.ToString("N0") + "đ" : "")</span>
+                                <button class="bg-green-800 text-white w-10 h-10 rounded-full flex items-center justify-center">
+                                    <span class="material-symbols-outlined">add_shopping_cart</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                }
+                else
+                {
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        <div class="bg-white border rounded-lg overflow-hidden">
+                            <div class="product-card-aspect bg-gray-100"></div>
+                            <div class="p-3">
+                                <h4 class="text-sm font-medium text-gray-800 truncate">Sample product</h4>
+                                <div class="flex justify-between items-center mt-3">
+                                    <span class="text-lg font-bold text-orange-600">99.000đ</span>
+                                    <button class="bg-green-800 text-white w-10 h-10 rounded-full flex items-center justify-center">
+                                        <span class="material-symbols-outlined">add_shopping_cart</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </section>
+
+        <!-- Newsletter / Promo Section -->
+        <section class="py-10 px-16 mb-12">
+            <div class="bg-green-800 text-white rounded-xl flex flex-col md:flex-row overflow-hidden">
+                <div class="flex-1 p-8 md:p-12">
+                    <h3 class="text-2xl font-bold mb-4">Nhận ưu đãi 10% cho đơn hàng đầu tiên</h3>
+                    <p class="mb-6 text-gray-200">Đăng ký bản tin để không bỏ lỡ các sản phẩm mới và chương trình khuyến mãi độc quyền từ MarketConnect.</p>
+                    <form method="post" action="#" class="flex max-w-md gap-3">
+                        <input type="email" name="email" placeholder="Địa chỉ email của bạn" class="flex-1 px-4 py-2 rounded-md text-black" />
+                        <button class="bg-orange-500 px-6 py-2 rounded-md">Đăng ký</button>
+                    </form>
+                </div>
+                <div class="hidden md:block md:w-1/3">
+                    <img src="https://via.placeholder.com/400x400" alt="promo" class="w-full h-full object-cover" />
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-200 py-10 px-16">
+        <div class="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="material-symbols-outlined text-2xl text-green-300">storefront</span>
+                    <h2 class="text-lg font-semibold">MarketConnect</h2>
+                </div>
+                <p class="text-sm text-gray-400">Hệ thống thương mại điện tử kết nối người dùng với những sản phẩm chất lượng nhất, giao hàng nhanh chóng chỉ trong vài giờ.</p>
+            </div>
+            <div>
+                <h4 class="uppercase text-sm mb-3">Về chúng tôi</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li><a href="#">Giới thiệu</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                    <li><a href="#">Tuyển dụng</a></li>
+                    <li><a href="#">Tin tức</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="uppercase text-sm mb-3">Hỗ trợ khách hàng</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li><a href="#">Trung tâm trợ giúp</a></li>
+                    <li><a href="#">Chính sách vận chuyển</a></li>
+                    <li><a href="#">Chính sách hoàn tiền</a></li>
+                    <li><a href="#">Bảo mật thông tin</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="uppercase text-sm mb-3">Tải ứng dụng</h4>
+                <p class="text-sm text-gray-400 mb-3">Trải nghiệm mua sắm tốt nhất trên di động.</p>
+                <div class="flex flex-col gap-3">
+                    <button class="bg-white text-black px-4 py-2 rounded-md flex items-center gap-3">App Store</button>
+                    <button class="bg-white text-black px-4 py-2 rounded-md flex items-center gap-3">Google Play</button>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-[1200px] mx-auto mt-8 pt-6 border-t border-gray-700 flex justify-between text-sm text-gray-500">
+            <p>© 2024 MarketConnect. All rights reserved.</p>
+            <div class="flex gap-6">
+                <a href="#">Điều khoản dịch vụ</a>
+                <a href="#">Chính sách bảo mật</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // micro interactions placeholder
+    </script>
+</body>
+</html>
+

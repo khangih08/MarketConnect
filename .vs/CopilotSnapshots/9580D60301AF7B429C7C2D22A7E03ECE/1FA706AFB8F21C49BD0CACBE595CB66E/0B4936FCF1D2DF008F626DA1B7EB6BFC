@@ -1,0 +1,43 @@
+﻿@using MarketConnect.Data
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Products</h1>
+    </div>
+    <div class="col-md-4">
+        <form method="get" asp-action="Index" class="d-flex">
+            <input type="text" name="q" value="@Context.Request.Query["q"]" class="form-control me-2" placeholder="Search products..." />
+            <button class="btn btn-outline-primary">Search</button>
+        </form>
+    </div>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">No products found.</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var p in Model)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? "/images/no-image.png" : p.ImageUrl)" class="card-img-top" alt="@p.Name" style="object-fit:cover;height:180px;" />
+                    <div class="card-body">
+                        <h5 class="card-title">@p.Name</h5>
+                        <p class="card-text">@p.Description</p>
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-muted">Category: @p.Category?.Name</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+

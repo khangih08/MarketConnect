@@ -1,0 +1,11 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace MarketConnect.Services
+{
+    internal interface IProductCompareService
+    {
+        Task<ProductCompareResultDto> GetPriceComparisonAsync(CompareFilterDto filter);
+    }
+}

@@ -1,0 +1,11 @@
+﻿using MarketConnect.Services.Models;
+using System.Threading.Tasks;
+
+namespace MarketConnect.Services
+{
+    public interface IAuthService
+    {
+        Task<AuthResponse> RegisterAsync(RegisterRequest request);
+        Task<AuthResponse?> LoginAsync(LoginRequest request);
+    }
+}
