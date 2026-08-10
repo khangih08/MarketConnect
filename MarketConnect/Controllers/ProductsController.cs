@@ -122,43 +122,80 @@ namespace MarketConnect.Controllers
                 }
             }
 
-            // 2. Truy vấn trực tiếp từ SQLite Database với .AsNoTracking()
+            // 2. Truy vấn trực tiếp từ PostgreSQL Database
             try
             {
-                var query = _db.Products
-                    .Include(p => p.Category)
-                    .Include(p => p.ProductMarkets!)
-                        .ThenInclude(pm => pm.Market)
-                    .AsNoTracking()
-                    .AsQueryable();
-
-                if (!string.IsNullOrWhiteSpace(q))
+                List<Product> dbProducts = new();
+                try
                 {
-                    var term = q.Trim().ToLower();
-                    query = query.Where(p => (p.Name != null && p.Name.ToLower().Contains(term)) ||
-                                             (p.Description != null && p.Description.ToLower().Contains(term)) ||
-                                             (p.Category != null && p.Category.Name.ToLower().Contains(term)));
-                }
+                    var query = _db.Products
+                        .Include(p => p.Category)
+                        .Include(p => p.ProductMarkets!)
+                            .ThenInclude(pm => pm.Market)
+                        .AsNoTracking()
+                        .AsQueryable();
 
-                if (categoryId.HasValue && categoryId.Value > 0)
+                    if (!string.IsNullOrWhiteSpace(q))
+                    {
+                        var term = q.Trim().ToLower();
+                        query = query.Where(p => (p.Name != null && p.Name.ToLower().Contains(term)) ||
+                                                 (p.Description != null && p.Description.ToLower().Contains(term)) ||
+                                                 (p.Category != null && p.Category.Name.ToLower().Contains(term)));
+                    }
+
+                    if (categoryId.HasValue && categoryId.Value > 0)
+                    {
+                        query = query.Where(p => p.CategoryId == categoryId.Value);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(category) && !category.Equals("all", StringComparison.OrdinalIgnoreCase) && !category.Equals("Tất cả sản phẩm", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var catTerm = category.Trim().ToLower();
+                        query = query.Where(p => p.Category != null && p.Category.Name.ToLower() == catTerm);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(market) && !market.Equals("Tất cả các chợ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var mTerm = market.Trim().ToLower();
+                        query = query.Where(p => (p.Address != null && p.Address.ToLower().Contains(mTerm)) ||
+                                                 (p.ProductMarkets != null && p.ProductMarkets.Any(pm => pm.Market != null && pm.Market.Name.ToLower().Contains(mTerm))));
+                    }
+
+                    dbProducts = await query.OrderByDescending(p => p.CreatedAt).Take(50).ToListAsync();
+                }
+                catch (Exception exPm)
                 {
-                    query = query.Where(p => p.CategoryId == categoryId.Value);
-                }
-                else if (!string.IsNullOrWhiteSpace(category) && !category.Equals("all", StringComparison.OrdinalIgnoreCase) && !category.Equals("Tất cả sản phẩm", StringComparison.OrdinalIgnoreCase))
-                {
-                    var catTerm = category.Trim().ToLower();
-                    query = query.Where(p => p.Category != null && p.Category.Name.ToLower() == catTerm);
-                }
+                    Console.WriteLine($"[Database Search Notice] ProductMarkets table fallback: {exPm.Message}");
+                    var fallbackQuery = _db.Products
+                        .Include(p => p.Category)
+                        .AsNoTracking()
+                        .AsQueryable();
 
-                if (!string.IsNullOrWhiteSpace(market) && !market.Equals("Tất cả các chợ", StringComparison.OrdinalIgnoreCase))
-                {
-                    var mTerm = market.Trim().ToLower();
-                    query = query.Where(p => (p.Address != null && p.Address.ToLower().Contains(mTerm)) ||
-                                             (p.ProductMarkets != null && p.ProductMarkets.Any(pm => pm.Market != null && pm.Market.Name.ToLower().Contains(mTerm))));
+                    if (!string.IsNullOrWhiteSpace(q))
+                    {
+                        var term = q.Trim().ToLower();
+                        fallbackQuery = fallbackQuery.Where(p => (p.Name != null && p.Name.ToLower().Contains(term)) ||
+                                                                 (p.Description != null && p.Description.ToLower().Contains(term)) ||
+                                                                 (p.Category != null && p.Category.Name.ToLower().Contains(term)));
+                    }
+
+                    if (categoryId.HasValue && categoryId.Value > 0)
+                    {
+                        fallbackQuery = fallbackQuery.Where(p => p.CategoryId == categoryId.Value);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(category) && !category.Equals("all", StringComparison.OrdinalIgnoreCase) && !category.Equals("Tất cả sản phẩm", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var catTerm = category.Trim().ToLower();
+                        fallbackQuery = fallbackQuery.Where(p => p.Category != null && p.Category.Name.ToLower() == catTerm);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(market) && !market.Equals("Tất cả các chợ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var mTerm = market.Trim().ToLower();
+                        fallbackQuery = fallbackQuery.Where(p => p.Address != null && p.Address.ToLower().Contains(mTerm));
+                    }
+
+                    dbProducts = await fallbackQuery.OrderByDescending(p => p.CreatedAt).Take(50).ToListAsync();
                 }
-
-                var dbProducts = await query.OrderByDescending(p => p.CreatedAt).Take(50).ToListAsync();
-
 
                 if (dbProducts.Any())
                 {

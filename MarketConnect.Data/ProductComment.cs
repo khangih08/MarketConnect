@@ -28,6 +28,9 @@ namespace MarketConnect.Data
         [ForeignKey(nameof(UserId))]
         public User? User { get; set; }
 
+        [MaxLength(1000)]
+        public string? ImageUrl { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

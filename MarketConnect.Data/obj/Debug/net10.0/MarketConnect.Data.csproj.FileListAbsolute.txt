@@ -12,3 +12,4 @@ D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\refint\Marke
 D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.pdb
 D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.genruntimeconfig.cache
 D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\ref\MarketConnect.Data.dll
+D:\URL-Shortener\MarketConnect\MarketConnect.Data\obj\Debug\net10.0\MarketConnect.Data.sourcelink.json

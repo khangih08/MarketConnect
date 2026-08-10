@@ -65,6 +65,7 @@ namespace MarketConnect.Services
                 var token = GenerateJwtToken(user);
                 return new AuthResponse
                 {
+                    UserId = user.Id,
                     Token = token.token,
                     ExpiresAt = token.expiresAt,
                     Email = user.Email,
@@ -150,6 +151,7 @@ namespace MarketConnect.Services
             var token = GenerateJwtToken(user);
             return new AuthResponse
             {
+                UserId = user.Id,
                 Token = token.token,
                 ExpiresAt = token.expiresAt,
                 Email = user.Email,
@@ -157,23 +159,225 @@ namespace MarketConnect.Services
             };
         }
 
-        public async Task<AuthResponse?> PhoneLoginAsync(PhoneLoginRequest request)
+        public async Task<PhoneCheckResult> CheckPhoneAsync(string phoneNumber)
         {
-            var phone = (request.PhoneNumber ?? string.Empty).Trim();
-            if (string.IsNullOrEmpty(phone)) return null;
+            var phone = (phoneNumber ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(phone))
+            {
+                return new PhoneCheckResult { Exists = false, HasPassword = false, Message = "Số điện thoại không hợp lệ." };
+            }
 
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Phone == phone);
-            if (user == null) return null;
-            if (!VerifyPassword(request.Password, user.PasswordHash)) return null;
+            if (user == null)
+            {
+                return new PhoneCheckResult { Exists = false, HasPassword = false, Message = "Số điện thoại chưa đăng ký." };
+            }
+
+            var hasPassword = !string.IsNullOrWhiteSpace(user.PasswordHash);
+            return new PhoneCheckResult
+            {
+                Exists = true,
+                HasPassword = hasPassword,
+                Message = hasPassword ? "Tài khoản đã có mật khẩu." : "Tài khoản chưa thiết lập mật khẩu."
+            };
+        }
+
+        public async Task<PhoneLoginResult> PhoneLoginDetailedAsync(PhoneLoginRequest request)
+        {
+            var phone = (request.PhoneNumber ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(phone))
+            {
+                return new PhoneLoginResult { Success = false, Message = "Vui lòng nhập số điện thoại." };
+            }
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+            if (user == null)
+            {
+                return new PhoneLoginResult
+                {
+                    Success = false,
+                    RequiresRegister = true,
+                    Message = "Số điện thoại chưa được đăng ký. Vui lòng đăng ký tài khoản."
+                };
+            }
+
+            // Kiểm tra trạng thái bị khóa 30 phút
+            if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTime.UtcNow)
+            {
+                var remainingMinutes = (int)Math.Ceiling((user.LockoutEnd.Value - DateTime.UtcNow).TotalMinutes);
+                if (remainingMinutes < 1) remainingMinutes = 1;
+                return new PhoneLoginResult
+                {
+                    Success = false,
+                    IsLocked = true,
+                    RemainingMinutes = remainingMinutes,
+                    Message = $"Tài khoản của bạn đã bị khóa tính năng đăng nhập 30 phút do nhập sai mật khẩu quá 5 lần. Vui lòng thử lại sau {remainingMinutes} phút."
+                };
+            }
+
+            // Kiểm tra chưa có mật khẩu
+            if (string.IsNullOrWhiteSpace(user.PasswordHash))
+            {
+                return new PhoneLoginResult
+                {
+                    Success = false,
+                    RequiresRegister = true,
+                    Message = "Số điện thoại chưa được tạo mật khẩu. Vui lòng hoàn tất đăng ký."
+                };
+            }
+
+            // Kiểm tra mật khẩu
+            bool isValid = VerifyPassword(request.Password, user.PasswordHash);
+
+            if (!isValid)
+            {
+                user.AccessFailedCount += 1;
+                if (user.AccessFailedCount >= 5)
+                {
+                    user.LockoutEnd = DateTime.UtcNow.AddMinutes(30);
+                    _db.Users.Update(user);
+                    await _db.SaveChangesAsync();
+
+                    return new PhoneLoginResult
+                    {
+                        Success = false,
+                        IsLocked = true,
+                        FailedCount = 5,
+                        RemainingMinutes = 30,
+                        Message = "Mật khẩu không chính xác. Bạn đã nhập sai 5/5 lần. Tài khoản của bạn đã bị tạm khóa đăng nhập 30 phút."
+                    };
+                }
+                else
+                {
+                    _db.Users.Update(user);
+                    await _db.SaveChangesAsync();
+
+                    int remaining = 5 - user.AccessFailedCount;
+                    return new PhoneLoginResult
+                    {
+                        Success = false,
+                        FailedCount = user.AccessFailedCount,
+                        Message = $"Mật khẩu không chính xác. Bạn còn {remaining} lần thử."
+                    };
+                }
+            }
+
+            // Đăng nhập thành công -> Reset đếm sai và thời gian khóa
+            user.AccessFailedCount = 0;
+            user.LockoutEnd = null;
+            _db.Users.Update(user);
+            await _db.SaveChangesAsync();
 
             var token = GenerateJwtToken(user);
-            return new AuthResponse
+            var authResponse = new AuthResponse
             {
+                UserId = user.Id,
                 Token = token.token,
                 ExpiresAt = token.expiresAt,
                 Email = user.Email,
                 Role = user.Role,
                 FullName = user.Name ?? string.Empty
+            };
+
+            return new PhoneLoginResult
+            {
+                Success = true,
+                AuthData = authResponse,
+                Message = "Đăng nhập thành công."
+            };
+        }
+
+        public async Task<AuthResponse?> PhoneLoginAsync(PhoneLoginRequest request)
+        {
+            var result = await PhoneLoginDetailedAsync(request);
+            if (!result.Success || result.AuthData == null)
+            {
+                return null;
+            }
+            return result.AuthData;
+        }
+
+        public async Task<AuthResponse> RegisterPhonePasswordAsync(PhoneRegisterRequest request)
+        {
+            var phone = (request.PhoneNumber ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(phone))
+            {
+                throw new InvalidOperationException("Vui lòng nhập số điện thoại.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                throw new InvalidOperationException("Vui lòng nhập mật khẩu.");
+            }
+
+            if (request.Password.Length < 6)
+            {
+                throw new InvalidOperationException("Mật khẩu phải từ 6 ký tự trở lên.");
+            }
+
+            if (request.Password != request.ConfirmPassword)
+            {
+                throw new InvalidOperationException("Mật khẩu và xác nhận mật khẩu không khớp.");
+            }
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+            if (user != null)
+            {
+                if (!string.IsNullOrWhiteSpace(user.PasswordHash))
+                {
+                    throw new InvalidOperationException("Số điện thoại này đã được đăng ký và tạo mật khẩu. Vui lòng đăng nhập.");
+                }
+
+                // Tài khoản đã tồn tại từ trước nhưng chưa có mật khẩu -> Cập nhật mật khẩu
+                user.PasswordHash = HashPassword(request.Password);
+                if (!string.IsNullOrWhiteSpace(request.FullName))
+                {
+                    user.Name = request.FullName.Trim();
+                }
+                user.AccessFailedCount = 0;
+                user.LockoutEnd = null;
+                _db.Users.Update(user);
+                await _db.SaveChangesAsync();
+
+                var token = GenerateJwtToken(user);
+                return new AuthResponse
+                {
+                    UserId = user.Id,
+                    Token = token.token,
+                    ExpiresAt = token.expiresAt,
+                    Email = user.Email,
+                    Role = user.Role,
+                    FullName = user.Name ?? string.Empty
+                };
+            }
+
+            // Tạo người dùng mới
+            var email = $"{phone}@phone.local";
+            var fullName = !string.IsNullOrWhiteSpace(request.FullName) ? request.FullName.Trim() : $"Khách hàng {phone}";
+
+            var newUser = new User
+            {
+                Phone = phone,
+                Email = email,
+                Name = fullName,
+                Role = UserRole.Buyer,
+                PasswordHash = HashPassword(request.Password),
+                AccessFailedCount = 0,
+                LockoutEnd = null
+            };
+
+            _db.Users.Add(newUser);
+            await _db.SaveChangesAsync();
+
+            var newToken = GenerateJwtToken(newUser);
+            return new AuthResponse
+            {
+                UserId = newUser.Id,
+                Token = newToken.token,
+                ExpiresAt = newToken.expiresAt,
+                Email = newUser.Email,
+                Role = newUser.Role,
+                FullName = newUser.Name ?? string.Empty
             };
         }
 
@@ -196,6 +400,22 @@ namespace MarketConnect.Services
 
         private static bool VerifyPassword(string password, string storedHash)
         {
+            if (string.IsNullOrEmpty(storedHash)) return false;
+
+            // Hỗ trợ mã hóa BCrypt
+            if (storedHash.StartsWith("$2a$") || storedHash.StartsWith("$2b$") || storedHash.StartsWith("$2y$"))
+            {
+                try
+                {
+                    return BCrypt.Net.BCrypt.Verify(password, storedHash);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            // Hỗ trợ mã hóa PBKDF2
             try
             {
                 var parts = storedHash.Split('$');

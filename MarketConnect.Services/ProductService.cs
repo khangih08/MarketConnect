@@ -53,13 +53,27 @@ namespace MarketConnect.Services
                 dto.CategoryId = firstCat?.Id ?? 1;
             }
 
+            int? storeId = null;
+            Store? approvedStore = null;
+            if (userId.HasValue && userId.Value > 0)
+            {
+                approvedStore = await _db.Stores
+                    .Include(s => s.Market)
+                    .FirstOrDefaultAsync(s => s.UserId == userId.Value && s.Status == StoreStatus.Approved);
+
+                if (approvedStore != null)
+                {
+                    storeId = approvedStore.Id;
+                }
+            }
+
             var product = new Product
             {
                 Name = dto.Title,
                 Price = dto.IsFree ? 0 : (decimal)dto.Price,
                 IsFree = dto.IsFree,
                 Address = dto.Address,
-                SellerType = dto.SellerType ?? "Cá nhân",
+                SellerType = approvedStore != null ? "Bán chuyên" : (dto.SellerType ?? "Cá nhân"),
                 CategoryId = dto.CategoryId,
                 Condition = dto.Condition,
                 SubCategory = dto.SubCategory,
@@ -69,6 +83,7 @@ namespace MarketConnect.Services
                 MediaUrls = dto.MediaUrls,
                 Description = dto.Description,
                 UserId = userId,
+                StoreId = storeId,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -79,7 +94,13 @@ namespace MarketConnect.Services
             try
             {
                 var marketNamesToAssign = new List<string>();
-                if (!string.IsNullOrWhiteSpace(dto.MarketName))
+
+                if (approvedStore != null && approvedStore.Market != null && !string.IsNullOrWhiteSpace(approvedStore.Market.Name))
+                {
+                    // Ưu tiên gán sản phẩm vào CHÍNH XÁC Chợ mà gian hàng tiểu thương đã đăng ký
+                    marketNamesToAssign.Add(approvedStore.Market.Name);
+                }
+                else if (!string.IsNullOrWhiteSpace(dto.MarketName))
                 {
                     marketNamesToAssign.AddRange(dto.MarketName.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim()));
                 }
@@ -331,7 +352,7 @@ namespace MarketConnect.Services
                     Id = dbProduct.Id.ToString(),
                     ProductName = dbProduct.Name,
                     GroupKey = dbProduct.Name.ToLower().Replace(" ", "-"),
-                    Brand = dbProduct.Category?.Name ?? "Đồ điện tử / Phụ kiện",
+                    Brand = dbProduct.Category?.Name ?? "Nông sản & Thực phẩm",
                     Description = !string.IsNullOrEmpty(dbProduct.Description)
                         ? dbProduct.Description
                         : $"Sản phẩm <strong>{dbProduct.Name}</strong> đăng bán trực tiếp trên MarketConnect.",
@@ -341,12 +362,12 @@ namespace MarketConnect.Services
                     IsFree = dbProduct.IsFree,
                     Address = dbProduct.Address ?? "Hà Nội",
                     SellerType = dbProduct.SellerType ?? "Cá nhân",
-                    Condition = dbProduct.Condition ?? "Đã sử dụng",
+                    Condition = dbProduct.Condition ?? "Tươi mới về trong ngày",
                     SubCategory = dbProduct.SubCategory ?? "",
                     Origin = dbProduct.Origin ?? "",
                     Warranty = dbProduct.Warranty ?? "",
                     CategoryId = dbProduct.CategoryId,
-                    CategoryName = dbProduct.Category?.Name ?? "Đồ điện tử",
+                    CategoryName = dbProduct.Category?.Name ?? "Rau củ & Trái cây tươi",
                     SoldCount = 1,
                     Rating = calculatedRating,
                     IsBestSeller = false,
@@ -567,6 +588,7 @@ namespace MarketConnect.Services
                     UserFullName = c.UserFullName,
                     UserAvatar = !string.IsNullOrEmpty(c.UserAvatar) ? c.UserAvatar : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
                     CommentText = c.CommentText,
+                    ImageUrl = c.ImageUrl,
                     CreatedAt = c.CreatedAt,
                     TimeAgo = FormatTimeAgo(c.CreatedAt)
                 }).ToList();
@@ -590,6 +612,7 @@ namespace MarketConnect.Services
                 UserFullName = userName,
                 UserAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
                 CommentText = dto.CommentText,
+                ImageUrl = dto.ImageUrl,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -602,6 +625,7 @@ namespace MarketConnect.Services
                 UserFullName = commentEntity.UserFullName,
                 UserAvatar = commentEntity.UserAvatar,
                 CommentText = commentEntity.CommentText,
+                ImageUrl = commentEntity.ImageUrl,
                 CreatedAt = commentEntity.CreatedAt,
                 TimeAgo = "Vừa xong"
             };
@@ -638,9 +662,9 @@ namespace MarketConnect.Services
 
             return new Dictionary<string, string>
             {
-                { "Danh mục", category ?? "Đồ điện tử / Phụ kiện" },
-                { "Tình trạng", "Đã sử dụng (mới 95%)" },
-                { "Chính sách bảo hành", "Bảo hành trách nhiệm 1 tháng" }
+                { "Danh mục", category ?? "Nông sản & Thực phẩm" },
+                { "Tình trạng", "Tươi ngon mới về trong ngày" },
+                { "Chính sách bảo hành", "Đảm bảo chất lượng 100%" }
             };
         }
     }

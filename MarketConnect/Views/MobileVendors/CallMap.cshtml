@@ -1,0 +1,139 @@
+@{
+    ViewData["Title"] = "Gọi Người Bán Hàng Rong Gần Vị Trí - Chợ Việt Online";
+}
+
+<div class="max-w-[1440px] mx-auto px-4 md:px-16 py-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+            <span class="material-symbols-outlined text-amber-600">location_on</span> Gọi Người Bán Hàng Rong Gần Bạn
+        </h1>
+        <p class="text-xs text-gray-500 mt-1">Tìm kiếm và gửi yêu cầu ghép nối tới người bán lưu động đang trực tuyến ở gần theo mô hình tương tự gọi xe công nghệ.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Call Form Panel -->
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+            <h2 class="font-extrabold text-base text-gray-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-700">search</span> Tìm Mặt Hàng Cần Gọi
+            </h2>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Mặt hàng cần gọi (*)</label>
+                    <input type="text" id="targetItemInput" placeholder="Ví dụ: Bánh mì, Nước mía, Xôi nóng..." value="Bánh mì" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-amber-500 font-medium" />
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Bán kính tìm kiếm (km)</label>
+                    <select id="radiusSelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-amber-500 font-medium">
+                        <option value="1">Trong vòng 1 km</option>
+                        <option value="3" selected>Trong vòng 3 km</option>
+                        <option value="5">Trong vòng 5 km</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Ghi chú điểm hẹn</label>
+                    <input type="text" id="meetupNoteInput" placeholder="Trước cổng tòa nhà Capital Place..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-amber-500 font-medium" />
+                </div>
+
+                <button type="button" onclick="searchNearbyVendors()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3 rounded-xl transition-all active:scale-95 shadow-sm cursor-pointer">
+                    Tìm Người Bán Đang Trực Tuyến
+                </button>
+            </div>
+        </div>
+
+        <!-- Vendor List & Map Simulator Panel -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Simulated Map Container -->
+            <div class="bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900 text-white rounded-3xl p-6 h-64 relative flex flex-col justify-between overflow-hidden shadow-md">
+                <div class="flex justify-between items-center z-10">
+                    <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Định vị GPS Thời Gian Thực
+                    </span>
+                    <span class="text-xs text-emerald-200 font-medium">Vị trí: 21.0365, 105.7830</span>
+                </div>
+
+                <div class="z-10 text-center space-y-2">
+                    <div id="callStatusBadge" class="inline-block bg-amber-500/20 text-amber-300 border border-amber-400/30 font-black text-sm px-4 py-1.5 rounded-2xl">
+                        SẴN SÀNG TÌM KIẾM
+                    </div>
+                    <p id="callStatusDescription" class="text-xs text-gray-300">Nhập mặt hàng và bấm nút Tìm kiếm để ghép nối với người bán gần nhất.</p>
+                </div>
+
+                <div class="flex justify-between items-end z-10 text-xs text-emerald-200">
+                    <span>Mô hình thông tin an toàn vị trí 24h TTL</span>
+                    <span>Chợ Việt Online Mobile</span>
+                </div>
+            </div>
+
+            <!-- Matching Vendors List -->
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+                <h3 class="font-extrabold text-base text-gray-900 flex items-center justify-between">
+                    <span>Kết Quả Người Bán Phù Hợp ở Gần</span>
+                    <span id="vendorCountBadge" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">0 người bán</span>
+                </h3>
+
+                <div id="vendorsListContainer" class="space-y-3">
+                    <div class="p-6 text-center text-xs text-gray-400 border border-dashed border-gray-200 rounded-2xl">
+                        Bấm "Tìm Người Bán Đang Trực Tuyến" để hiển thị danh sách người bán hàng rong gần bạn.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function searchNearbyVendors() {
+            const item = document.getElementById('targetItemInput').value;
+            const radius = document.getElementById('radiusSelect').value;
+            const container = document.getElementById('vendorsListContainer');
+            const countBadge = document.getElementById('vendorCountBadge');
+
+            container.innerHTML = '<div class="p-4 text-xs text-center text-gray-500">Đang quét vị trí GPS người bán xung quanh...</div>';
+
+            try {
+                const res = await fetch(`/MobileVendors/SearchNearby?targetItem=${encodeURIComponent(item)}&radiusKm=${radius}`);
+                const data = await res.json();
+
+                countBadge.innerText = `${data.length} người bán`;
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="p-4 text-xs text-center text-gray-500">Không tìm thấy người bán phù hợp trong bán kính được chọn.</div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(v => `
+                    <div class="p-4 rounded-2xl border border-gray-100 bg-gray-50 flex items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <h4 class="font-extrabold text-sm text-gray-900">${v.profile.displayName}</h4>
+                            <p class="text-xs text-gray-600">${v.profile.itemsDescription}</p>
+                            <div class="flex items-center gap-2 text-[11px] text-gray-500">
+                                <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">Cách ${v.distanceKm} km</span>
+                                <span>•</span>
+                                <span>Dự kiến đến: <strong>~${v.estimatedArrivalMinutes} phút</strong></span>
+                            </div>
+                        </div>
+                        <button type="button" onclick="sendCallRequest('${v.profile.displayName}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all active:scale-95 cursor-pointer">
+                            Gửi Yêu Cầu Gặp
+                        </button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = '<div class="p-4 text-xs text-center text-red-500">Có lỗi xảy ra khi tìm kiếm người bán.</div>';
+            }
+        }
+
+        async function sendCallRequest(vendorName) {
+            document.getElementById('callStatusBadge').innerText = 'TRẠNG THÁI: OFFERED -> ĐÃ GỬI YÊU CẦU';
+            document.getElementById('callStatusDescription').innerText = `Đã gửi yêu cầu tới ${vendorName}. Đang chờ người bán xác nhận di chuyển...`;
+
+            setTimeout(() => {
+                document.getElementById('callStatusBadge').innerText = 'TRẠNG THÁI: ACCEPTED -> NGƯỜI BÁN ĐÃ CHẤP NHẬN';
+                document.getElementById('callStatusDescription').innerText = `${vendorName} đã chấp nhận yêu cầu và đang di chuyển tới điểm hẹn của bạn! (Mã bảo mật: CODE-2026)`;
+            }, 3000);
+        }
+    </script>
+}

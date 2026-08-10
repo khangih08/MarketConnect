@@ -38,6 +38,10 @@ namespace MarketConnect.Data
         [DataType(DataType.Date)] 
         public DateTime? DateOfBirth { get; set; }
 
+        public int AccessFailedCount { get; set; } = 0;
+
+        public DateTime? LockoutEnd { get; set; }
+
         // Navigation property for listings posted by user
         [InverseProperty(nameof(Product.Seller))]
         public ICollection<Product>? Products { get; set; }
@@ -50,10 +54,23 @@ namespace MarketConnect.Data
 
         [InverseProperty(nameof(ChatMessage.Receiver))]
         public ICollection<ChatMessage>? ReceivedMessages { get; set; }
+
+        public ICollection<Store>? Stores { get; set; }
+        public ICollection<PurchaseRequest>? PurchaseRequests { get; set; }
+        public ICollection<Review>? Reviews { get; set; }
+        public ICollection<AdminScope>? AdminScopes { get; set; }
     }
 
     public enum UserRole
     {
-        Buyer, Merchant
+        Buyer,
+        Merchant,
+        MarketAdmin,
+        ProvinceAdmin,
+        SuperAdmin,
+        Moderator,
+        AdStaff,
+        SupportStaff,
+        MobileSeller
     }
 }

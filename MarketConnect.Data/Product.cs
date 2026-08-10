@@ -48,6 +48,26 @@ namespace MarketConnect.Data
         [MaxLength(200)]
         public string? Warranty { get; set; } // Chính sách bảo hành
 
+        [ForeignKey(nameof(Store))]
+        public int? StoreId { get; set; }
+        public Store? Store { get; set; }
+
+        [MaxLength(50)]
+        public string? Unit { get; set; } = "Cái"; // Cái, kg, bó, khay, túi...
+
+        [MaxLength(50)]
+        public string PriceType { get; set; } = "Fixed"; // Fixed, Range, Contact
+
+        public int MinOrderQuantity { get; set; } = 1;
+
+        [MaxLength(50)]
+        public string StockStatus { get; set; } = "InStock"; // InStock, OutOfStock, Discontinued
+
+        [MaxLength(500)]
+        public string? SearchKeywords { get; set; }
+
+        public ModerationStatus ModerationStatus { get; set; } = ModerationStatus.Approved;
+
         [ForeignKey(nameof(Seller))]
         public int? UserId { get; set; } // ID người đăng tin
 

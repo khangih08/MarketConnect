@@ -1,0 +1,199 @@
+@model List<MarketConnect.Data.ModerationCase>
+
+@{
+    ViewData["Title"] = "Hàng Đợi Kiểm Duyệt Nội Dung - Chợ Việt Online";
+}
+
+<div class="max-w-[1440px] mx-auto px-4 md:px-16 py-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-700">gavel</span> Cổng Kiểm Duyệt Nội Dung & Phân Quyền Quản Trị
+            </h1>
+            <p class="text-xs text-gray-500 mt-1">Đánh giá điểm rủi ro tự động kết hợp phê duyệt thủ công theo phạm vi địa lý và chợ.</p>
+        </div>
+    </div>
+
+    <!-- Scoped Filters -->
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 mb-6 flex flex-wrap gap-3 items-center text-xs">
+        <span class="font-bold text-gray-700">Lọc theo loại:</span>
+        <a href="/Moderation" class="px-3 py-1.5 rounded-xl border border-gray-200 font-bold hover:bg-emerald-50">Tất Cả</a>
+        <a href="/Moderation?entityType=Product" class="px-3 py-1.5 rounded-xl border border-gray-200 font-bold hover:bg-emerald-50">Sản Phẩm</a>
+        <a href="/Moderation?entityType=Store" class="px-3 py-1.5 rounded-xl border border-gray-200 font-bold hover:bg-emerald-50">Gian Hàng</a>
+    </div>
+
+    <div class="space-y-4">
+        @if (!Model.Any())
+        {
+            <div class="bg-white p-8 rounded-2xl text-center text-gray-500 text-xs border border-gray-100">
+                Hàng đợi kiểm duyệt hiện tại đang trống.
+            </div>
+        }
+        else
+        {
+            @foreach (var c in Model)
+            {
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-50">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">@c.EntityType</span>
+                            <span class="font-bold text-sm text-gray-900">ID thực thể: #@c.EntityId</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-gray-500">Điểm Rủi Ro:</span>
+                            <span class="px-3 py-0.5 rounded-full font-black text-xs @(c.RiskScore >= 50 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-800")">
+                                @c.RiskScore / 100
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-gray-600 space-y-1">
+                        <p class="font-bold text-gray-800">Quyết định tự động ban đầu: @c.Decision.ToString()</p>
+                        <p class="text-gray-500">Quy tắc kích hoạt: <code class="bg-gray-100 px-2 py-0.5 rounded text-red-600">@c.TriggeredRulesJson</code></p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <form method="post" action="/Moderation/Review" class="flex flex-wrap gap-2 pt-2 border-t border-gray-50 items-center">
+                        <input type="hidden" name="caseId" value="@c.Id" />
+                        <input type="text" name="notes" placeholder="Nhập lý do hoặc hướng dẫn sửa..." class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs outline-none focus:border-emerald-700 flex-grow" />
+                        <button type="submit" name="decisionStatus" value="Approved" class="bg-emerald-700 text-white font-bold px-4 py-1.5 rounded-xl text-xs hover:bg-emerald-800 cursor-pointer">
+                            Phê Duyệt
+                        </button>
+                        <button type="submit" name="decisionStatus" value="ChangesRequired" class="bg-amber-500 text-white font-bold px-4 py-1.5 rounded-xl text-xs hover:bg-amber-600 cursor-pointer">
+                            Yêu Cầu Sửa
+                        </button>
+                        <button type="submit" name="decisionStatus" value="Rejected" class="bg-red-600 text-white font-bold px-4 py-1.5 rounded-xl text-xs hover:bg-red-700 cursor-pointer">
+                            Từ Chối
+                        </button>
+                    </form>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- KHU VỰC ĐẶC BIỆT: DUYỆT HỒ SƠ GIAN HÀNG TIỂU THƯƠNG (BẮT BUỘC NHẬP LÝ DO KHI TỪ CHỐI / TẠM NGỪNG / KHÓA) -->
+    <div class="mt-10 space-y-4">
+        <div class="border-b border-gray-200 pb-3 flex items-center justify-between">
+            <h2 class="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-700">storefront</span> Quản Lý & Phê Duyệt Hồ Sơ Gian Hàng Tiểu Thương
+            </h2>
+            <span class="text-xs text-gray-500 font-medium">Bắt buộc Quản trị viên nhập lý do khi Từ Chối, Tạm Ngừng hoặc Khóa</span>
+        </div>
+
+        @if (ViewBag.Stores != null && ((IEnumerable<dynamic>)ViewBag.Stores).Any())
+        {
+            <div class="grid grid-cols-1 gap-4">
+                @foreach (var store in ViewBag.Stores)
+                {
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100">
+                            <div>
+                                <h3 class="font-extrabold text-base text-gray-900">@store.StoreName</h3>
+                                <p class="text-xs text-gray-500">Chợ: <strong>@store.Market?.Name</strong> | Ngành hàng: <strong>@store.Category?.Name</strong> | Quầy: <strong>@store.StallLocation</strong></p>
+                            </div>
+                            <div>
+                                @if (store.Status == MarketConnect.Data.StoreStatus.Draft)
+                                {
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200">Bản nháp</span>
+                                }
+                                else if (store.Status == MarketConnect.Data.StoreStatus.PendingVerification)
+                                {
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">Chờ xác minh</span>
+                                }
+                                else if (store.Status == MarketConnect.Data.StoreStatus.PendingApproval)
+                                {
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">Chờ duyệt hồ sơ</span>
+                                }
+                                else if (store.Status == MarketConnect.Data.StoreStatus.Approved)
+                                {
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Đã duyệt (Tiểu thương)</span>
+                                }
+                                else if (store.Status == MarketConnect.Data.StoreStatus.Rejected)
+                                {
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-300">Từ chối</span>
+                                }
+                                else if (store.Status == MarketConnect.Data.StoreStatus.Suspended)
+                                {
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-300">Tạm ngừng</span>
+                                }
+                                else if (store.Status == MarketConnect.Data.StoreStatus.Locked)
+                                {
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-stone-200 text-stone-800 border border-stone-400">Đã khóa</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <div><strong>Người đại diện:</strong> @store.RepresentativeName</div>
+                            <div><strong>SĐT xác minh:</strong> @store.VerifiedPhone</div>
+                            <div><strong>Email chủ quầy:</strong> @store.Owner?.Email</div>
+                            @if (!string.IsNullOrWhiteSpace(store.PhotoProofUrl))
+                            {
+                                <div class="md:col-span-3"><strong>Ảnh quầy hàng / Giấy tờ:</strong> <a href="@store.PhotoProofUrl" target="_blank" class="text-emerald-700 underline font-bold">Xem ảnh chứng minh &rarr;</a></div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(store.IdentityInfo))
+                            {
+                                <div class="md:col-span-3 bg-amber-50 p-2 rounded border border-amber-200 text-amber-900">
+                                    <strong class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">lock</span> Định danh bảo mật (Chỉ Admin thấy):</strong> @store.IdentityInfo
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(store.RejectionReason))
+                            {
+                                <div class="md:col-span-3 text-red-700 font-medium"><strong>Lý do xử lý hiện tại:</strong> @store.RejectionReason</div>
+                            }
+                        </div>
+
+                        <!-- Form Duyệt & Bắt buộc nhập Lý do khi Từ Chối / Tạm Ngừng / Khóa -->
+                        <form method="post" action="/Moderation/ReviewStore" class="space-y-3 pt-2 border-t border-gray-100" onsubmit="return validateStoreReview(this)">
+                            <input type="hidden" name="storeId" value="@store.Id" />
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Lý do xử lý (Bắt buộc khi Từ Chối / Tạm Ngừng / Khóa):</label>
+                                <input type="text" name="rejectionReason" placeholder="Nhập lý do cụ thể (Ví dụ: Thiếu ảnh chứng minh quầy hàng, sai thông tin định danh...)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-xs outline-none focus:border-emerald-700 font-medium" />
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 pt-1">
+                                <button type="submit" name="newStatus" value="Approved" class="bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs hover:bg-emerald-800 cursor-pointer shadow-sm">
+                                    ✓ Duyệt & Nâng Quyền (Approved)
+                                </button>
+                                <button type="submit" name="newStatus" value="Suspended" class="bg-orange-600 text-white font-bold px-4 py-2 rounded-xl text-xs hover:bg-orange-700 cursor-pointer shadow-sm">
+                                    ⚠ Tạm Ngừng (Suspended)
+                                </button>
+                                <button type="submit" name="newStatus" value="Rejected" class="bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-xs hover:bg-red-700 cursor-pointer shadow-sm">
+                                    ✕ Từ Chối (Rejected)
+                                </button>
+                                <button type="submit" name="newStatus" value="Locked" class="bg-stone-700 text-white font-bold px-4 py-2 rounded-xl text-xs hover:bg-stone-800 cursor-pointer shadow-sm">
+                                    🔒 Đã Khóa (Locked)
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="bg-white p-8 rounded-2xl text-center text-gray-500 text-xs border border-gray-100 flex flex-col items-center justify-center gap-2 shadow-xs">
+                <span class="material-symbols-outlined text-4xl text-emerald-600">check_circle</span>
+                <span class="font-bold text-gray-800 text-sm">Hàng đợi kiểm duyệt hồ sơ gian hàng hiện tại đang trống</span>
+                <span>Tất cả hồ sơ gian hàng đã được phê duyệt thành công và đã tự động ẩn khỏi danh sách chờ duyệt.</span>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function validateStoreReview(form) {
+        const clickedBtn = document.activeElement;
+        const statusValue = clickedBtn ? clickedBtn.value : '';
+        const reasonInput = form.querySelector('input[name="rejectionReason"]');
+
+        if (statusValue === 'Rejected' || statusValue === 'Suspended' || statusValue === 'Locked') {
+            if (!reasonInput || !reasonInput.value.trim()) {
+                alert('Quản trị viên BẮT BUỘC phải nhập lý do khi Từ chối, Tạm ngừng hoặc Khóa hồ sơ gian hàng!');
+                reasonInput.focus();
+                return false;
+            }
+        }
+        return true;
+    }
+</script>

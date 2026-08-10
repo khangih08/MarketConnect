@@ -19,9 +19,15 @@ namespace MarketConnect.Services
 
             services.AddSingleton(jwt);
             services.AddScoped<IAuthService, AuthService>();
-            // Register application services
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IMultiMarketProductService, MultiMarketProductService>();
+            services.AddScoped<IMerchantStoreService, MerchantStoreService>();
+            services.AddScoped<IContentModerationService, ContentModerationService>();
+            services.AddScoped<IMultiMerchantCartService, MultiMerchantCartService>();
+            services.AddScoped<IReviewAbuseService, ReviewAbuseService>();
+            services.AddScoped<IAdService, AdService>();
+            services.AddScoped<IMobileVendorService, MobileVendorService>();
+            services.AddScoped<IAuditLogService, AuditLogService>();
 
             return services;
         }

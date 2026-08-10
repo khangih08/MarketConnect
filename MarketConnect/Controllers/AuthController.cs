@@ -28,11 +28,15 @@ namespace MarketConnect.Controllers
                 var res = await _authService.GoogleLoginAsync(dto.IdToken);
                 var outDto = new AuthResponseDto
                 {
+                    UserId = res.UserId,
                     Token = res.Token,
                     Username = res.FullName ?? string.Empty,
                     Email = res.Email,
                     ExpiresAt = res.ExpiresAt
                 };
+                Response.Cookies.Append("user_id", res.UserId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+                if (!string.IsNullOrEmpty(outDto.Email)) Response.Cookies.Append("user_email", outDto.Email, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+                if (!string.IsNullOrEmpty(outDto.Username)) Response.Cookies.Append("user_name", outDto.Username, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
                 return Ok(outDto);
             }
             catch (InvalidOperationException ex)
@@ -80,6 +84,50 @@ namespace MarketConnect.Controllers
             }
         }
 
+        [HttpPost("check-phone")]
+        public async Task<IActionResult> CheckPhone([FromBody] CheckPhoneDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var res = await _authService.CheckPhoneAsync(dto.PhoneNumber);
+            return Ok(res);
+        }
+
+        [HttpPost("register-phone")]
+        public async Task<IActionResult> RegisterPhone([FromBody] PhoneRegisterDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            try
+            {
+                var req = new MarketConnect.Services.Models.PhoneRegisterRequest
+                {
+                    PhoneNumber = dto.PhoneNumber,
+                    FullName = dto.FullName,
+                    Password = dto.Password,
+                    ConfirmPassword = dto.ConfirmPassword
+                };
+
+                var res = await _authService.RegisterPhonePasswordAsync(req);
+                var outDto = new AuthResponseDto
+                {
+                    UserId = res.UserId,
+                    Token = res.Token,
+                    Username = !string.IsNullOrEmpty(res.FullName) ? res.FullName : res.Email.Split('@')[0],
+                    Email = res.Email,
+                    ExpiresAt = res.ExpiresAt,
+                    FullName = res.FullName
+                };
+                Response.Cookies.Append("user_id", res.UserId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+                if (!string.IsNullOrEmpty(outDto.Email)) Response.Cookies.Append("user_email", outDto.Email, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+                if (!string.IsNullOrEmpty(outDto.Username)) Response.Cookies.Append("user_name", outDto.Username, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+                return Ok(outDto);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("phone-login")]
         public async Task<IActionResult> PhoneLogin([FromBody] PhoneLoginDto dto)
         {
@@ -91,19 +139,57 @@ namespace MarketConnect.Controllers
                 Password = dto.Password
             };
 
-            var res = await _authService.PhoneLoginAsync(svcReq);
-            if (res == null)
+            var res = await _authService.PhoneLoginDetailedAsync(svcReq);
+            if (!res.Success)
             {
-                return Unauthorized(new { message = "Số điện thoại hoặc mật khẩu không chính xác." });
+                if (res.IsLocked)
+                {
+                    return StatusCode(423, new { 
+                        message = res.Message, 
+                        isLocked = true, 
+                        remainingMinutes = res.RemainingMinutes 
+                    });
+                }
+                if (res.RequiresRegister)
+                {
+                    return BadRequest(new { 
+                        message = res.Message, 
+                        requiresRegister = true 
+                    });
+                }
+                return BadRequest(new { 
+                    message = res.Message, 
+                    failedCount = res.FailedCount,
+                    remainingAttempts = res.FailedCount > 0 ? (5 - res.FailedCount) : 5
+                });
             }
 
+            var authData = res.AuthData!;
             var outDto = new AuthResponseDto
             {
-                Token = res.Token,
-                Username = !string.IsNullOrEmpty(res.FullName) ? res.FullName : res.Email.Split('@')[0],
-                Email = res.Email,
-                ExpiresAt = res.ExpiresAt
+                UserId = authData.UserId,
+                Token = authData.Token,
+                Username = !string.IsNullOrEmpty(authData.FullName) ? authData.FullName : authData.Email.Split('@')[0],
+                Email = authData.Email,
+                ExpiresAt = authData.ExpiresAt,
+                FullName = authData.FullName
             };
+
+            // Đính kèm Response Cookies để giữ phiên đăng nhập trên toàn bộ giao diện ASP.NET Core
+            Response.Cookies.Append("user_id", authData.UserId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+            if (!string.IsNullOrEmpty(outDto.Email))
+            {
+                Response.Cookies.Append("user_email", outDto.Email, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+            }
+            if (!string.IsNullOrEmpty(outDto.Username))
+            {
+                Response.Cookies.Append("user_name", outDto.Username, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+            }
+            if (!string.IsNullOrEmpty(dto.PhoneNumber))
+            {
+                Response.Cookies.Append("user_phone", dto.PhoneNumber, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+            }
+
             return Ok(outDto);
         }
 

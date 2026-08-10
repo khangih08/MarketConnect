@@ -43,12 +43,40 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/AdCampaigns/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRDYW1wYWlnbnNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/CartAndOrders/BuyerRequests.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FydEFuZE9yZGVyc1xCdXllclJlcXVlc3RzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/CartAndOrders/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FydEFuZE9yZGVyc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/CartAndOrders/MerchantRequests.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FydEFuZE9yZGVyc1xNZXJjaGFudFJlcXVlc3RzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/MobileVendors/CallMap.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9iaWxlVmVuZG9yc1xDYWxsTWFwLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/MobileVendors/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9iaWxlVmVuZG9yc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Moderation/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9kZXJhdGlvblxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/Product/CategoryList.cshtml]
@@ -69,6 +97,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Stores/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3RvcmVzXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Stores/Detail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3RvcmVzXERldGFpbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Stores/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3RvcmVzXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/_ViewImports.cshtml]

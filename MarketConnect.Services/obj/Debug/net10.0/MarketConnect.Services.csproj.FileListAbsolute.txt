@@ -13,3 +13,4 @@ D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketCo
 D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\refint\MarketConnect.Services.dll
 D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketConnect.Services.pdb
 D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\ref\MarketConnect.Services.dll
+D:\URL-Shortener\MarketConnect\MarketConnect.Services\obj\Debug\net10.0\MarketConnect.Services.sourcelink.json

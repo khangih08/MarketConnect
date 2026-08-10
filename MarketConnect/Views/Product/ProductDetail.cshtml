@@ -232,11 +232,30 @@
                 <!-- Comment Input Form -->
                 <div class="mt-3 pt-3 border-t border-gray-100">
                     <div class="flex items-start gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-[#004532] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">Tôi</div>
-                        <div class="flex-1">
-                            <textarea id="inputCommentText" class="w-full border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-[#004532]/20 focus:border-[#004532] outline-none resize-none transition-all" placeholder="Viết câu hỏi hoặc bình luận của bạn..." rows="2"></textarea>
+                        <img id="currentUserAvatar" class="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-emerald-500/20" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" alt="Avatar" />
+                        <div class="flex-1 min-w-0">
+                            <textarea id="inputCommentText" onfocus="handleCommentInputFocus(event)" class="w-full border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-[#004532]/20 focus:border-[#004532] outline-none resize-none transition-all placeholder-gray-400" placeholder="Viết câu hỏi hoặc bình luận của bạn..." rows="2"></textarea>
+                            
+                            <!-- Khung xem trước hình ảnh đính kèm (Image Thumbnail Preview) -->
+                            <div id="commentImagePreviewContainer" class="hidden mt-2 relative inline-block group">
+                                <img id="commentImagePreview" class="w-20 h-20 object-cover rounded-xl border border-gray-200 shadow-xs" src="" alt="Xem trước ảnh đính kèm" />
+                                <button type="button" onclick="removeCommentImage()" title="Xóa ảnh đính kèm" class="absolute -top-1.5 -right-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 shadow-sm active:scale-90 transition-all cursor-pointer flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[13px]">close</span>
+                                </button>
+                            </div>
+
                             <div class="flex justify-between items-center mt-2">
-                                <span class="text-[10px] text-gray-400">Tuân thủ quy tắc cộng đồng</span>
+                                <div class="flex items-center gap-2">
+                                    <!-- Nút icon đính kèm ảnh 📷 -->
+                                    <label for="commentImageInput" title="Đính kèm hình ảnh (Max 5MB)" class="flex items-center gap-1 text-gray-600 hover:text-[#004532] hover:bg-emerald-50 px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors border border-gray-200 shadow-2xs">
+                                        <span class="material-symbols-outlined text-[18px] text-emerald-600">photo_camera</span>
+                                        <span class="hidden sm:inline text-[11px]">Đính kèm ảnh</span>
+                                    </label>
+                                    <input type="file" id="commentImageInput" accept="image/jpeg,image/png,image/webp" onchange="handleCommentImageSelect(event)" class="hidden" />
+
+                                    <span class="text-[10px] text-gray-400">Tối đa 5MB (.jpg, .png)</span>
+                                </div>
+                                
                                 <button id="btnSubmitComment" type="button" class="bg-[#004532] hover:bg-[#065f46] text-white px-4 py-1.5 rounded-lg font-bold text-xs transition-all active:scale-95 cursor-pointer shadow-sm">
                                     Gửi bình luận
                                 </button>
@@ -265,462 +284,48 @@
             <div class="bg-white rounded-2xl p-4 border border-gray-100 text-center text-xs text-gray-400 col-span-full py-8">Đang tải sản phẩm tương tự...</div>
         </div>
     </section>
+
+    <!-- MODAL YÊU CẦU ĐĂNG NHẬP -->
+    <div id="loginRequiredModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-[28px]">lock</span>
+            </div>
+            <h4 class="text-base font-bold text-gray-800 mb-1">Yêu cầu đăng nhập</h4>
+            <p class="text-xs text-gray-500 mb-6 leading-relaxed">Bạn cần đăng nhập tài khoản MarketConnect để viết bình luận hoặc đặt câu hỏi về sản phẩm này.</p>
+            
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="hideLoginModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl transition-colors">
+                    Để sau
+                </button>
+                <a id="modalLoginBtn" href="/Account/Login" class="flex-1 bg-[#004532] hover:bg-[#065f46] text-white text-xs font-bold py-2.5 rounded-xl transition-colors shadow-sm inline-block">
+                    Đăng nhập
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL XÁC NHẬN XÓA BÌNH LUẬN -->
+    <div id="deleteCommentModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-[28px]">delete</span>
+            </div>
+            <h4 class="text-base font-bold text-gray-800 mb-1">Xác nhận xóa bình luận</h4>
+            <p class="text-xs text-gray-500 mb-6 leading-relaxed">Bạn có chắc chắn muốn xóa bình luận này? Thao tác này không thể hoàn tác.</p>
+            
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="hideDeleteCommentModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl transition-colors">
+                    Hủy bỏ
+                </button>
+                <button id="btnConfirmDeleteComment" type="button" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+                    Xóa bình luận
+                </button>
+            </div>
+        </div>
+    </div>
 </main>
 
-<script>
-document.addEventListener('DOMContentLoaded', async function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('id') || '1';
-
-    let currentProduct = null;
-    let galleryImages = [];
-    let activeImageIndex = 0;
-
-    // 1. Tải chi tiết sản phẩm & sản phẩm liên quan song song bằng Promise.all để tối ưu tốc độ
-    await Promise.all([
-        loadProductDetail(productId),
-        loadRelatedProducts(productId)
-    ]);
-
-    // 2. Sự kiện gallery slider
-    document.getElementById('btnPrevImage')?.addEventListener('click', () => switchGalleryImage(-1));
-    document.getElementById('btnNextImage')?.addEventListener('click', () => switchGalleryImage(1));
-
-
-    // 4. Sự kiện tim yêu thích
-    let isFavorite = false;
-    document.getElementById('btnFavorite')?.addEventListener('click', function () {
-        isFavorite = !isFavorite;
-        const heartIcon = document.getElementById('heartIcon');
-        if (isFavorite) {
-            heartIcon.style.fontVariationSettings = "'FILL' 1";
-            heartIcon.classList.add('text-red-500');
-        } else {
-            heartIcon.style.fontVariationSettings = "'FILL' 0";
-            heartIcon.classList.remove('text-red-500');
-        }
-    });
-
-    // 5. Sự kiện gọi điện, chat & hỏi đáp
-    document.getElementById('btnSendQuickQuestion')?.addEventListener('click', postQuickQuestion);
-    document.getElementById('btnSubmitComment')?.addEventListener('click', postComment);
-    document.getElementById('btnCallSeller')?.addEventListener('click', function () {
-        const sellerObj = currentProduct?.sellerInfo || currentProduct?.seller;
-        const phone = sellerObj?.phone || 'Chưa cập nhật SĐT';
-        alert(`SĐT liên hệ người bán (${sellerObj?.sellerName || 'Người đăng tin'}): ${phone}`);
-    });
-    document.getElementById('btnChatSeller')?.addEventListener('click', function () {
-        document.getElementById('inputCommentText').focus();
-    });
-
-    async function loadProductDetail(id) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const paramName = urlParams.get('name') || urlParams.get('title');
-        const paramGroupKey = urlParams.get('group_key');
-
-        // Nếu trên URL đã truyền tên sản phẩm hoặc group_key (do click từ tìm kiếm/danh mục)
-        if (paramName || paramGroupKey) {
-            currentProduct = getMockProductDetail(id);
-            renderProductInfo(currentProduct);
-            return;
-        }
-
-        try {
-            const res = await fetch(`/api/Products/${id}`, {
-                headers: { 'Authorization': 'Bearer ' + (sessionStorage.getItem('token') || '') }
-            });
-
-            if (res.ok) {
-                const apiProduct = await res.json();
-                if (apiProduct && apiProduct.productName && !apiProduct.productName.toLowerCase().includes('headphones')) {
-                    currentProduct = apiProduct;
-                    renderProductInfo(currentProduct);
-                    return;
-                }
-            }
-        } catch (err) {
-            console.error("Lỗi khi tải chi tiết sản phẩm:", err);
-        }
-
-        // Fallback cho mock ID hoặc chế độ offline
-        currentProduct = getMockProductDetail(id);
-        renderProductInfo(currentProduct);
-    }
-
-    function formatTitleFromGroupKey(groupKey) {
-        if (!groupKey) return "";
-        const lowerKey = groupKey.toLowerCase();
-        if (lowerKey.includes('tao-fuji')) return "Táo Fuji Mỹ (Farm-to-Door) Đỏ Ngọt Thanh 1kg";
-        if (lowerKey.includes('tao-envy')) return "Táo Envy Mỹ Nhập Khẩu Tươi Giòn Ngọt 1kg";
-        if (lowerKey.includes('cam-sanh')) return "Cam Sành Tiền Giang Mọng Nước Ngọt Thanh 2kg";
-        if (lowerKey.includes('thit-bo') || lowerKey.includes('wagyu')) return "Thịt Thăn Bò Wagyu Úc MB 4-5 - Gói 500g Tiêu Chuẩn";
-        if (lowerKey.includes('ga-ta')) return "Gà Ta Thả Vườn Nguyên Con Tươi Ngon Cấp Sạch";
-        if (lowerKey.includes('ca-hoi')) return "Cá Hồi Na Uy Tươi Sống Phi Lê Cắt Khúc 300g";
-        if (lowerKey.includes('tom-hum')) return "Tôm Hùm Bông Sống Nguyên Con Hải Sản Chợ";
-        if (lowerKey.includes('gio-lua') || lowerKey.includes('cha-lua')) return "Giò Lụa Ước Lễ Truyền Thống Đòn 500g";
-
-        return groupKey.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    }
-
-    function getMockProductDetail(id) {
-        const urlParams = new URLSearchParams(window.location.search);
-        let paramName = urlParams.get('name') || urlParams.get('title');
-        const paramGroupKey = urlParams.get('group_key');
-
-        if (!paramName && paramGroupKey) {
-            paramName = formatTitleFromGroupKey(paramGroupKey);
-        }
-
-        const paramPrice = urlParams.get('price');
-        const paramImg = urlParams.get('img');
-        const paramAddress = urlParams.get('address');
-        const paramCondition = urlParams.get('condition');
-        const paramSeller = urlParams.get('seller');
-        const selectedMarket = localStorage.getItem('selected_market') || 'Chợ Đồng Xuân';
-
-        // Nếu có paramName hoặc paramGroupKey, ưu tiên dùng tên từ param/slug thay vì hardcode id
-        if (paramName) {
-            let displayImg = paramImg;
-            const lowerName = paramName.toLowerCase();
-            if (!displayImg || displayImg.includes('placeholder.svg')) {
-                if (lowerName.includes('táo')) displayImg = "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600";
-                else if (lowerName.includes('cam')) displayImg = "https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=600";
-                else if (lowerName.includes('bò') || lowerName.includes('thịt')) displayImg = "https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=600";
-                else if (lowerName.includes('cá')) displayImg = "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600";
-                else if (lowerName.includes('tôm') || lowerName.includes('hùm')) displayImg = "https://images.unsplash.com/photo-1559742811-822863cc4ad7?w=600";
-                else displayImg = "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600";
-            }
-
-            const sellerName = paramSeller || "Phước Thư Nông Sản";
-            const isOnline = sellerName.includes("Vườn") || sellerName.includes("Đà Lạt");
-
-            return {
-                id: id || "1",
-                productName: paramName,
-                price: parseInt(paramPrice) || (lowerName.includes('táo') ? 120000 : 150000),
-                condition: paramCondition || "Tươi mới về trong ngày",
-                address: paramAddress || `${selectedMarket} (Hà Nội)`,
-                sellerType: "Tiểu Thương Chợ",
-                categoryName: lowerName.includes('táo') || lowerName.includes('cam') ? "Rau củ & Trái cây tươi" : "Nông sản & Thực phẩm",
-                rating: 4.9,
-                soldCount: 520,
-                description: `Sản phẩm <strong>${paramName}</strong> tươi ngon, chất lượng cao, chọn lọc kĩ càng từ trang trại đến bàn ăn, giao hàng trực tiếp từ tiểu thương tại ${paramAddress || selectedMarket}.`,
-                imageUrl: displayImg,
-                galleryImages: [displayImg],
-                specifications: { "Xuất xứ": "Việt Nam / Nhập Khẩu", "Tình trạng": paramCondition || "Tươi mới về trong ngày", "Giao hàng": "Nhanh trong 2h", "Địa chỉ giao hàng": paramAddress || `${selectedMarket} (Hà Nội)` },
-                sellerInfo: {
-                    sellerName: sellerName,
-                    sellerAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-                    rating: 4.9,
-                    totalProducts: 12,
-                    isOnline: isOnline,
-                    lastActive: isOnline ? "Đang hoạt động" : "Hoạt động 15 phút trước",
-                    phone: "0988 999 888",
-                    address: paramAddress || `${selectedMarket} (Hà Nội)`
-                }
-            };
-        }
-
-        const mockMap = {
-            "1": { id: "1", productName: "Táo Envy Mỹ Nhập Khẩu Tươi Giòn Ngọt 1kg", price: 120000, condition: "Tươi mới về trong ngày", address: `${selectedMarket} (Hà Nội)`, sellerType: "Chính hãng", categoryName: "Rau củ & Trái cây tươi", rating: 4.9, soldCount: 804, description: "Táo Envy Mỹ nhập khẩu nguyên giàn, thịt giòn ngọt đậm đà, tươi mới về trong ngày tại Chợ.", imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600", galleryImages: ["https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600"], specifications: { "Nguồn gốc": "Mỹ", "Bảo quản": "Tươi lạnh 4°C", "Trọng lượng": "1kg" }, sellerInfo: { sellerName: paramSeller || "Phước Thư Nông Sản", sellerAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150", rating: 4.9, totalProducts: 15, isOnline: false, lastActive: "Hoạt động 5 phút trước", phone: "0988 123 456", address: `${selectedMarket} (Hà Nội)` } },
-            "2": { id: "2", productName: "Cam Sành Tiền Giang Mọng Nước Ngọt Thanh 2kg", price: 45000, condition: "Tươi mới về trong ngày", address: `${selectedMarket} (Hà Nội)`, sellerType: "Cá nhân", categoryName: "Rau củ & Trái cây tươi", rating: 4.8, soldCount: 1200, description: "Cam sành Tiền Giang mọng nước, vỏ mỏng ngọt thanh dùng vắt nước hoặc ăn trực tiếp rất bổ dưỡng.", imageUrl: "https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=600", galleryImages: ["https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=600"], specifications: { "Xuất xứ": "Tiền Giang", "Bảo quản": "Nhiệt độ phòng", "Trọng lượng": "2kg" }, sellerInfo: { sellerName: paramSeller || "Vườn Cam Sạch", sellerAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150", rating: 4.8, totalProducts: 8, isOnline: true, lastActive: "Đang hoạt động", phone: "0912 345 678", address: `${selectedMarket} (Hà Nội)` } },
-            "3": { id: "3", productName: "Rau Cải Thảo Đà Lạt Hữu Cơ Sạch 1kg", price: 25000, condition: "Đã sơ chế sạch sẽ", address: `${selectedMarket} (Hà Nội)`, sellerType: "Nông sản sạch", categoryName: "Rau củ & Trái cây tươi", rating: 4.7, soldCount: 530, description: "Rau cải thảo Đà Lạt tươi xanh, trồng theo tiêu chuẩn hữu cơ sạch, ngọt dịu giòn tan.", imageUrl: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600", galleryImages: ["https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600"], specifications: { "Xuất xứ": "Đà Lạt", "Trọng lượng": "1kg" }, sellerInfo: { sellerName: paramSeller || "Nông Sản Đà Lạt", sellerAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150", rating: 4.7, totalProducts: 10, isOnline: true, lastActive: "Đang hoạt động", phone: "0945 678 910", address: `${selectedMarket} (Hà Nội)` } },
-            "4": { id: "4", productName: "Thịt Thăn Bò Wagyu Úc MB 4-5 - Gói 500g Tiêu Chuẩn", price: 450000, condition: "Cấp đông tiêu chuẩn", address: `${selectedMarket} (Hà Nội)`, sellerType: "Đối tác Chợ", categoryName: "Thịt & Gia cầm", rating: 5.0, soldCount: 804, description: "Thịt thăn bò Wagyu Úc vân mỡ đều, mềm mọng thích hợp làm bít tết hoặc nướng lẩu gia đình.", imageUrl: "https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=600", galleryImages: ["https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=600"], specifications: { "Xuất xứ": "Úc", "Bảo quản": "Cấp đông -18°C" }, sellerInfo: { sellerName: paramSeller || "Tiểu Thương Bò Úc", sellerAvatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150", rating: 5.0, totalProducts: 24, isOnline: false, lastActive: "Hoạt động 1 giờ trước", phone: "0977 888 999", address: `${selectedMarket} (Hà Nội)` } },
-            "5": { id: "5", productName: "Gà Ta Thả Vườn Nguyên Con Tươi Ngon Cấp Sạch", price: 185000, condition: "Tươi mới về trong ngày", address: `${selectedMarket} (Hà Nội)`, sellerType: "Nông sản sạch", categoryName: "Thịt & Gia cầm", rating: 4.8, soldCount: 412, description: "Gà ta thả vườn thịt dai ngon ngậy, đã làm sạch sẵn cấp đông tiêu chuẩn an toàn.", imageUrl: "https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=600", galleryImages: ["https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=600"], specifications: { "Xuất xứ": "Hà Nội", "Trọng lượng": "1.5kg" }, sellerInfo: { sellerName: paramSeller || "Gà Sạch Đồi Vườn", sellerAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150", rating: 4.8, totalProducts: 5, isOnline: true, lastActive: "Đang hoạt động", phone: "0966 555 444", address: `${selectedMarket} (Hà Nội)` } },
-            "7": { id: "7", productName: "Cá Hồi Na Uy Tươi Sống Phi Lê Cắt Khúc 300g", price: 350000, condition: "Cấp đông tiêu chuẩn", address: `${selectedMarket} (Hà Nội)`, sellerType: "Hải sản nhập khẩu", categoryName: "Thủy hải sản tươi sống", rating: 4.9, soldCount: 950, description: "Cá hồi Na Uy tươi phi lê sẵn, mọng mỡ béo ngậy dùng ăn sashimi hoặc áp chảo tuyệt hảo.", imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600", galleryImages: ["https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600"], specifications: { "Xuất xứ": "Na Uy", "Bảo quản": "Đông lạnh" }, sellerInfo: { sellerName: paramSeller || "Hải Sản Biển Đông", sellerAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150", rating: 4.9, totalProducts: 18, isOnline: false, lastActive: "Hoạt động 30 phút trước", phone: "0933 222 111", address: `${selectedMarket} (Hà Nội)` } },
-            "8": { id: "8", productName: "Tôm Hùm Bông Sống Nguyên Con Hải Sản Chợ", price: 890000, condition: "Tươi mới về trong ngày", address: `${selectedMarket} (Hà Nội)`, sellerType: "Hải sản tươi", categoryName: "Thủy hải sản tươi sống", rating: 5.0, soldCount: 320, description: "Tôm hùm bông sống nguyên con bơi tại bể, thịt chắc ngọt đậm đà vị biển.", imageUrl: "https://images.unsplash.com/photo-1559742811-822863cc4ad7?w=600", galleryImages: ["https://images.unsplash.com/photo-1559742811-822863cc4ad7?w=600"], specifications: { "Xuất xứ": "Nha Trang", "Tình trạng": "Tươi sống" }, sellerInfo: { sellerName: paramSeller || "Hải Sản Tươi Sống", sellerAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150", rating: 5.0, totalProducts: 12, isOnline: false, lastActive: "Hoạt động 2 giờ trước", phone: "0911 888 777", address: `${selectedMarket} (Hà Nội)` } },
-            "10": { id: "10", productName: "Chả Lụa Ước Lễ Truyền Thống Đặc Sản Đòn 500g", price: 110000, condition: "Đã sơ chế sạch sẽ", address: `${selectedMarket} (Hà Nội)`, sellerType: "Bán chuyên", categoryName: "Thực phẩm chế biến sẵn", rating: 4.9, soldCount: 1450, description: "Giò chả Ước Lễ truyền thống giòn ngọt thơm nức lá chuối, không chất bảo quản.", imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600", galleryImages: ["https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600"], specifications: { "Xuất xứ": "Hà Nội", "Quy cách": "Đòn 500g" }, sellerInfo: { sellerName: paramSeller || "Giò Chả Ước Lễ", sellerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150", rating: 4.9, totalProducts: 6, isOnline: true, lastActive: "Đang hoạt động", phone: "0936 112 233", address: `${selectedMarket} (Hà Nội)` } }
-        };
-
-        if (mockMap[id]) return mockMap[id];
-
-        // Generic fallback
-        return {
-            id: id || "1",
-            productName: "Sản phẩm Thực phẩm & Nông sản Chợ",
-            price: 150000,
-            condition: "Tươi mới về trong ngày",
-            address: `${selectedMarket} (Hà Nội)`,
-            sellerType: "Đối tác Chợ",
-            categoryName: "Nông sản & Thực phẩm",
-            rating: 4.9,
-            soldCount: 520,
-            description: "Sản phẩm chất lượng cao được kiểm định an toàn thực phẩm, cung cấp trực tiếp từ tiểu thương tại Chợ.",
-            imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600",
-            galleryImages: ["https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600"],
-            specifications: { "Xuất xứ": "Việt Nam", "Giao hàng": "Nhanh trong 2 giờ", "Bảo đảm": "Tươi ngon 100%" },
-            sellerInfo: { sellerName: paramSeller || "Tiểu Thương Chợ", sellerAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150", rating: 4.9, totalProducts: 12, isOnline: false, lastActive: "Hoạt động 15 phút trước", phone: "0988 999 888", address: `${selectedMarket} (Hà Nội)` }
-        };
-    }
-
-    function renderProductInfo(p) {
-        const title = p.productName || p.name || p.title || 'Sản phẩm';
-        const catName = p.categoryName || p.brand || (p.category ? p.category.name : 'Đồ điện tử / Phụ kiện');
-        const rating = typeof p.rating === 'number' ? p.rating.toFixed(1) : '5.0';
-        const rawSold = typeof p.soldCount === 'number' ? p.soldCount : 1;
-        const soldText = rawSold >= 1000 ? (rawSold / 1000).toFixed(1) + 'k' : rawSold;
-
-        document.getElementById('breadcrumbCategory').innerText = catName;
-        document.getElementById('breadcrumbTitle').innerText = title;
-        document.getElementById('productTitle').innerText = title;
-        document.getElementById('brandName').innerText = p.sellerType || 'Cá nhân';
-        document.getElementById('productRating').innerText = rating;
-        document.getElementById('soldCount').innerText = soldText;
-
-        // Badges
-        const badgeDiscount = document.getElementById('badgeDiscount');
-        if (p.discountPercent && p.discountPercent > 0) {
-            badgeDiscount.innerText = `Giảm ${p.discountPercent}%`;
-            badgeDiscount.classList.remove('hidden');
-        } else {
-            badgeDiscount.classList.add('hidden');
-        }
-
-        const badgeBestSeller = document.getElementById('badgeBestSeller');
-        if (p.isBestSeller) {
-            badgeBestSeller.classList.remove('hidden');
-        } else {
-            badgeBestSeller.classList.add('hidden');
-        }
-
-        // Giá sản phẩm chính
-        if (p.isFree) {
-            document.getElementById('productPrice').innerText = '0đ (Cho tặng miễn phí)';
-        } else {
-            document.getElementById('productPrice').innerText = `đ${(p.price || 0).toLocaleString('vi-VN')}`;
-        }
-
-        const shippingLabel = document.getElementById('shippingLabel');
-        if (shippingLabel) {
-            shippingLabel.innerText = p.address ? `Giao dịch tại ${p.address}` : 'Hà Nội';
-        }
-
-        // Media Gallery
-        galleryImages = (p.galleryImages && p.galleryImages.length > 0) 
-            ? p.galleryImages 
-            : [p.imageUrl || '/images/placeholder.svg'];
-        
-        updateMainImage(0);
-        renderThumbnailGrid(galleryImages);
-
-        // Seller Info
-        const sellerObj = p.sellerInfo || p.seller;
-        if (sellerObj) {
-            const sName = sellerObj.sellerName || sellerObj.name || sellerObj.email || sellerObj.shopName || 'Người đăng tin';
-            document.getElementById('sellerName').innerText = sName;
-            const avatar = sellerObj.sellerAvatar || sellerObj.shopLogo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
-            document.getElementById('sellerLogo').src = avatar;
-            
-            const ratingVal = typeof sellerObj.rating === 'number' ? sellerObj.rating.toFixed(1) : (typeof p.rating === 'number' ? p.rating.toFixed(1) : '5.0');
-            document.getElementById('sellerRating').innerText = `${ratingVal}/5.0`;
-            document.getElementById('sellerTotalProducts').innerText = `${sellerObj.totalProducts || 1} tin`;
-            document.getElementById('sellerActive').innerText = sellerObj.lastActive || 'Đang hoạt động';
-
-            const statusDot = document.getElementById('sellerStatus');
-            if (statusDot) {
-                if (sellerObj.isOnline !== false) {
-                    statusDot.className = 'absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full ring-2 ring-emerald-400/20';
-                } else {
-                    statusDot.className = 'absolute bottom-0 right-0 w-4 h-4 bg-gray-400 border-2 border-white rounded-full';
-                }
-            }
-        } else {
-            document.getElementById('sellerName').innerText = 'Người đăng tin';
-        }
-
-        // Render Thông số kỹ thuật
-        renderSpecifications(p.specifications || {});
-
-        // Mô tả
-        if (p.description) {
-            document.getElementById('productDescription').innerHTML = p.description;
-        } else {
-            document.getElementById('productDescription').innerHTML = `<p>Sản phẩm <strong>${title}</strong> đăng bán trực tiếp trên MarketConnect.</p>`;
-        }
-
-        // Bình luận
-        renderComments(p.comments || []);
-    }
-
-    function updateMainImage(index) {
-        if (!galleryImages || galleryImages.length === 0) return;
-        activeImageIndex = index;
-        document.getElementById('mainProductImage').src = galleryImages[activeImageIndex];
-        
-        const thumbs = document.querySelectorAll('#thumbnailGallery > div');
-        thumbs.forEach((t, i) => {
-            if (i === activeImageIndex) {
-                t.className = 'aspect-square rounded-xl overflow-hidden border-2 border-[#004532] cursor-pointer shadow-sm';
-            } else {
-                t.className = 'aspect-square rounded-xl overflow-hidden border border-gray-200 hover:border-[#004532] cursor-pointer opacity-70 hover:opacity-100 transition-all';
-            }
-        });
-    }
-
-    function switchGalleryImage(direction) {
-        if (!galleryImages || galleryImages.length === 0) return;
-        let nextIndex = activeImageIndex + direction;
-        if (nextIndex < 0) nextIndex = galleryImages.length - 1;
-        if (nextIndex >= galleryImages.length) nextIndex = 0;
-        updateMainImage(nextIndex);
-    }
-
-    function renderThumbnailGrid(images) {
-        const container = document.getElementById('thumbnailGallery');
-        container.innerHTML = images.slice(0, 5).map((imgUrl, i) => `
-            <div onclick="window.setMainImage(${i})" class="aspect-square rounded-xl overflow-hidden ${i === 0 ? 'border-2 border-[#004532]' : 'border border-gray-200 hover:border-[#004532] opacity-70 hover:opacity-100'} cursor-pointer transition-all">
-                <img class="w-full h-full object-cover" src="${imgUrl}" />
-            </div>
-        `).join('');
-
-        window.setMainImage = function(index) {
-            updateMainImage(index);
-        };
-    }
-
-    function renderSpecifications(specs) {
-        const container = document.getElementById('specificationsContainer');
-        if (!container) return;
-        const entries = Object.entries(specs || {});
-        if (entries.length === 0) {
-            container.innerHTML = `<div class="p-4 text-gray-400 text-xs text-center italic">Chưa có thông số chi tiết.</div>`;
-            return;
-        }
-
-        container.innerHTML = entries.map(([key, val], idx) => `
-            <div class="grid grid-cols-3 text-xs ${idx % 2 === 0 ? 'bg-gray-50/60' : 'bg-white'}">
-                <div class="p-3.5 font-semibold text-gray-500 border-r border-gray-100">${key}</div>
-                <div class="p-3.5 col-span-2 font-bold text-gray-800">${val}</div>
-            </div>
-        `).join('');
-    }
-
-    function renderComments(comments) {
-        const container = document.getElementById('commentsList');
-        const badge = document.getElementById('commentCountBadge');
-        if (badge) badge.innerText = comments ? comments.length : 0;
-
-        if (!comments || comments.length === 0) {
-            container.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-full text-center px-4 py-8">
-                    <span class="material-symbols-outlined text-[36px] text-gray-300 mb-2">forum</span>
-                    <p class="text-gray-500 text-xs font-medium">Chưa có bình luận nào cho sản phẩm này.</p>
-                    <p class="text-gray-400 text-[11px] mt-1 italic">Hãy là người đầu tiên đặt câu hỏi!</p>
-                </div>`;
-            return;
-        }
-
-        container.innerHTML = comments.map(c => `
-            <div class="flex items-start gap-3 text-xs bg-gray-50/70 p-3 rounded-xl border border-gray-100">
-                <img class="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-emerald-500/10" src="${c.userAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}" />
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-gray-800 truncate">${c.userFullName}</span>
-                        <span class="text-[10px] text-gray-400 shrink-0">${c.timeAgo || 'Vừa xong'}</span>
-                    </div>
-                    <p class="text-gray-600 leading-relaxed break-words">${c.commentText}</p>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    async function postComment() {
-        const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-        if (!token) {
-            alert('Vui lòng đăng nhập để bình luận!');
-            window.location.href = '/Account/Login';
-            return;
-        }
-
-        const input = document.getElementById('inputCommentText');
-        const text = input.value.trim();
-        if (!text) return;
-
-        const savedUserName = sessionStorage.getItem('user_name') || localStorage.getItem('user_name') || '';
-
-        try {
-            const res = await fetch(`/api/Products/${productId}/comments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ commentText: text, userFullName: savedUserName })
-            });
-
-            if (res.ok) {
-                input.value = '';
-                const newComment = await res.json();
-                if (currentProduct) {
-                    currentProduct.comments = currentProduct.comments || [];
-                    currentProduct.comments.unshift(newComment);
-                    renderComments(currentProduct.comments);
-                } else {
-                    const cRes = await fetch(`/api/Products/${productId}/comments`);
-                    if (cRes.ok) {
-                        const freshComments = await cRes.json();
-                        renderComments(freshComments);
-                    }
-                }
-            } else if (res.status === 401) {
-                alert('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!');
-                window.location.href = '/Account/Login';
-            } else {
-                alert('Không thể gửi bình luận. Vui lòng thử lại sau.');
-            }
-        } catch (err) {
-            console.error("Lỗi gửi bình luận:", err);
-        }
-    }
-
-
-
-    function postQuickQuestion() {
-        const input = document.getElementById('inputQuickQuestion');
-        if (input.value.trim()) {
-            document.getElementById('inputCommentText').value = input.value;
-            input.value = '';
-            postComment();
-        }
-    }
-
-    async function loadRelatedProducts(id) {
-        const grid = document.getElementById('relatedProductsGrid');
-        try {
-            const res = await fetch(`/api/Products/${id}/related`);
-            if (res.ok) {
-                const list = await res.json();
-                if (!list || list.length === 0) {
-                    grid.innerHTML = `<div class="bg-white rounded-2xl p-4 border border-gray-100 text-center text-xs text-gray-400 col-span-full py-8">Không có sản phẩm tương tự.</div>`;
-                    return;
-                }
-                grid.innerHTML = list.map(item => `
-                    <div onclick="window.location.href='/Products/ProductDetail?id=${item.id}&name=${encodeURIComponent(item.productName)}&price=${item.price}&img=${encodeURIComponent(item.imageUrl)}&group_key=${encodeURIComponent(item.groupKey || '')}'" class="bg-white rounded-2xl overflow-hidden card-shadow border border-gray-100 group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                        <div class="relative aspect-[4/3] bg-gray-50 overflow-hidden">
-                            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" src="${item.imageUrl}" alt="${item.productName}" />
-                            ${item.discountPercent ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-sm">-${item.discountPercent}%</span>` : ''}
-                            <button type="button" class="absolute top-2 right-2 bg-white/90 hover:bg-white p-1.5 rounded-full shadow-sm">
-                                <span class="material-symbols-outlined text-[16px] text-gray-400 hover:text-red-500 transition-colors">favorite</span>
-                            </button>
-                        </div>
-                        <div class="p-4">
-                            <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-1">${item.brand || 'Category'}</p>
-                            <h4 class="font-bold text-xs text-gray-800 line-clamp-2 min-h-[32px] mb-2 group-hover:text-[#004532] transition-colors leading-snug">${item.productName}</h4>
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-[#004532] font-black text-sm">đ${item.price.toLocaleString('vi-VN')}</span>
-                            </div>
-                            <div class="flex items-center gap-1 text-[11px] text-gray-500">
-                                <span class="material-symbols-outlined text-amber-500 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                                <span class="font-bold text-gray-800">${item.rating}</span>
-                                <span>(${item.reviewCount || 0})</span>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        } catch (err) {
-            console.error("Lỗi khi tải sản phẩm liên quan:", err);
-        }
-    }
-});
-</script>
+@section Scripts {
+    <script src="~/js/product-detail.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,56 @@
+@model MarketConnect.Data.MobileSellerProfile
+
+@{
+    ViewData["Title"] = "Cổng Người Bán Hàng Rong - Chợ Việt Online";
+}
+
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-md p-6 md:p-8 space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-600">directions_bike</span> Hồ Sơ Người Bán Hàng Rong
+                </h1>
+                <p class="text-xs text-gray-500 mt-1">Bật trạng thái để bắt đầu nhận yêu cầu gặp từ người mua ở gần.</p>
+            </div>
+            <span class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-3 py-1 rounded-full">
+                @(Model != null && Model.IsVerified ? "Đã Xác Minh" : "Chờ Xác Minh")
+            </span>
+        </div>
+
+        <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-6 rounded-2xl flex items-center justify-between shadow-sm">
+            <div>
+                <h3 class="font-extrabold text-base">Trạng Thái Bán Hàng Trực Tuyến</h3>
+                <p class="text-xs text-amber-100 mt-0.5">Chia sẻ vị trí thời gian thực khi bật</p>
+            </div>
+            <button type="button" onclick="toggleVendorOnline()" id="onlineToggleBtn" class="bg-white text-amber-800 font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md transition-transform active:scale-95 cursor-pointer">
+                Bật Bắt Đầu Bán
+            </button>
+        </div>
+
+        @if (Model != null)
+        {
+            <div class="space-y-3 text-xs text-gray-700">
+                <p>Tên hiển thị: <strong class="text-gray-900 font-bold">@Model.DisplayName</strong></p>
+                <p>Phương tiện / Quầy: <strong class="text-gray-900 font-bold">@Model.VehicleType</strong></p>
+                <p>Danh sách mặt hàng: <strong class="text-gray-900 font-bold">@Model.ItemsDescription</strong></p>
+                <p>Khu vực thường bán: <strong class="text-gray-900 font-bold">@Model.PrimaryOperatingArea</strong></p>
+                <p>Điểm uy tín: <strong class="text-amber-600 font-bold">@Model.ReputationScore / 5.0 ⭐</strong></p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let isOnline = false;
+        async function toggleVendorOnline() {
+            isOnline = !isOnline;
+            const btn = document.getElementById('onlineToggleBtn');
+            btn.innerText = isOnline ? 'Tắt Nghỉ Bán' : 'Bật Bắt Đầu Bán';
+            btn.className = isOnline ? 'bg-red-600 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md transition-transform active:scale-95 cursor-pointer' : 'bg-white text-amber-800 font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md transition-transform active:scale-95 cursor-pointer';
+
+            await fetch(`/MobileVendors/ToggleOnline?isOnline=${isOnline}`, { method: 'POST' });
+        }
+    </script>
+}

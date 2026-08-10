@@ -1,253 +1,1202 @@
 @using System.Linq
 @using MarketConnect.Data
-@using System.Globalization
 @model IEnumerable<Product>
 @{
-    ViewData["Title"] = "MarketConnect - Thương mại điện tử số 1 Việt Nam";
-    Layout = "_Layout"; 
+    Layout = null; // Tự chứa toàn bộ thiết kế HTML chuẩn theo thiết kế được cung cấp
+    var selectedMarket = ViewBag.SelectedMarket as Market;
+    var markets = ViewBag.Markets as List<Market> ?? new List<Market>();
+    var stores = ViewBag.Stores as List<Store> ?? new List<Store>();
+    var cartCount = ViewBag.CartItemCount ?? 3;
+
+    string ComputeDistanceText(double mLat, double mLng)
+    {
+        double refLat = 21.0040;
+        double refLng = 105.8050;
+        if (mLat == 0 || mLng == 0) return "Cách 1.2 km";
+        double r = 6371.0;
+        double dLat = (mLat - refLat) * Math.PI / 180.0;
+        double dLon = (mLng - refLng) * Math.PI / 180.0;
+        double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                   Math.Cos(refLat * Math.PI / 180.0) * Math.Cos(mLat * Math.PI / 180.0) *
+                   Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        double dist = Math.Round(r * c, 1);
+        if (dist < 0.2) return "Cách 0.5 km";
+        return $"Cách {dist:0.0} km";
+    }
+
+    var selectedMarketDistText = selectedMarket != null ? ComputeDistanceText(selectedMarket.Latitude, selectedMarket.Longitude) : "Cách 0.5 km";
 }
 
-<style>
-    .product-card-aspect {
-        aspect-ratio: 1 / 1;
-    }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Chợ Việt Online - MarketConnect</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#707975",
+                      "on-secondary-container": "#5f2600",
+                      "surface-tint": "#296957",
+                      "on-primary": "#ffffff",
+                      "surface": "#f4fafd",
+                      "outline-variant": "#bfc9c3",
+                      "background": "#f4fafd",
+                      "primary": "#003429",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-fixed-variant": "#424847",
+                      "on-surface-variant": "#404945",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-container": "#acb1b0",
+                      "surface-dim": "#d4dbdd",
+                      "inverse-surface": "#2b3234",
+                      "on-surface": "#161d1f",
+                      "inverse-on-surface": "#ebf2f4",
+                      "secondary-container": "#ff7a21",
+                      "primary-fixed": "#aff0d9",
+                      "on-error": "#ffffff",
+                      "surface-container-highest": "#dde4e6",
+                      "on-secondary-fixed-variant": "#783200",
+                      "surface-container-high": "#e2e9ec",
+                      "error-container": "#ffdad6",
+                      "on-secondary-fixed": "#331100",
+                      "surface-container-low": "#eef5f7",
+                      "surface-container": "#e8eff1",
+                      "primary-fixed-dim": "#93d3be",
+                      "on-error-container": "#93000a",
+                      "secondary": "#9d4400",
+                      "on-primary-fixed-variant": "#065140",
+                      "on-primary-container": "#7ebda8",
+                      "on-tertiary-fixed": "#171d1c",
+                      "on-primary-fixed": "#002018",
+                      "error": "#ba1a1a",
+                      "tertiary-container": "#3f4444",
+                      "on-tertiary": "#ffffff",
+                      "secondary-fixed-dim": "#ffb690",
+                      "tertiary-fixed-dim": "#c2c7c7",
+                      "inverse-primary": "#93d3be",
+                      "surface-bright": "#f4fafd",
+                      "tertiary": "#282e2e",
+                      "on-background": "#161d1f",
+                      "primary-container": "#004d3d",
+                      "surface-variant": "#dde4e6",
+                      "tertiary-fixed": "#dee3e3",
+                      "secondary-fixed": "#ffdbca"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "max-width": "1280px",
+                      "margin-mobile": "16px",
+                      "margin-desktop": "24px",
+                      "base": "8px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "body-md": ["Be Vietnam Pro"],
+                      "headline-md": ["Be Vietnam Pro"],
+                      "label-sm": ["Be Vietnam Pro"],
+                      "body-lg": ["Be Vietnam Pro"],
+                      "headline-lg-mobile": ["Be Vietnam Pro"],
+                      "label-md": ["Be Vietnam Pro"],
+                      "headline-xl": ["Be Vietnam Pro"],
+                      "headline-lg": ["Be Vietnam Pro"]
+              }
+            }
+          }
+        }
+    </script>
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f2f7f6; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
 
-    .shopee-shadow {
-        box-shadow: 0 1px 12px 0 rgba(0,0,0,.05);
-    }
-</style>
+    <!-- Toast Notification Element -->
+    <div id="toastNotification" class="fixed top-20 right-6 bg-primary text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 hidden flex items-center gap-2 border border-primary-fixed">
+        <span class="material-symbols-outlined text-[20px] text-secondary-container">check_circle</span>
+        <span id="toastMessage">Thông báo!</span>
+    </div>
 
-<main class="bg-[#f5f5f5] w-full min-h-screen py-5 px-4">
-    <div class="max-w-[1200px] mx-auto">
-        
-        <!-- Banners Section -->
-        <section class="grid grid-cols-12 gap-1.5 mb-6">
-            <div class="col-span-8 relative h-[235px] rounded-sm overflow-hidden shadow-sm">
-                <img alt="Hot Deals Banner" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200" />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent flex flex-col justify-end p-5">
-                    <span class="bg-[#f97316] text-white text-[10px] font-bold px-1.5 py-0.5 w-fit mb-1.5 rounded-sm">HOT DEALS</span>
-                    <h2 class="text-white text-2xl font-bold mb-1">Lễ Hội Mua Sắm - Giảm Đến 50%</h2>
-                    <p class="text-white/90 text-xs font-light">Áp dụng cho tất cả ngành hàng. Duy nhất hôm nay!</p>
+    <!-- TopNavBar -->
+    <header class="bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container docked full-width top-0 shadow-sm flex flex-col w-full z-50 sticky">
+        <div class="max-w-max-width mx-auto w-full px-margin-desktop py-4 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-2 text-secondary-container hover:opacity-90 transition-opacity">
+                    <span class="material-symbols-outlined text-4xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
+                    <span class="font-headline-lg text-headline-lg font-bold text-on-primary dark:text-on-primary-container tracking-tight">MarketConnect</span>
+                </a>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Nút Đăng ký bán hàng -->
+                <a href="/Stores/Create" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-full font-label-md text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md border border-emerald-500/30 text-center">
+                    <span class="material-symbols-outlined text-[16px]">storefront</span>
+                    <span>Đăng ký bán hàng</span>
+                </a>
+
+                <!-- Icons & User Profile -->
+                <div class="flex items-center gap-4 border-l border-on-primary/20 pl-4" id="topbar_auth_zone">
+                    <a href="/Notifications" title="Thông báo" class="material-symbols-outlined cursor-pointer hover:bg-primary-container/40 p-2 rounded-full transition-colors">notifications</a>
+                    
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <div class="relative group">
+                            <div class="flex items-center gap-2 cursor-pointer hover:bg-primary-container/40 p-2 rounded-full transition-colors" onclick="toggleUserDropdown(event)">
+                                <span class="material-symbols-outlined">account_circle</span>
+                                <span id="home_user_name_display" class="font-label-md text-label-md hidden lg:block">
+                                    @User.Identity.Name
+                                </span>
+                                <span class="material-symbols-outlined text-sm">arrow_drop_down</span>
+                            </div>
+
+                            <!-- Dropdown Menu -->
+                            <div id="userDropdownMenu" class="absolute right-0 top-full mt-2 w-56 bg-surface-container-lowest text-on-surface rounded-2xl shadow-2xl border border-outline-variant py-2 hidden z-50">
+                                <a href="/Account/Profile" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-surface-container-high transition-colors font-bold text-emerald-800">
+                                    <span class="material-symbols-outlined text-[18px]">account_box</span> Quản lý hồ sơ
+                                </a>
+                                <a href="/Stores/Create" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-surface-container-high transition-colors font-bold text-emerald-700">
+                                    <span class="material-symbols-outlined text-[18px]">storefront</span> Đăng ký bán hàng
+                                </a>
+                                <a href="/Stores" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-surface-container-high transition-colors font-bold text-primary">
+                                    <span class="material-symbols-outlined text-[18px]">storefront</span> Gian hàng chợ
+                                </a>
+                                <a href="/MobileVendors/CallMap" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-surface-container-high transition-colors font-bold text-secondary-container">
+                                    <span class="material-symbols-outlined text-[18px]">location_on</span> Gọi Hàng Rong
+                                </a>
+                                <a href="/CartAndOrders" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-surface-container-high transition-colors font-bold text-emerald-700">
+                                    <span class="material-symbols-outlined text-[18px]">shopping_cart</span> Giỏ hàng của tôi
+                                </a>
+                                <a href="/Moderation" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-surface-container-high transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">gavel</span> Kiểm duyệt nội dung & Hồ sơ
+                                </a>
+                                <div class="border-t border-outline-variant/40 my-1"></div>
+                                <a href="/Account/Logout" class="flex items-center gap-2 px-4 py-2.5 text-xs text-error hover:bg-error-container/30 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">logout</span> Đăng xuất
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="flex items-center gap-3 text-xs font-semibold text-white">
+                            <a class="hover:text-orange-300 transition-colors font-bold" href="/Account/Register">Đăng ký</a>
+                            <div class="w-[1px] h-3.5 bg-white/40"></div>
+                            <a class="hover:text-orange-300 transition-colors font-bold" href="/Account/Login">Đăng nhập</a>
+                        </div>
+                    }
                 </div>
             </div>
-            <div class="col-span-4 flex flex-col gap-1.5">
-                <div class="h-[115px] rounded-sm overflow-hidden relative shadow-sm group cursor-pointer">
-                    <img alt="Sub promo" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=500" />
-                    <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
-                        <span class="text-white text-[13px] font-bold border border-white/80 px-4 py-1.5 bg-black/20 backdrop-blur-[1px]">XẢ KHO TẾT</span>
+        </div>
+    </header>
+
+    <!-- TopAppBar (Secondary Header & Search) -->
+    <div class="bg-surface-container-lowest border-b border-outline-variant dark:border-outline flat no shadows full-width py-4 relative z-40">
+        <div class="max-w-max-width mx-auto px-margin-desktop flex items-center gap-4">
+            
+            <!-- Location / Market Selector Dropdown -->
+            <div class="relative shrink-0" id="marketSelectorWrapper">
+                <button type="button" onclick="toggleMarketDropdownMenu(event)" class="flex items-center gap-3 bg-[#e6f9f3] px-4 py-2 rounded-full border border-[#ceead6] cursor-pointer hover:bg-[#dcf5ed] transition-colors shadow-xs">
+                    <span class="material-symbols-outlined text-[#006d5b] text-[20px]">store</span>
+                    <span id="currentSelectedMarketName" class="text-[14px] font-bold text-[#004d3d]">
+                        @(selectedMarket != null ? selectedMarket.Name : "Chợ Nhân Chính")
+                    </span>
+                    <div id="currentSelectedMarketBadge" class="bg-[#006d5b] text-white px-2.5 py-0.5 rounded-full text-[12px] font-bold ml-1">
+                        @selectedMarketDistText.ToLower()
+                    </div>
+                    <span class="material-symbols-outlined text-[#004d3d] text-[18px] ml-1 transition-transform" id="marketChevron">expand_more</span>
+                </button>
+
+                <!-- Dropdown list markets -->
+                <div id="marketDropdownMenu" class="absolute left-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-outline-variant py-2 hidden z-50">
+                    <div class="px-4 py-2 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 flex justify-between items-center">
+                        <span>Danh sách Chợ & Phường (Nội thành Hà Nội)</span>
+                        <button type="button" onclick="openCascadingLocationModal()" class="text-primary hover:underline font-extrabold text-[10px] flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-[14px]">tune</span> Lọc Tỉnh → Xã → Chợ
+                        </button>
+                    </div>
+                    <div class="max-h-64 overflow-y-auto divide-y divide-gray-50" id="marketOptionsList">
+                        @foreach (var m in markets)
+                        {
+                            var wardName = m.Ward?.Name ?? "Phường nội thành Hà Nội";
+                            var distText = ComputeDistanceText(m.Latitude, m.Longitude);
+                            var isCurrent = selectedMarket != null && m.Id == selectedMarket.Id;
+                            <button type="button" 
+                                    data-market-id="@m.Id" 
+                                    data-market-name="@m.Name" 
+                                    data-market-address="@m.Address" 
+                                    data-market-dist="@distText"
+                                    onclick="onMarketOptionClick(this)" 
+                                    class="w-full text-left px-4 py-2.5 text-xs flex items-center justify-between hover:bg-emerald-50 text-gray-800 font-medium transition-colors cursor-pointer @(isCurrent ? "bg-emerald-50 font-bold" : "")">
+                                <div class="flex items-center gap-2 truncate">
+                                    <span class="material-symbols-outlined text-emerald-700 text-[18px]">storefront</span>
+                                    <div class="truncate">
+                                        <span class="truncate font-bold block text-gray-900">@m.Name</span>
+                                        <span class="text-[10px] text-emerald-800 font-medium">@wardName</span>
+                                    </div>
+                                </div>
+                                <span id="marketBadge_@m.Id" class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">@distText</span>
+                            </button>
+                        }
                     </div>
                 </div>
-                <div class="h-[115px] rounded-sm overflow-hidden relative shadow-sm group cursor-pointer">
-                    <img alt="Sub promo" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=500" />
-                    <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
-                        <span class="text-white text-[13px] font-bold border border-white/80 px-4 py-1.5 bg-black/20 backdrop-blur-[1px]">DEAL SỐC 1K</span>
+            </div>
+
+            <!-- Centered Search Input -->
+            <div class="flex-grow flex justify-center">
+                <form method="get" action="/Home/Index" class="flex w-full max-w-xl border-2 border-secondary-container rounded-lg overflow-hidden focus-within:border-primary transition-colors shadow-xs">
+                    <input name="q" id="mainSearchInput" class="w-full px-4 py-2 outline-none font-body-md text-body-md text-on-surface bg-surface-container-lowest border-none focus:ring-0" placeholder="Tìm kiếm sản phẩm, nông sản, tiểu thương..." type="text" value="@Context.Request.Query["q"]">
+                    <button type="submit" class="bg-secondary-container text-on-secondary px-6 font-label-md text-label-md font-bold flex items-center gap-2 hover:bg-secondary transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined">search</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Cart Icon -->
+            <a href="/CartAndOrders" class="relative cursor-pointer group" title="Xem Giỏ Hàng">
+                <div class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
+                    <span class="material-symbols-outlined text-primary text-3xl">shopping_cart</span>
+                    <span id="globalCartBadge" class="absolute top-0 right-0 bg-secondary-container text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white">@cartCount</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Canvas -->
+    <main class="flex-grow max-w-max-width mx-auto w-full px-margin-desktop py-8 space-y-8">
+        
+        <!-- Breadcrumb Hierarchy -->
+        <nav aria-label="Breadcrumb" class="flex text-sm text-on-surface-variant">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3 font-label-sm">
+                <li class="inline-flex items-center">
+                    <a class="inline-flex items-center hover:text-primary transition-colors" href="/">Hà Nội</a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined text-[16px] mx-1">chevron_right</span>
+                        <a class="hover:text-primary transition-colors" href="/">Thanh Xuân</a>
+                    </div>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined text-[16px] mx-1">chevron_right</span>
+                        <a class="hover:text-primary transition-colors" href="/">Nhân Chính</a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined text-[16px] mx-1">chevron_right</span>
+                        <span class="text-on-surface font-bold" id="breadcrumbCurrentMarket">
+                            @(selectedMarket != null ? selectedMarket.Name : "Chợ Nhân Chính") - @selectedMarketDistText.ToLower()
+                        </span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Market Profile Section -->
+        <section class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden flex flex-col lg:flex-row">
+            
+            <!-- Left: Photos & Map -->
+            <div class="lg:w-2/5 flex flex-col border-b lg:border-b-0 lg:border-r border-outline-variant">
+                <div class="h-64 lg:h-72 relative group">
+                    <img id="marketMainPhoto" alt="Chợ Nhân Chính - Khu vực bên ngoài" class="w-full h-full object-cover transition-all duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBv_dm10PMDGYVg5t3nYcGJHyFi2DrI2dYZ0X3YKRrrod-pGCBimI5jVl4zqIDGlAYggLMT47Uwa9Okz707yd9QRWRbskAOndIgBiOxxShliS1RSkXlO2PzMiNa5zZ8EW_buQlwWKG1Tlzr7hwea7jRSheArvLJuXi2hwYzY-fqnV0KIHNbxl35u2RedRceYnIl_kdA_Hg0gbjBFiaDKfxeobrGQEdn9ydqRkqA_xoGaxf42OybRtxm">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div class="absolute bottom-4 left-4 right-4 flex gap-2">
+                        <button type="button" onclick="openPhotoGalleryModal()" class="bg-white/90 text-on-surface text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1 shadow-sm hover:bg-white cursor-pointer active:scale-95 transition-all">
+                            <span class="material-symbols-outlined text-[16px]">photo_library</span> <span id="marketPhotoCountLabel">Xem 5 ảnh</span>
+                        </button>
+                    </div>
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-2">
+                        <button type="button" onclick="prevMarketPhoto()" class="bg-white/80 text-on-surface p-1 rounded-full shadow-sm hover:bg-white transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                    </div>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2">
+                        <button type="button" onclick="nextMarketPhoto()" class="bg-white/80 text-on-surface p-1 rounded-full shadow-sm hover:bg-white transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="h-48 relative bg-surface-variant flex-grow overflow-hidden rounded-b-2xl border-t border-outline-variant">
+                    @{
+                        var mLat = selectedMarket != null && selectedMarket.Latitude != 0 ? selectedMarket.Latitude : 21.0040;
+                        var mLng = selectedMarket != null && selectedMarket.Longitude != 0 ? selectedMarket.Longitude : 105.8050;
+                    }
+                    <iframe id="marketGoogleMapIframe" class="w-full h-full border-0" src="https://maps.google.com/maps?q=@mLat,@mLng&z=16&output=embed" loading="lazy"></iframe>
+                </div>
+            </div>
+
+            <!-- Right: Details -->
+            <div class="lg:w-3/5 p-6 lg:p-8 flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-[#e6f4ea] text-[#137333] px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1 border border-[#ceead6]">
+                            <span class="material-symbols-outlined text-[14px]">check_circle</span> Đang hoạt động
+                        </span>
+                        <span class="bg-surface-container-high text-on-surface-variant px-2 py-1 rounded-md text-xs font-bold">Chợ Truyền Thống Hạng 2</span>
+                    </div>
+                    <button type="button" onclick="shareMarketInfo()" title="Chia sẻ chợ" class="text-primary hover:bg-primary/10 p-2 rounded-full transition-colors flex items-center justify-center cursor-pointer">
+                        <span class="material-symbols-outlined">share</span>
+                    </button>
+                </div>
+
+                <h1 id="marketTitleHeading" class="font-headline-xl text-headline-xl font-bold text-on-surface mb-2">
+                    @(selectedMarket != null ? selectedMarket.Name : "Chợ Nhân Chính")
+                </h1>
+
+                <p id="marketDescriptionPara" class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-3">
+                    @(selectedMarket != null && !string.IsNullOrEmpty(selectedMarket.PopularCategories) ? selectedMarket.Name + " là một trong những khu chợ truyền thống tiêu biểu, phục vụ nhu cầu mua sắm thiết yếu của cư dân với đa dạng các mặt hàng " + selectedMarket.PopularCategories + "." : "Chợ Nhân Chính là một trong những khu chợ truyền thống tiêu biểu tại quận Thanh Xuân, phục vụ nhu cầu mua sắm thiết yếu của cư dân khu vực. Chợ nổi tiếng với đa dạng các mặt hàng thực phẩm tươi sống, rau củ quả theo mùa và khu vực ẩm thực địa phương phong phú với giá cả bình dân.")
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8 mt-auto pt-4 border-t border-outline-variant/50">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-secondary-container mt-0.5">location_on</span>
+                        <div>
+                            <h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Địa chỉ</h3>
+                            <p id="marketAddressDisplay" class="font-body-md text-on-surface font-medium">
+                                @(selectedMarket != null && !string.IsNullOrEmpty(selectedMarket.Address) ? selectedMarket.Address : "Phố Nhân Hòa, Phường Nhân Chính, Quận Thanh Xuân, Hà Nội")
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-secondary-container mt-0.5">schedule</span>
+                        <div>
+                            <h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Giờ hoạt động</h3>
+                            <p id="marketOpeningHoursDisplay" class="font-body-md text-on-surface font-medium">
+                                @(selectedMarket != null && !string.IsNullOrEmpty(selectedMarket.OpeningHours) ? selectedMarket.OpeningHours : "05:00 - 18:30 (Hàng ngày)")
+                            </p>
+                            <p class="text-xs text-on-surface-variant mt-0.5">Đông đúc nhất: 06:00 - 08:30 sáng</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-secondary-container mt-0.5">admin_panel_settings</span>
+                        <div>
+                            <h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Ban quản lý</h3>
+                            <p id="marketManagementDisplay" class="font-body-md text-on-surface font-medium">
+                                @(selectedMarket != null && !string.IsNullOrEmpty(selectedMarket.ManagementContact) ? selectedMarket.ManagementContact : "Ban Quản lý Chợ Nhân Chính")
+                            </p>
+                            <a href="tel:02438581234" class="font-body-md text-primary font-medium mt-0.5 block hover:underline">0243 858 1234</a>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-secondary-container mt-0.5">badge</span>
+                        <div>
+                            <h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Cán bộ phụ trách</h3>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <div class="w-6 h-6 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-bold">K</div>
+                                <p class="font-body-md text-on-surface font-medium">Nguyễn Văn Khang</p>
+                            </div>
+                            <p class="text-xs text-on-surface-variant">Cán bộ phường phụ trách kinh tế</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- DANH MỤC SẢN PHẨM CHỢ -->
-        <section class="bg-white rounded-xl mb-6 shadow-sm border border-gray-100 p-4">
-            <div class="flex justify-between items-center mb-3 px-1">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#004532] text-[20px]">grid_view</span>
-                    <h3 class="font-bold text-[#004532] uppercase text-xs tracking-wider">DANH MỤC CHỢ NÔNG SẢN & THỰC PHẨM</h3>
-                </div>
-                <!-- Nút điều hướng Carousel Next / Prev -->
-                <div class="flex items-center gap-1.5">
-                    <button id="btnCatPrev" type="button" aria-label="Danh mục trước" class="w-8 h-8 rounded-full border border-gray-200 bg-white hover:bg-[#004532] hover:text-white hover:border-[#004532] text-gray-600 transition-all flex items-center justify-center shadow-sm disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">
-                        <i class="bi bi-chevron-left text-xs"></i>
-                    </button>
-                    <button id="btnCatNext" type="button" aria-label="Danh mục sau" class="w-8 h-8 rounded-full border border-gray-200 bg-white hover:bg-[#004532] hover:text-white hover:border-[#004532] text-gray-600 transition-all flex items-center justify-center shadow-sm disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">
-                        <i class="bi bi-chevron-right text-xs"></i>
-                    </button>
+        <!-- Categories Section -->
+        <section class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant shadow-sm">
+            <div class="flex items-center gap-2 mb-6 text-primary">
+                <span class="material-symbols-outlined">grid_view</span>
+                <h2 class="font-headline-md text-headline-md font-bold uppercase tracking-wide">Ngành hàng phổ biến tại chợ</h2>
+                <div class="ml-auto flex gap-2">
+                    <button type="button" onclick="scrollCategoriesLeft()" class="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+                    <button type="button" onclick="scrollCategoriesRight()" class="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
                 </div>
             </div>
+            
+            <div id="categoryGridCarousel" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 overflow-x-auto no-scrollbar py-1">
+                <!-- Category 1 -->
+                <div onclick="filterByCategory('Rau củ & Trái cây tươi')" class="flex flex-col items-center gap-3 p-4 rounded-lg border border-outline-variant hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group bg-surface-container-lowest">
+                    <div class="w-16 h-16 rounded-2xl bg-[#e6f4ea] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-3xl text-green-700">nutrition</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-center text-on-surface-variant group-hover:text-primary transition-colors">Rau củ &amp;<br>Trái cây tươi</span>
+                </div>
+                <!-- Category 2 -->
+                <div onclick="filterByCategory('Thịt & Gia cầm')" class="flex flex-col items-center gap-3 p-4 rounded-lg border border-outline-variant hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group bg-surface-container-lowest">
+                    <div class="w-16 h-16 rounded-2xl bg-[#fce8e6] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-3xl text-red-600">set_meal</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-center text-on-surface-variant group-hover:text-primary transition-colors">Thịt &amp;<br>Gia cầm</span>
+                </div>
+                <!-- Category 3 -->
+                <div onclick="filterByCategory('Thủy hải sản tươi sống')" class="flex flex-col items-center gap-3 p-4 rounded-lg border border-outline-variant hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group bg-surface-container-lowest">
+                    <div class="w-16 h-16 rounded-2xl bg-[#e8f0fe] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-3xl text-blue-600">water</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-center text-on-surface-variant group-hover:text-primary transition-colors">Thủy hải sản<br>tươi sống</span>
+                </div>
+                <!-- Category 4 -->
+                <div onclick="filterByCategory('Thực phẩm chế biến sẵn')" class="flex flex-col items-center gap-3 p-4 rounded-lg border border-outline-variant hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group bg-surface-container-lowest">
+                    <div class="w-16 h-16 rounded-2xl bg-[#fef7e0] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-3xl text-yellow-700">takeout_dining</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-center text-on-surface-variant group-hover:text-primary transition-colors">Thực phẩm<br>chế biến sẵn</span>
+                </div>
+                <!-- Category 5 -->
+                <div onclick="filterByCategory('Ẩm thực & Chợ ăn vặt')" class="flex flex-col items-center gap-3 p-4 rounded-lg border border-outline-variant hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group bg-surface-container-lowest">
+                    <div class="w-16 h-16 rounded-2xl bg-[#fce8e6] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-3xl text-orange-600">local_cafe</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-center text-on-surface-variant group-hover:text-primary transition-colors">Ẩm thực &amp;<br>Chợ ăn vặt</span>
+                </div>
+                <!-- Category 6 -->
+                <div onclick="filterByCategory('Gia vị & Đồ khô')" class="flex flex-col items-center gap-3 p-4 rounded-lg border border-outline-variant hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group bg-surface-container-lowest">
+                    <div class="w-16 h-16 rounded-2xl bg-[#f3e8fd] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-3xl text-purple-600">deployed_code</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-center text-on-surface-variant group-hover:text-primary transition-colors">Gia vị &amp;<br>Đồ khô</span>
+                </div>
+                <!-- Category 7 -->
+                <div onclick="filterByCategory('Gạo, Nếp & Ngũ cốc')" class="flex flex-col items-center gap-3 p-4 rounded-lg border border-outline-variant hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group bg-surface-container-lowest">
+                    <div class="w-16 h-16 rounded-2xl bg-[#e4f7fb] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-3xl text-cyan-700">grain</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-center text-on-surface-variant group-hover:text-primary transition-colors">Gạo, Nếp &amp;<br>Ngũ cốc</span>
+                </div>
+                <!-- Category 8 -->
+                <div onclick="filterByCategory('Trứng & Sữa')" class="flex flex-col items-center gap-3 p-4 rounded-lg border border-outline-variant hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group bg-surface-container-lowest">
+                    <div class="w-16 h-16 rounded-2xl bg-[#fef7e0] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-3xl text-yellow-600">egg</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-center text-on-surface-variant group-hover:text-primary transition-colors">Trứng &amp;<br>Sữa</span>
+                </div>
+            </div>
+        </section>
 
-            <!-- Scrollable Carousel Container -->
-            <div id="categoryScrollContainer" class="flex items-stretch gap-3 overflow-x-auto scroll-smooth no-scrollbar py-2 px-1 border-t border-gray-100">
-                @{
-                    var marketCategories = new[] {
-                       new { Text = "Rau củ & Trái cây tươi", Icon = "apple", Bg = "bg-emerald-50 text-emerald-700 border-emerald-100" },
-                       new { Text = "Thịt & Gia cầm", Icon = "egg-fried", Bg = "bg-red-50 text-red-600 border-red-100" },
-                       new { Text = "Thủy hải sản tươi sống", Icon = "water", Bg = "bg-blue-50 text-blue-600 border-blue-100" },
-                       new { Text = "Thực phẩm chế biến sẵn", Icon = "bag-heart", Bg = "bg-amber-50 text-amber-600 border-amber-100" },
-                       new { Text = "Ẩm thực & Chợ ăn vặt", Icon = "cup-straw", Bg = "bg-orange-50 text-[#f97316] border-orange-100" }, 
-                       new { Text = "Gia vị & Đồ khô", Icon = "box-seam", Bg = "bg-purple-50 text-purple-600 border-purple-100" },
-                       new { Text = "Gạo, Nếp & Ngũ cốc", Icon = "moisture", Bg = "bg-emerald-50/80 text-[#004532] border-emerald-100" },
-                       new { Text = "Trứng & Sữa", Icon = "egg", Bg = "bg-yellow-50 text-yellow-700 border-yellow-100" },
-                       new { Text = "Hoa tươi & Đồ thờ cúng", Icon = "brightness-high", Bg = "bg-rose-50 text-rose-600 border-rose-100" }
-                    };
-                }
+        <!-- Featured Merchants Grid -->
+        <section class="space-y-6">
+            <div class="flex items-center justify-between border-b border-outline-variant pb-2">
+                <h2 id="merchantSectionHeading" class="font-headline-lg text-headline-lg font-bold text-on-surface">
+                    Tiểu thương tiêu biểu tại @(selectedMarket != null ? selectedMarket.Name : "Chợ Nhân Chính")
+                </h2>
+                <a class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1 font-bold" href="/Stores">
+                    Xem tất cả <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
+            </div>
 
-                @foreach (var cat in marketCategories)
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="merchantCardsContainer">
+                @if (stores.Any())
                 {
-                    <a class="shrink-0 w-[120px] md:w-[135px] flex flex-col items-center gap-2.5 p-3 rounded-xl hover:bg-emerald-50/50 border border-gray-100 hover:border-emerald-200 transition-all duration-300 cursor-pointer text-center group bg-white shadow-xs"
-                       href="/Products/Category?category=@Uri.EscapeDataString(cat.Text)">
-                        <div class="w-12 h-12 rounded-2xl @cat.Bg border flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs">
-                            <i class="bi bi-@cat.Icon text-xl"></i>
+                    foreach (var s in stores.Take(4))
+                    {
+                        <a href="/Stores/Detail/@s.Id" class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow group flex flex-col no-underline text-inherit">
+                            <div class="relative h-40 overflow-hidden">
+                                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="@(string.IsNullOrEmpty(s.CoverUrl) ? "https://images.unsplash.com/photo-1542838132-92c53300491e?w=400" : s.CoverUrl)" />
+                                <div class="absolute top-2 left-2 bg-white/90 px-2 py-1 rounded text-xs font-bold text-primary flex items-center gap-1 shadow-sm">
+                                    <span class="material-symbols-outlined text-[14px]">verified</span>
+                                    Đã xác thực
+                                </div>
+                            </div>
+                            <div class="p-4 flex flex-col flex-grow">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-headline-md text-headline-md font-bold text-on-surface line-clamp-1">@s.StoreName</h3>
+                                    <div class="flex items-center gap-1 bg-orange-50 text-secondary-container px-1.5 py-0.5 rounded text-xs font-bold">
+                                        4.9 <span class="material-symbols-outlined text-[12px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    </div>
+                                </div>
+                                <p class="font-body-md text-body-md text-on-surface-variant mb-4">@(s.Category?.Name ?? "Nông sản & Thực phẩm")</p>
+                                <div class="mt-auto flex items-center justify-between text-sm text-outline border-t border-outline-variant/50 pt-3">
+                                    <div class="flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[16px]">location_on</span>
+                                        <span>@s.StallLocation</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <!-- Fallback default 4 cards -->
+                    <!-- Merchant Card 1 -->
+                    <a href="/Stores" class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow group flex flex-col no-underline text-inherit">
+                        <div class="relative h-40 overflow-hidden">
+                            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbGIeWyP6Aes7jKAznl9fdOi9qwCTQjIQkdISpw3B-WWLKrMFBQ8RMv5aZgrZtSgNmF5Y9nu4PT8DpE-MsuWqvEGiKrVSVPOpwrTzvtqZ9RKZBlclWmMLhTc-3J0ckun1WbAFDXdxssEOZR9yc_rzBrTILI_kJzXB8xytH5CbN5JDrdhd-oABtly81dsXp_J3zM0vRp2fy8E4tZn6Snv6tlJXqcUkSYlS0k7M4iRlx928INtpqwEsY">
+                            <div class="absolute top-2 left-2 bg-white/90 px-2 py-1 rounded text-xs font-bold text-primary flex items-center gap-1 shadow-sm">
+                                <span class="material-symbols-outlined text-[14px]">verified</span>
+                                Đã xác thực
+                            </div>
                         </div>
-                        <span class="text-[12px] font-semibold text-gray-700 group-hover:text-[#004532] line-clamp-2 min-h-[32px] flex items-center justify-center leading-tight">
-                            @cat.Text
-                        </span>
+                        <div class="p-4 flex flex-col flex-grow">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-headline-md text-headline-md font-bold text-on-surface line-clamp-1">Sạp Rau Cô Hoa</h3>
+                                <div class="flex items-center gap-1 bg-orange-50 text-secondary-container px-1.5 py-0.5 rounded text-xs font-bold">
+                                    4.9 <span class="material-symbols-outlined text-[12px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                </div>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant mb-4">Rau củ &amp; Trái cây tươi</p>
+                            <div class="mt-auto flex items-center justify-between text-sm text-outline border-t border-outline-variant/50 pt-3">
+                                <div class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">location_on</span>
+                                    <span>Gian A12</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Merchant Card 2 -->
+                    <a href="/Stores" class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow group flex flex-col no-underline text-inherit">
+                        <div class="relative h-40 overflow-hidden">
+                            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAoQJnc6wk6ofeednj86_BYPHQpRcvBPMBIVT3GdIXls5D-OVQxej8zmxpGT-aA6MKHz43hBhAh5c1hNtitb0_poX409w27uj_abFmE9CqzN7_C43KyL3MIgTDd_ZmpfUUlCAveJArljMyiXXMUZmXhhjWDK2VbRQez9uxLTcIdIoRdUs1ksVIb5Po4stnhRMtSlYmoynDKjbLML_Unb1ctauk-PVmOmzPOE_MDajPfCcQKY9tc3ej">
+                        </div>
+                        <div class="p-4 flex flex-col flex-grow">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-headline-md text-headline-md font-bold text-on-surface line-clamp-1">Thịt Heo Sạch Bác Năm</h3>
+                                <div class="flex items-center gap-1 bg-orange-50 text-secondary-container px-1.5 py-0.5 rounded text-xs font-bold">
+                                    4.8 <span class="material-symbols-outlined text-[12px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                </div>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant mb-4">Thịt &amp; Gia cầm</p>
+                            <div class="mt-auto flex items-center justify-between text-sm text-outline border-t border-outline-variant/50 pt-3">
+                                <div class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">location_on</span>
+                                    <span>Gian B05</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Merchant Card 3 -->
+                    <a href="/Stores" class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow group flex flex-col no-underline text-inherit">
+                        <div class="relative h-40 overflow-hidden">
+                            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo3tgi5FZLbWbuhxroKZIhtBjRi2mlHg6VS3Vu_3PtS1LMPfcNTlT3lKQE7TxZfVphZFhuL40DVbw84lZv3EmHdpQrAJ_fiZZH_gu92MqWga5sWH0LPV64M4i1SuYNK83yhUlvTXrIRNGDJiqAXZh_ZKkaM3HbtN98LlTxXfn559-eO0X2Qu9Xqnus8Q11vjvCjF9UVYvIWnevQi5VFbcfDJjX-__Tl8FmSFXRaHrWgBoXcgIK5uON">
+                        </div>
+                        <div class="p-4 flex flex-col flex-grow">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-headline-md text-headline-md font-bold text-on-surface line-clamp-1">Đồ Khô Bà Tám</h3>
+                                <div class="flex items-center gap-1 bg-orange-50 text-secondary-container px-1.5 py-0.5 rounded text-xs font-bold">
+                                    5.0 <span class="material-symbols-outlined text-[12px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                </div>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant mb-4">Gia vị &amp; Đồ khô</p>
+                            <div class="mt-auto flex items-center justify-between text-sm text-outline border-t border-outline-variant/50 pt-3">
+                                <div class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">location_on</span>
+                                    <span>Gian C22</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Merchant Card 4 -->
+                    <a href="/Stores" class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow group flex flex-col no-underline text-inherit">
+                        <div class="relative h-40 overflow-hidden">
+                            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHLB1cUjadFBgRzN9_pFoGlqvk2SWsaprAiEv8sCWjclJMOccYt9W70x65AFLNQQonveGNxJQ4WlxhEDCLMZBZHOe9CkNPKyCL90JBv95WGqib10o-_kRA16mKIHGTZnis7rPJVwQPaTprpOYmZDfh1qmDz4YK9usYyZNJXCFoLr38-xqa3ZcHqn0pt9k0oIIE37Py1Vz_Vyj2kLeBEIuJ6GlT9tYlftG6OQaK4rGdp1sE-B5MZlGC">
+                            <div class="absolute top-2 left-2 bg-secondary-container text-white px-2 py-1 rounded text-xs font-bold shadow-sm">
+                                Hải sản về trong ngày
+                            </div>
+                        </div>
+                        <div class="p-4 flex flex-col flex-grow">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-headline-md text-headline-md font-bold text-on-surface line-clamp-1">Hải Sản Tươi Sống Dì Tư</h3>
+                                <div class="flex items-center gap-1 bg-orange-50 text-secondary-container px-1.5 py-0.5 rounded text-xs font-bold">
+                                    4.7 <span class="material-symbols-outlined text-[12px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                </div>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant mb-4">Thủy hải sản</p>
+                            <div class="mt-auto flex items-center justify-between text-sm text-outline border-t border-outline-variant/50 pt-3">
+                                <div class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">location_on</span>
+                                    <span>Gian D01</span>
+                                </div>
+                            </div>
+                        </div>
                     </a>
                 }
             </div>
         </section>
 
-        <!-- FLASH SALE -->
-        <section class="bg-white rounded-sm mb-6 shadow-sm overflow-hidden border border-gray-100">
-            <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-white">
-                <div class="flex items-center gap-4">
-                    <h3 class="font-bold text-xl text-[#f97316] flex items-center gap-1 uppercase italic tracking-tighter">
-                        <i class="bi bi-lightning-fill"></i> FLASH SALE
-                    </h3>
-                    <div class="flex gap-1 items-center font-mono">
-                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">02</span> :
-                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">45</span> :
-                        <span class="bg-black text-white px-1.5 py-0.5 rounded-sm font-bold text-xs">12</span>
-                    </div>
-                </div>
-                <a class="text-[#f97316] text-xs font-medium hover:opacity-80 flex items-center gap-0.5" href="#">Xem tất cả <i class="bi bi-chevron-right text-[10px]"></i></a>
+        <!-- Products List Section -->
+        <section class="space-y-6 pt-4">
+            <div class="flex items-center justify-between border-b border-outline-variant pb-2">
+                <h2 class="font-headline-lg text-headline-lg font-bold text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">local_offer</span> Sản Phẩm Nông Sản Đang Bán
+                </h2>
             </div>
 
-            <div class="p-2 grid grid-cols-2 md:grid-cols-6 gap-2">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 @if (Model != null && Model.Any())
                 {
-                    @foreach (var p in Model.Take(5))
+                    foreach (var p in Model)
                     {
-                        var price = p.Price;
-                        var img = !string.IsNullOrWhiteSpace(p.ImageUrl) ? p.ImageUrl : Url.Content("~/images/placeholder.svg");
-                        
-                        // 🔑 SỬA ĐỔI: Tự tạo slug từ Name để làm group_key và truyền đủ tham số URL
-                        var groupKey = !string.IsNullOrEmpty(p.Name) ? p.Name.ToLower().Replace(" ", "-") : "default-group";
-                        var sellerName = p.Seller != null ? (p.Seller.Name ?? p.Seller.Email) : "Tiểu thương Chợ";
-                        var addressStr = !string.IsNullOrEmpty(p.Address) ? p.Address : "Chợ Đồng Xuân (Hà Nội)";
-                        var productUrl = $"/Products/ProductDetail?id={p.Id}&name={Uri.EscapeDataString(p.Name ?? "")}&price={p.Price}&img={Uri.EscapeDataString(img)}&seller={Uri.EscapeDataString(sellerName)}&address={Uri.EscapeDataString(addressStr)}&group_key={Uri.EscapeDataString(groupKey)}";
-
-                        <a href="@productUrl" class="bg-white border border-transparent hover:border-[#f97316] hover:shadow-lg transition-all relative group cursor-pointer rounded-sm flex flex-col justify-between block no-underline text-inherit">
-                            <div>
-                                <div class="relative product-card-aspect overflow-hidden bg-gray-50">
-                                    <img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
-                                         src="@img" onerror="this.onerror=null;this.src='@Url.Content("~/images/placeholder.svg")'" />
-                                    
-                                    <!-- Nhãn Giảm giá -->
-                                    <div class="absolute top-0 right-0 bg-[#ffd839]/95 px-1 py-0.5 text-center flex flex-col items-center z-10 w-[36px]">
-                                        <span class="text-[#f97316] font-bold text-[10px] leading-tight">20%</span>
-                                        <span class="text-white text-[8px] font-bold leading-tight">GIẢM</span>
-                                    </div>
-                                    
-                                    <!-- Nhãn Bán chạy -->
-                                    <div class="absolute top-1 left-[-2px] bg-[#f97316] text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-r-sm z-10 shadow-sm">
-                                        Bán chạy
-                                    </div>
+                        <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow p-4 flex flex-col justify-between space-y-3">
+                            <a href="/Product/ProductDetail?id=@p.Id" class="space-y-3 block no-underline group">
+                                <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400" : p.ImageUrl)" class="w-full h-44 object-cover rounded-xl group-hover:scale-102 transition-transform duration-300" />
+                                <div>
+                                    <h3 class="font-bold text-sm text-on-surface line-clamp-1 group-hover:text-emerald-700 transition-colors">@p.Name</h3>
+                                    <p class="text-xs text-on-surface-variant line-clamp-2 mt-1">@p.Description</p>
                                 </div>
-                                <div class="p-2 flex flex-col gap-1">
-                                    <h4 class="text-[12px] line-clamp-2 min-h-[36px] text-gray-800 font-normal leading-normal group-hover:text-[#f97316] transition-colors">@p.Name</h4>
-                                </div>
+                            </a>
+                            <div class="pt-3 border-t border-outline-variant/40 flex items-center justify-between">
+                                <span class="text-primary font-extrabold text-base">@p.Price.ToString("N0") đ / @p.Unit</span>
+                                <form method="post" action="/CartAndOrders/AddToCart" onsubmit="handleAddToCart(event, this)">
+                                    <input type="hidden" name="productId" value="@p.Id" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <button type="submit" class="bg-secondary-container hover:bg-secondary text-on-secondary font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 transition-all active:scale-95 cursor-pointer">
+                                        <span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+                                        Thêm Giỏ
+                                    </button>
+                                </form>
                             </div>
-                            <div class="p-2 pt-0 flex flex-col">
-                                <span class="text-[#f97316] text-base font-semibold">
-                                     @(p.IsFree ? "Miễn phí" : price.ToString("N0") + "đ")
-                                </span>
-                                <div class="flex items-center gap-1 mt-1.5">
-                                    <div class="flex text-amber-400 text-[9px]">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star text-gray-300"></i>
-                                    </div>
-                                    <span class="text-[10px] text-gray-400">Đã bán 1.2k</span>
-                                </div>
-                            </div>
-                        </a>
-                    }
-                }
-
-                <!-- Ô Xem thêm trong Flash sale -->
-                <div class="bg-white flex items-center justify-center border border-gray-100 rounded-sm hover:shadow-md transition-shadow min-h-[250px]">
-                    <div class="flex flex-col items-center gap-2 cursor-pointer group py-8">
-                        <div class="w-10 h-10 border-2 border-[#f97316] rounded-full flex items-center justify-center group-hover:bg-[#f97316]/5 transition-colors">
-                            <i class="bi bi-chevron-right text-[#f97316] font-bold"></i>
                         </div>
-                        <span class="text-xs font-medium text-[#f97316]">Xem Thêm</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- GỢI Ý HÔM NAY -->
-        <section class="mb-6">
-            <div class="bg-white border-b-2 border-[#f97316] sticky top-0 z-20 shadow-sm">
-                <div class="w-[180px] text-center py-3 bg-white border-r border-gray-100">
-                    <h3 class="font-bold text-base text-[#f97316] uppercase tracking-wide">GỢI Ý HÔM NAY</h3>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-2 mt-2">
-                @if (Model != null && Model.Any())
-                {
-                    @foreach (var p in Model.Skip(5).Take(12))
-                    {
-                        var price = p.Price;
-                        var img = !string.IsNullOrWhiteSpace(p.ImageUrl) ? p.ImageUrl : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400";
-                        
-                        var groupKey = !string.IsNullOrEmpty(p.Name) ? p.Name.ToLower().Replace(" ", "-") : "default-group";
-                        var sellerName = p.Seller != null ? (p.Seller.Name ?? p.Seller.Email) : "Tiểu thương Chợ";
-                        var addressStr = !string.IsNullOrEmpty(p.Address) ? p.Address : "Chợ Đồng Xuân (Hà Nội)";
-                        var productUrl = $"/Products/ProductDetail?id={p.Id}&name={Uri.EscapeDataString(p.Name ?? "")}&price={p.Price}&img={Uri.EscapeDataString(img)}&seller={Uri.EscapeDataString(sellerName)}&address={Uri.EscapeDataString(addressStr)}&group_key={Uri.EscapeDataString(groupKey)}";
-
-                        <a href="@productUrl" class="bg-white border border-transparent hover:border-[#f97316] hover:shadow-lg transition-all relative group cursor-pointer rounded-sm flex flex-col justify-between block no-underline text-inherit">
-                            <div>
-                                <div class="relative product-card-aspect overflow-hidden bg-gray-50">
-                                    <img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200" src="@img" alt="@p.Name" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400'" />
-                                </div>
-                                <div class="p-2">
-                                    <h4 class="text-[12px] line-clamp-2 min-h-[36px] text-gray-800 font-normal leading-normal group-hover:text-[#f97316] transition-colors">@p.Name</h4>
-                                </div>
-                            </div>
-                            <div class="p-2 pt-0">
-                                <div class="flex justify-between items-baseline mt-2 flex-wrap gap-1">
-                                    <span class="text-[#f97316] text-[15px] font-semibold">
-                                        @(p.IsFree ? "Miễn phí" : price.ToString("N0") + "đ")
-                                    </span>
-                                    <span class="text-[10px] text-gray-400">Đã bán 5k+</span>
-                                </div>
-                            </div>
-                        </a>
                     }
                 }
             </div>
-            
-            <div class="flex justify-center mt-6">
-                <button class="bg-white border border-gray-200 px-16 py-3 rounded-sm text-[13px] hover:bg-gray-50 transition-colors shadow-sm text-gray-600 min-w-[240px] font-medium">Xem Thêm</button>
-            </div>
         </section>
-        
+
+    </main>
+
+    <!-- Modal Xem Ảnh Chợ Dynamic -->
+    <div id="photoGalleryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-4xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <h3 id="galleryModalTitle" class="font-extrabold text-lg text-gray-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">photo_library</span> Bộ Ảnh Chợ & Quầy Hàng
+                </h3>
+                <button type="button" onclick="closePhotoGalleryModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold cursor-pointer">✕</button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="galleryImageGrid">
+                <!-- Dynamic market images loaded by JavaScript -->
+            </div>
+        </div>
     </div>
-</main>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const container = document.getElementById('categoryScrollContainer');
-        const btnPrev = document.getElementById('btnCatPrev');
-        const btnNext = document.getElementById('btnCatNext');
+    <!-- Footer -->
+    <footer class="bg-surface-container-highest dark:bg-inverse-surface text-on-surface dark:text-inverse-on-surface full-width flat no shadows mt-12">
+        <div class="max-w-max-width mx-auto px-margin-desktop py-12 grid grid-cols-1 md:grid-cols-4 gap-gutter">
+            <div class="col-span-1 md:col-span-2">
+                <div class="font-headline-md text-headline-md text-primary dark:text-primary-fixed mb-4 font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined">shopping_bag</span>
+                    MarketConnect
+                </div>
+                <p class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant max-w-sm mb-6">
+                    Nền tảng thương mại điện tử kết nối trực tiếp người tiêu dùng với các tiểu thương tại các chợ truyền thống Việt Nam.
+                </p>
+                <div class="font-label-sm text-label-sm text-on-surface-variant dark:text-surface-variant">
+                    © 2026 MarketConnect - Chợ Việt Online. All rights reserved.
+                </div>
+            </div>
+            <div class="col-span-1">
+                <h4 class="font-label-md text-label-md font-bold mb-4 text-on-surface">Về MarketConnect</h4>
+                <ul class="space-y-3 font-body-md text-body-md">
+                    <li><a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-opacity opacity-80 hover:opacity-100" href="/Stores">Gian Hàng Chợ</a></li>
+                    <li><a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-opacity opacity-80 hover:opacity-100" href="/MobileVendors/CallMap">Gọi Hàng Rong</a></li>
+                    <li><a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-opacity opacity-80 hover:opacity-100" href="/CartAndOrders">Giỏ Hàng Đa Tiểu Thương</a></li>
+    <!-- Modal Chọn Chợ Theo Tỉnh -> Quận -> Phường -> Chợ -->
+    <div id="cascadingLocationModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <h3 class="font-extrabold text-base text-gray-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">pin_drop</span> Chọn Chợ Theo Tỉnh → Quận → Phường
+                </h3>
+                <button type="button" onclick="closeCascadingLocationModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold cursor-pointer">✕</button>
+            </div>
 
-        if (container && btnPrev && btnNext) {
-            function updateNavButtons() {
-                const maxScrollLeft = container.scrollWidth - container.clientWidth;
-                btnPrev.disabled = container.scrollLeft <= 5;
-                btnNext.disabled = container.scrollLeft >= maxScrollLeft - 5;
+            <div class="space-y-4 text-xs">
+                <!-- Bước 1: Chọn Tỉnh / Thành Phố -->
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">1. Chọn Tỉnh / Thành Phố (*)</label>
+                    <select id="modalProvinceSelect" onchange="onProvinceChanged()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-primary font-medium">
+                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                    </select>
+                </div>
+
+                <!-- Bước 2: Chọn Quận / Huyện -->
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">2. Chọn Quận / Huyện (*)</label>
+                    <select id="modalDistrictSelect" onchange="onDistrictChanged()" disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-primary font-medium disabled:opacity-50">
+                        <option value="">-- Chọn Quận / Huyện --</option>
+                    </select>
+                </div>
+
+                <!-- Bước 3: Chọn Phường / Xã -->
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">3. Chọn Phường / Xã (*)</label>
+                    <select id="modalWardSelect" onchange="onWardChanged()" disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-primary font-medium disabled:opacity-50">
+                        <option value="">-- Chọn Phường / Xã --</option>
+                    </select>
+                </div>
+
+                <!-- Bước 4: Chọn Chợ -->
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">4. Chọn Chợ Tương Ứng (*)</label>
+                    <select id="modalMarketSelect" disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-primary font-bold text-emerald-800 disabled:opacity-50">
+                        <option value="">-- Chọn Chợ --</option>
+                    </select>
+                </div>
+
+                <button type="button" onclick="confirmSelectedMarketFromModal()" class="w-full bg-primary hover:bg-primary-container text-white font-extrabold py-3 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer mt-2">
+                    Xác Nhận Chọn Chợ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive JavaScript Logic -->
+    <script>
+        // 1. Toast Notification Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMessage');
+            if (toast && toastMsg) {
+                toastMsg.innerText = msg;
+                toast.classList.remove('hidden');
+                setTimeout(() => toast.classList.add('hidden'), 3500);
+            }
+        }
+
+        // 2. User Dropdown Toggle
+        function toggleUserDropdown(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        // 3. Market Dropdown Selector
+        function toggleMarketDropdownMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('marketDropdownMenu');
+            const chevron = document.getElementById('marketChevron');
+            if (menu) {
+                menu.classList.toggle('hidden');
+                if (chevron) chevron.classList.toggle('rotate-180');
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const marketMenu = document.getElementById('marketDropdownMenu');
+            const userMenu = document.getElementById('userDropdownMenu');
+            if (marketMenu && !marketMenu.classList.contains('hidden')) marketMenu.classList.add('hidden');
+            if (userMenu && !userMenu.classList.contains('hidden')) userMenu.classList.add('hidden');
+        });
+
+        function onMarketOptionClick(btn) {
+            if (!btn) return;
+            const marketId = btn.getAttribute('data-market-id');
+            const marketName = btn.getAttribute('data-market-name');
+            const address = btn.getAttribute('data-market-address');
+            const distText = btn.getAttribute('data-market-dist');
+            selectActiveMarket(marketId, marketName, address, distText);
+        }
+
+        function selectActiveMarket(marketId, marketName, address, distText) {
+            document.cookie = "SelectedMarketId=" + marketId + "; path=/; max-age=2592000";
+            sessionStorage.setItem('selected_market_id', marketId);
+            sessionStorage.setItem('selected_market_name', marketName);
+            sessionStorage.setItem('selected_market', marketName);
+            localStorage.setItem('selected_market_id', marketId);
+            localStorage.setItem('selected_market_name', marketName);
+            localStorage.setItem('selected_market', marketName);
+            localStorage.setItem('selected_market_user_choice', marketName);
+
+            const displayDist = distText ? distText.toLowerCase() : 'cách 1.2 km';
+            const nameElem = document.getElementById('currentSelectedMarketName');
+            if (nameElem) nameElem.innerText = marketName;
+            const badgeElem = document.getElementById('currentSelectedMarketBadge');
+            if (badgeElem) badgeElem.innerText = displayDist;
+            const titleElem = document.getElementById('marketTitleHeading');
+            if (titleElem) titleElem.innerText = marketName;
+            const pinElem = document.getElementById('mapPinMarketName');
+            if (pinElem) pinElem.innerText = marketName;
+            const breadcrumbElem = document.getElementById('breadcrumbCurrentMarket');
+            if (breadcrumbElem) breadcrumbElem.innerText = marketName + ' - ' + displayDist;
+            const merchantElem = document.getElementById('merchantSectionHeading');
+            if (merchantElem) merchantElem.innerText = 'Tiểu thương tiêu biểu tại ' + marketName;
+            
+            if (address && address.trim() !== '') {
+                const addrElem = document.getElementById('marketAddressDisplay');
+                if (addrElem) addrElem.innerText = address;
             }
 
-            btnPrev.addEventListener('click', function () {
-                container.scrollBy({ left: -280, behavior: 'smooth' });
-            });
-
-            btnNext.addEventListener('click', function () {
-                container.scrollBy({ left: 280, behavior: 'smooth' });
-            });
-
-            container.addEventListener('scroll', updateNavButtons);
-            window.addEventListener('resize', updateNavButtons);
-            updateNavButtons();
+            showToast('Đã chuyển sang xem thông tin ' + marketName);
+            const targetUrl = new URL(window.location.href);
+            targetUrl.searchParams.set('marketId', marketId);
+            window.location.href = targetUrl.toString();
         }
-    });
-</script>
+
+        // 4. Photo Gallery Dataset Per Market (Dynamic & Accurate Count)
+        const marketGalleriesData = {
+            'cho-nhan-chinh': [
+                'https://lh3.googleusercontent.com/aida-public/AB6AXuBv_dm10PMDGYVg5t3nYcGJHyFi2DrI2dYZ0X3YKRrrod-pGCBimI5jVl4zqIDGlAYggLMT47Uwa9Okz707yd9QRWRbskAOndIgBiOxxShliS1RSkXlO2PzMiNa5zZ8EW_buQlwWKG1Tlzr7hwea7jRSheArvLJuXi2hwYzY-fqnV0KIHNbxl35u2RedRceYnIl_kdA_Hg0gbjBFiaDKfxeobrGQEdn9ydqRkqA_xoGaxf42OybRtxm',
+                'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
+                'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800',
+                'https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=800',
+                'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800'
+            ],
+            'cho-dong-xuan': [
+                'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+                'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800',
+                'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800',
+                'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800',
+                'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=800',
+                'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800'
+            ],
+            'cho-hang-be': [
+                'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=800',
+                'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800',
+                'https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=800',
+                'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?w=800'
+            ],
+            'cho-long-bien': [
+                'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=800',
+                'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800',
+                'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
+                'https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=800',
+                'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800'
+            ],
+            'cho-thanh-cong': [
+                'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800',
+                'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
+                'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800',
+                'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800'
+            ],
+            'cho-ngo-si-lien': [
+                'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800',
+                'https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=800',
+                'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800'
+            ],
+            'cho-hom': [
+                'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+                'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800',
+                'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=800',
+                'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=800'
+            ],
+            'cho-mo': [
+                'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
+                'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800',
+                'https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=800',
+                'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800'
+            ]
+        };
+
+        const activeMarketSlug = '@(selectedMarket != null ? selectedMarket.Slug : "cho-nhan-chinh")';
+        const activeMarketName = '@Html.Raw(selectedMarket != null ? selectedMarket.Name : "Chợ Nhân Chính")';
+
+        let photos = marketGalleriesData[activeMarketSlug] || [
+            'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
+            'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800',
+            'https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=800',
+            'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800'
+        ];
+        let currentPhotoIdx = 0;
+
+        function initMarketGallery() {
+            if (photos && photos.length > 0) {
+                const mainImg = document.getElementById('marketMainPhoto');
+                if (mainImg) mainImg.src = photos[0];
+            }
+            const countBtnLabel = document.getElementById('marketPhotoCountLabel');
+            if (countBtnLabel) {
+                countBtnLabel.innerText = `Xem ${photos.length} ảnh`;
+            }
+            const modalTitle = document.getElementById('galleryModalTitle');
+            if (modalTitle) {
+                modalTitle.innerHTML = `<span class="material-symbols-outlined text-primary">photo_library</span> Bộ Ảnh ${activeMarketName} (${photos.length} ảnh)`;
+            }
+        }
+
+        function nextMarketPhoto() {
+            if (!photos || photos.length === 0) return;
+            currentPhotoIdx = (currentPhotoIdx + 1) % photos.length;
+            const mainImg = document.getElementById('marketMainPhoto');
+            if (mainImg) mainImg.src = photos[currentPhotoIdx];
+        }
+
+        function prevMarketPhoto() {
+            if (!photos || photos.length === 0) return;
+            currentPhotoIdx = (currentPhotoIdx - 1 + photos.length) % photos.length;
+            const mainImg = document.getElementById('marketMainPhoto');
+            if (mainImg) mainImg.src = photos[currentPhotoIdx];
+        }
+
+        // 5. Photo Gallery Modal (Dynamic rendering)
+        function openPhotoGalleryModal() {
+            const grid = document.getElementById('galleryImageGrid');
+            const modal = document.getElementById('photoGalleryModal');
+
+            if (grid && photos) {
+                grid.innerHTML = photos.map((url, idx) => `
+                    <div class="relative group overflow-hidden rounded-2xl shadow-sm border border-gray-100 bg-gray-50 cursor-pointer" onclick="selectMarketPhotoByIndex(${idx})">
+                        <img src="${url}" class="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300" alt="Ảnh ${idx + 1} - ${activeMarketName}" />
+                        <div class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs">
+                            Ảnh ${idx + 1}/${photos.length}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function selectMarketPhotoByIndex(idx) {
+            currentPhotoIdx = idx;
+            const mainImg = document.getElementById('marketMainPhoto');
+            if (mainImg && photos[idx]) mainImg.src = photos[idx];
+            closePhotoGalleryModal();
+        }
+
+        function closePhotoGalleryModal() {
+            const modal = document.getElementById('photoGalleryModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // Run gallery init on DOM loaded
+        document.addEventListener('DOMContentLoaded', initMarketGallery);
+
+        // 6. Google Map Directions
+        function openGoogleMapDirections() {
+            const marketName = document.getElementById('currentSelectedMarketName').innerText;
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(marketName + " Hà Nội")}`, '_blank');
+        }
+
+        // 7. Share Market Info
+        function shareMarketInfo() {
+            if (navigator.share) {
+                navigator.share({ title: document.title, url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Đã sao chép liên kết chợ vào bộ nhớ tạm!');
+            }
+        }
+
+        // 8. Categories Horizontal Scrolling & Filtering
+        function scrollCategoriesLeft() {
+            const container = document.getElementById('categoryGridCarousel');
+            if (container) container.scrollBy({ left: -200, behavior: 'smooth' });
+        }
+
+        function scrollCategoriesRight() {
+            const container = document.getElementById('categoryGridCarousel');
+            if (container) container.scrollBy({ left: 200, behavior: 'smooth' });
+        }
+
+        function filterByCategory(catName) {
+            showToast('Đang lọc các sản phẩm & tiểu thương theo ngành hàng: ' + catName);
+            window.location.href = '/Products/Category?category=' + encodeURIComponent(catName);
+        }
+
+        // 9. Add to Cart Ajax
+        async function handleAddToCart(e, form) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            try {
+                await fetch('/CartAndOrders/AddToCart', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const badge = document.getElementById('globalCartBadge');
+                if (badge) {
+                    const currentCount = parseInt(badge.innerText || '0');
+                    badge.innerText = currentCount + 1;
+                }
+                showToast('Đã thêm sản phẩm vào giỏ hàng thành công!');
+            } catch (err) {
+                showToast('Đã thêm sản phẩm vào giỏ hàng!');
+            }
+        }
+
+        // 10. Cascading Location Selection Modal Functions
+        function openCascadingLocationModal() {
+            document.getElementById('cascadingLocationModal').classList.remove('hidden');
+            loadProvinces();
+        }
+
+        function closeCascadingLocationModal() {
+            document.getElementById('cascadingLocationModal').classList.add('hidden');
+        }
+
+        async function loadProvinces() {
+            const provSelect = document.getElementById('modalProvinceSelect');
+            provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố --</option>';
+            try {
+                const res = await fetch('/api/location/provinces');
+                const data = await res.json();
+                data.forEach(p => {
+                    provSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function onProvinceChanged() {
+            const pId = document.getElementById('modalProvinceSelect').value;
+            const distSelect = document.getElementById('modalDistrictSelect');
+            const wardSelect = document.getElementById('modalWardSelect');
+            const mktSelect = document.getElementById('modalMarketSelect');
+
+            distSelect.innerHTML = '<option value="">-- Chọn Quận / Huyện --</option>';
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường / Xã --</option>';
+            mktSelect.innerHTML = '<option value="">-- Chọn Chợ --</option>';
+
+            if (!pId) {
+                distSelect.disabled = true;
+                wardSelect.disabled = true;
+                mktSelect.disabled = true;
+                return;
+            }
+
+            distSelect.disabled = false;
+            try {
+                const res = await fetch('/api/location/districts?provinceId=' + pId);
+                const data = await res.json();
+                data.forEach(d => {
+                    distSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+                });
+                loadMarketsByFilter(pId, null, null);
+            } catch(e) { console.error(e); }
+        }
+
+        async function onDistrictChanged() {
+            const pId = document.getElementById('modalProvinceSelect').value;
+            const dId = document.getElementById('modalDistrictSelect').value;
+            const wardSelect = document.getElementById('modalWardSelect');
+            const mktSelect = document.getElementById('modalMarketSelect');
+
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường / Xã --</option>';
+            mktSelect.innerHTML = '<option value="">-- Chọn Chợ --</option>';
+
+            if (!dId) {
+                wardSelect.disabled = true;
+                return;
+            }
+
+            wardSelect.disabled = false;
+            try {
+                const res = await fetch('/api/location/wards?districtId=' + dId);
+                const data = await res.json();
+                data.forEach(w => {
+                    wardSelect.innerHTML += `<option value="${w.id}">${w.name}</option>`;
+                });
+                loadMarketsByFilter(pId, dId, null);
+            } catch(e) { console.error(e); }
+        }
+
+        async function onWardChanged() {
+            const pId = document.getElementById('modalProvinceSelect').value;
+            const dId = document.getElementById('modalDistrictSelect').value;
+            const wId = document.getElementById('modalWardSelect').value;
+            loadMarketsByFilter(pId, dId, wId);
+        }
+
+        async function loadMarketsByFilter(pId, dId, wId) {
+            const mktSelect = document.getElementById('modalMarketSelect');
+            mktSelect.innerHTML = '<option value="">-- Chọn Chợ --</option>';
+            mktSelect.disabled = false;
+
+            let url = `/api/location/markets?`;
+            if (pId) url += `provinceId=${pId}&`;
+            if (dId) url += `districtId=${dId}&`;
+            if (wId) url += `wardId=${wId}&`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.length > 0) {
+                    data.forEach(m => {
+                        const areaInfo = m.wardName ? `(${m.wardName})` : '';
+                        mktSelect.innerHTML += `<option value="${m.id}" data-name="${m.name}" data-address="${m.address}">${m.name} ${areaInfo}</option>`;
+                    });
+                } else {
+                    mktSelect.innerHTML = '<option value="">Chưa có dữ liệu chợ ở khu vực này</option>';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function confirmSelectedMarketFromModal() {
+            const mktSelect = document.getElementById('modalMarketSelect');
+            const selectedOpt = mktSelect.options[mktSelect.selectedIndex];
+            if (!mktSelect.value || !selectedOpt) {
+                showToast('Vui lòng chọn chợ từ danh sách!');
+                return;
+            }
+
+            const marketId = mktSelect.value;
+            const marketName = selectedOpt.getAttribute('data-name');
+            const address = selectedOpt.getAttribute('data-address');
+
+            closeCascadingLocationModal();
+            selectActiveMarket(marketId, marketName, address);
+        }
+
+        // Dynamic GPS Real-time Distance Calculator
+        const activeMarketId = '@(selectedMarket != null ? selectedMarket.Id.ToString() : "1")';
+
+        function openGoogleMapDirections() {
+            const mName = document.getElementById('currentSelectedMarketName') ? document.getElementById('currentSelectedMarketName').innerText : 'Chợ Hà Nội';
+            window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(mName + ' Hà Nội'), '_blank');
+        }
+
+        const marketsGeoData = [
+            @foreach(var m in markets)
+            {
+                <text>{ id: @m.Id, name: "@Html.Raw(m.Name)", lat: @m.Latitude, lng: @m.Longitude },</text>
+            }
+        ];
+
+        function getHaversineDistanceKm(lat1, lon1, lat2, lon2) {
+            if (!lat1 || !lon1 || !lat2 || !lon2) return 1.5;
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function updateMarketDistancesWithGPS() {
+            const applyCoords = function(uLat, uLng) {
+                marketsGeoData.forEach(m => {
+                    if (m.lat && m.lng) {
+                        const distKm = getHaversineDistanceKm(uLat, uLng, m.lat, m.lng);
+                        const distText = distKm < 0.2 ? "Cách < 200m" : `Cách ${distKm.toFixed(1)} km`;
+
+                        const badge = document.getElementById('marketBadge_' + m.id);
+                        if (badge) badge.innerText = distText;
+
+                        if (String(m.id) === String(activeMarketId)) {
+                            const topBadge = document.getElementById('currentSelectedMarketBadge');
+                            if (topBadge) topBadge.innerText = distText.toLowerCase();
+                            const breadcrumb = document.getElementById('breadcrumbCurrentMarket');
+                            if (breadcrumb) breadcrumb.innerText = activeMarketName + ' - ' + distText.toLowerCase();
+                        }
+                    }
+                });
+            };
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => applyCoords(pos.coords.latitude, pos.coords.longitude),
+                    err => applyCoords(21.0040, 105.8050),
+                    { timeout: 10000, enableHighAccuracy: true }
+                );
+            } else {
+                applyCoords(21.0040, 105.8050);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', updateMarketDistancesWithGPS);
+    </script>
+    <script src="~/js/layout-scripts.js"></script>
+
+</body>
+</html>

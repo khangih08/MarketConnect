@@ -1,0 +1,59 @@
+@model List<MarketConnect.Data.PurchaseRequest>
+
+@{
+    ViewData["Title"] = "Lịch Sử Yêu Cầu Đặt Mua - Chợ Việt Online";
+}
+
+<div class="max-w-[1440px] mx-auto px-4 md:px-16 py-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-700">history</span> Lịch Sử Yêu Cầu Đặt Mua Của Bạn
+        </h1>
+        <p class="text-xs text-gray-500 mt-1">Danh sách các yêu cầu đặt mua độc lập đã được gửi tới từng tiểu thương.</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="bg-white p-8 rounded-2xl text-center text-gray-500 text-xs border border-gray-100">
+            Bạn chưa gửi yêu cầu đặt mua nào.
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var req in Model)
+            {
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-50">
+                        <div>
+                            <span class="font-extrabold text-sm text-gray-900">Mã yêu cầu: @req.RequestCode</span>
+                            <span class="text-xs text-gray-400 ml-2">@req.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">
+                            Trạng thái: @req.Status.ToString()
+                        </span>
+                    </div>
+
+                    <div class="text-xs text-gray-700 space-y-1">
+                        <p>Gian hàng: <strong class="text-emerald-800">@(req.Store?.StoreName ?? "Tiểu thương chợ")</strong></p>
+                        <p>Tổng giá tham khảo: <strong class="text-gray-900">@req.ReferenceTotalPrice.ToString("N0") đ</strong></p>
+                    </div>
+
+                    <div class="bg-gray-50 p-3 rounded-xl space-y-1">
+                        <span class="text-[11px] font-bold text-gray-500 block">Sản phẩm trong yêu cầu này:</span>
+                        @if (req.Items != null)
+                        {
+                            foreach (var item in req.Items)
+                            {
+                                <div class="text-xs text-gray-700 flex justify-between">
+                                    <span>• @item.ProductName (x@item.Quantity)</span>
+                                    <span class="font-bold">@item.Price.ToString("N0") đ</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

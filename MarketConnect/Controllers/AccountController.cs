@@ -70,9 +70,111 @@ namespace MarketConnect.Controllers
             return View();
         }
 
-        [HttpGet("Account/Profile")]
-        public IActionResult Profile()
+        [HttpGet("Account/Register")]
+        public IActionResult Register()
         {
+            return View();
+        }
+
+        [HttpGet("Account/Logout")]
+        [HttpPost("Account/Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.SignOutAsync(HttpContext);
+            }
+            catch { }
+
+            Response.Cookies.Delete("user_email");
+            Response.Cookies.Delete("user_name");
+            Response.Cookies.Delete("user_phone");
+            Response.Cookies.Delete("MarketConnectAuthCookie");
+            Response.Cookies.Delete(".AspNetCore.Cookies");
+            Response.Cookies.Delete(".AspNetCore.Identity.Application");
+
+            return Content("<script>sessionStorage.clear(); localStorage.clear(); window.location.href='/Account/Login';</script>", "text/html");
+        }
+
+        [HttpGet("Account/Profile")]
+        public async Task<IActionResult> Profile()
+        {
+            User? user = null;
+
+            // 1. Tìm theo Claim NameIdentifier / Email / Name
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var subClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(subClaim, out int parsedId))
+                {
+                    user = await _db.Users.FindAsync(parsedId);
+                }
+
+                if (user == null)
+                {
+                    var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity.Name;
+                    if (!string.IsNullOrEmpty(userEmail))
+                    {
+                        user = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Users, u => u.Email == userEmail || u.Name == userEmail || u.Phone == userEmail);
+                    }
+                }
+            }
+
+            // 2. Fallback tìm theo Cookie nếu Identity chưa đính kèm
+            if (user == null)
+            {
+                if (Request.Cookies.TryGetValue("user_email", out var cookieEmail) && !string.IsNullOrEmpty(cookieEmail))
+                {
+                    user = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Users, u => u.Email == cookieEmail || u.Name == cookieEmail || u.Phone == cookieEmail);
+                }
+                else if (Request.Cookies.TryGetValue("user_phone", out var cookiePhone) && !string.IsNullOrEmpty(cookiePhone))
+                {
+                    user = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Users, u => u.Phone == cookiePhone || u.Email == cookiePhone);
+                }
+                else if (Request.Cookies.TryGetValue("user_name", out var cookieName) && !string.IsNullOrEmpty(cookieName))
+                {
+                    user = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Users, u => u.Name == cookieName || u.Email == cookieName);
+                }
+            }
+
+            // Nếu chưa đọc được user từ Server Cookies -> Tự động đồng bộ từ LocalStorage/SessionStorage phía Client
+            if (user == null)
+            {
+                return Content(@"<script>
+                    const email = localStorage.getItem('user_email') || sessionStorage.getItem('user_email');
+                    const name = localStorage.getItem('user_name') || sessionStorage.getItem('user_name');
+                    const phone = localStorage.getItem('user_phone') || sessionStorage.getItem('user_phone');
+                    if (email || name || phone) {
+                        if (email) document.cookie = 'user_email=' + encodeURIComponent(email) + '; path=/; max-age=2592000; SameSite=Lax';
+                        if (name) document.cookie = 'user_name=' + encodeURIComponent(name) + '; path=/; max-age=2592000; SameSite=Lax';
+                        if (phone) document.cookie = 'user_phone=' + encodeURIComponent(phone) + '; path=/; max-age=2592000; SameSite=Lax';
+                        window.location.reload();
+                    } else {
+                        window.location.href = '/Account/Login';
+                    }
+                </script>", "text/html");
+            }
+
+            // Lấy tất cả gian hàng sở hữu CHÍNH XÁC bởi tài khoản người dùng này
+            var userStores = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+                Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.Include(
+                    Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.Include(
+                        _db.Stores, s => s.Market), s => s.Category)
+                .Where(s => s.UserId == user.Id)
+                .OrderByDescending(s => s.CreatedAt));
+
+            // Cập nhật phân quyền Role: Chuyển sang Merchant nếu người dùng này có gian hàng đã được duyệt APPROVED
+            bool hasApprovedStore = userStores.Any(s => s.Status == StoreStatus.Approved);
+            if (hasApprovedStore && user.Role == UserRole.Buyer)
+            {
+                user.Role = UserRole.Merchant;
+                _db.Users.Update(user);
+                await _db.SaveChangesAsync();
+            }
+
+            ViewBag.UserRole = user.Role;
+            ViewBag.UserStores = userStores;
+
             return View();
         }
 
@@ -82,24 +184,17 @@ namespace MarketConnect.Controllers
             return View("ChangePassword");
         }
 
-        [Authorize]
         [HttpPost("Account/UpdateProfile")] 
         public async Task<IActionResult> UpdateProfile([FromForm] ProfileUpdateModel model)
         {
-            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(userEmail))
+            User? user = await GetCurrentUserAsync();
+            if (user == null)
             {
                 return Unauthorized(new { message = "Chưa đăng nhập hoặc phiên làm việc hết hạn." });
             }
 
-            var user = await _db.Users.FirstOrDefaultAsync<User>(u => u.Email == userEmail);
-            if (user == null)
-            {
-                return NotFound(new { message = "Không tìm thấy người dùng." });
-            }
-
             if (!string.IsNullOrWhiteSpace(model.FullName)) user.Name = model.FullName;
-            user.Phone = model.Phone;
+            if (!string.IsNullOrWhiteSpace(model.Phone)) user.Phone = model.Phone;
             user.Address = model.Address;
             user.Gender = model.Gender;
             user.DateOfBirth = model.DateOfBirth;
@@ -109,7 +204,7 @@ namespace MarketConnect.Controllers
 
             return Ok(new
             {
-                message = "Cập nhật hồ sơ thành công trực tiếp vào Database!",
+                message = "Cập nhật hồ sơ thành công!",
                 fullName = user.Name,
                 phone = user.Phone,
                 address = user.Address,
@@ -118,20 +213,13 @@ namespace MarketConnect.Controllers
             });
         }
 
-        [Authorize]
         [HttpGet("Account/GetProfileData")]
         public async Task<IActionResult> GetProfileData()
         {
-            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(userEmail))
-            {
-                return Unauthorized(new { message = "Chưa đăng nhập hoặc phiên làm việc hết hạn." });
-            }
-
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+            User? user = await GetCurrentUserAsync();
             if (user == null)
             {
-                return NotFound(new { message = "Không tìm thấy người dùng." });
+                return Unauthorized(new { message = "Chưa đăng nhập hoặc phiên làm việc hết hạn." });
             }
 
             return Ok(new
@@ -141,8 +229,53 @@ namespace MarketConnect.Controllers
                 address = user.Address,
                 gender = user.Gender,
                 dateOfBirth = user.DateOfBirth?.ToString("yyyy-MM-dd"),
-                hasPassword = !string.IsNullOrEmpty(user.PasswordHash) 
+                hasPassword = !string.IsNullOrEmpty(user.PasswordHash),
+                role = user.Role.ToString()
             });
+        }
+
+        private async Task<User?> GetCurrentUserAsync()
+        {
+            // 1. Kiểm tra qua Identity Claim
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var subClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(subClaim, out int parsedId))
+                {
+                    var u = await _db.Users.FindAsync(parsedId);
+                    if (u != null) return u;
+                }
+
+                var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity.Name;
+                if (!string.IsNullOrEmpty(userEmail))
+                {
+                    var u = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Users, x => x.Email == userEmail);
+                    if (u != null) return u;
+                }
+            }
+
+            // 2. Ưu tiên số 1: Kiểm tra qua Cookie user_id chính xác
+            if (Request.Cookies.TryGetValue("user_id", out var cookieUserId) && int.TryParse(cookieUserId, out int parsedCookieId))
+            {
+                var u = await _db.Users.FindAsync(parsedCookieId);
+                if (u != null) return u;
+            }
+
+            // 3. Kiểm tra qua Cookie user_email chính xác
+            if (Request.Cookies.TryGetValue("user_email", out var cookieEmail) && !string.IsNullOrEmpty(cookieEmail))
+            {
+                var u = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Users, x => x.Email == cookieEmail);
+                if (u != null) return u;
+            }
+
+            // 4. Kiểm tra qua Cookie user_phone chính xác
+            if (Request.Cookies.TryGetValue("user_phone", out var cookiePhone) && !string.IsNullOrEmpty(cookiePhone))
+            {
+                var u = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Users, x => x.Phone == cookiePhone);
+                if (u != null) return u;
+            }
+
+            return null;
         }
 
         [Authorize]

@@ -15,6 +15,29 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MarketConnect.styles.css" asp-append-version="true" />
 
+    <script>
+        (function syncAuthCookiesImmediately() {
+            try {
+                const userId = localStorage.getItem('user_id') || sessionStorage.getItem('user_id');
+                const email = localStorage.getItem('user_email') || sessionStorage.getItem('user_email');
+                const name = localStorage.getItem('user_name') || sessionStorage.getItem('user_name');
+                const phone = localStorage.getItem('user_phone') || sessionStorage.getItem('user_phone');
+                if (userId && !document.cookie.includes('user_id=')) {
+                    document.cookie = `user_id=${userId}; path=/; max-age=2592000; SameSite=Lax`;
+                }
+                if (email && !document.cookie.includes('user_email=')) {
+                    document.cookie = `user_email=${encodeURIComponent(email)}; path=/; max-age=2592000; SameSite=Lax`;
+                }
+                if (name && !document.cookie.includes('user_name=')) {
+                    document.cookie = `user_name=${encodeURIComponent(name)}; path=/; max-age=2592000; SameSite=Lax`;
+                }
+                if (phone && !document.cookie.includes('user_phone=')) {
+                    document.cookie = `user_phone=${encodeURIComponent(phone)}; path=/; max-age=2592000; SameSite=Lax`;
+                }
+            } catch(e) {}
+        })();
+    </script>
+
     <script id="tailwind-config">
             tailwind.config = {
                 darkMode: "class",
@@ -65,32 +88,37 @@
 
     <!-- 1. HEADER CHUNG CHO TẤT CẢ CÁC TRANG -->
     <header class="w-full sticky top-0 bg-[#004532] text-white z-50 shadow-md select-none">
-        <div class="max-w-[1440px] mx-auto px-4 md:px-16 py-3 flex justify-between items-center">
-            <!-- Left Links -->
-            <div class="flex items-center gap-4 text-xs">
-                <a class="hover:text-orange-400 transition-colors" href="/">Kênh Người Bán</a>
-                <div class="w-px h-4 bg-white/20 hidden md:block"></div>
-                <a class="hover:text-orange-400 transition-colors" href="#">Tải ứng dụng</a>
-                <div class="w-px h-4 bg-white/20 hidden md:block"></div>
-                <div class="flex items-center gap-2">
-                    <span>Kết nối</span>
-                    <i class="bi bi-facebook cursor-pointer hover:text-orange-400 transition-colors"></i>
-                    <i class="bi bi-instagram cursor-pointer hover:text-orange-400 transition-colors"></i>
+        <div class="max-w-[1440px] mx-auto px-4 md:px-16 py-2.5 flex justify-between items-center">
+            <!-- Left: Logo & Tên Thương Hiệu MarketConnect -->
+            <a href="/" class="flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer group">
+                <div class="w-8 h-8 rounded-lg bg-[#f97316] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <i class="bi bi-bag-fill text-white text-lg"></i>
                 </div>
-            </div>
+                <h1 class="font-extrabold text-xl text-white tracking-tight">MarketConnect</h1>
+            </a>
+
             <!-- Right Links -->
-            <div class="flex items-center gap-4 text-xs">
-                <a class="flex items-center gap-1 hover:text-orange-400 transition-colors" href="/Notifications">
-                    <span class="material-symbols-outlined text-[18px]">notifications</span> Thông báo
+            <div class="flex items-center gap-3 text-xs">
+                <a class="flex items-center gap-1 hover:text-orange-400 transition-colors font-semibold" href="/Stores">
+                    <span class="material-symbols-outlined text-[18px]">storefront</span> Gian Hàng
                 </a>
-                <a class="flex items-center gap-1 hover:text-orange-400 transition-colors" href="/Support">
-                    <span class="material-symbols-outlined text-[18px]">help</span> Hỗ trợ
+                <a class="flex items-center gap-1 text-amber-300 hover:text-amber-200 transition-colors font-bold" href="/MobileVendors/CallMap">
+                    <span class="material-symbols-outlined text-[18px]">location_on</span> Gọi Hàng Rong
+                </a>
+                <a class="flex items-center gap-1 hover:text-orange-400 transition-colors font-semibold" href="/CartAndOrders">
+                    <span class="material-symbols-outlined text-[18px]">shopping_cart</span> Giỏ Hàng
+                </a>
+                <a class="flex items-center gap-1 text-emerald-300 hover:text-emerald-200 transition-colors font-semibold" href="/Moderation">
+                    <span class="material-symbols-outlined text-[18px]">gavel</span> Kiểm Duyệt
+                </a>
+                <a class="flex items-center gap-1 text-cyan-300 hover:text-cyan-200 transition-colors font-semibold" href="/AdCampaigns">
+                    <span class="material-symbols-outlined text-[18px]">campaign</span> Quảng Cáo
                 </a>
 
-                <!-- NÚT ĐĂNG TIN CẠNH ICON USER -->
-                <a href="/Product/Create" class="bg-[#f97316] hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 shadow-sm transition-all active:scale-95">
-                    <span class="material-symbols-outlined text-[16px]">add_circle</span>
-                    <span>Đăng tin</span>
+                <!-- NÚT ĐĂNG KÝ BÁN HÀNG -->
+                <a href="/Stores/Create" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs flex items-center gap-1 shadow-sm transition-all active:scale-95 text-center border border-emerald-500/30">
+                    <span class="material-symbols-outlined text-[16px]">storefront</span>
+                    <span>Đăng ký bán hàng</span>
                 </a>
 
                 <!-- KHU VỰC THAY ĐỔI: HIỂN THỊ ĐỘNG THEO TRẠNG THÁI ĐĂNG NHẬP -->
@@ -99,16 +127,22 @@
                     {
                         <!-- Khi đã đăng nhập: Hiện cụm tên và Menu Dropdown Hover -->
                         <div class="relative group user-menu-container">
-                            <a class="flex items-center gap-1.5 font-medium hover:text-orange-400 cursor-pointer py-1">
+                            <a class="flex items-center gap-1.5 font-medium hover:text-orange-400 cursor-pointer py-1 text-xs">
                                 <span class="material-symbols-outlined text-[18px]">account_circle</span>
-                                <span>@User.Identity.Name</span>
+                                <span id="layout_user_name_display">@User.Identity.Name</span>
                                 <span class="text-[9px] transition-transform group-hover:rotate-180">▼</span>
                             </a>
 
                             <!-- Dropdown Menu xuất hiện khi Hover vào cụm tên -->
-                            <div class="absolute right-0 top-full mt-1 w-48 bg-white text-gray-800 rounded shadow-xl py-1 hidden group-hover:block z-50 user-dropdown-menu">
-                                <a href="/Product/Create" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 transition-colors font-bold text-orange-600">
-                                    <span class="material-symbols-outlined text-[16px]">add_circle</span> Đăng tin bán hàng
+                            <div class="absolute right-0 top-full mt-1 w-52 bg-white text-gray-800 rounded-2xl shadow-xl py-1.5 hidden group-hover:block z-50 user-dropdown-menu border border-gray-100">
+                                <a href="/Account/Profile" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 font-semibold transition-colors">
+                                    <span class="material-symbols-outlined text-[16px] text-emerald-700">account_box</span> Quản lý hồ sơ
+                                </a>
+                                <a href="/CartAndOrders/MerchantRequests" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 font-bold text-amber-600 transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">inbox</span> Đơn đặt mua gửi đến quầy
+                                </a>
+                                <a href="/Stores/Create" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 font-bold text-emerald-800 transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">storefront</span> Đăng ký bán hàng
                                 </a>
                                 <a href="/Account/Profile" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 transition-colors">
                                     <span class="material-symbols-outlined text-[16px]">settings</span> Cài đặt tài khoản
@@ -141,55 +175,97 @@
         </div>
     </header>
 
+    <!-- 2. MAIN NAV BAR (CHỌN CHỢ GẦN NHẤT THEO GPS THỰC & BỘ TÌM KIẾM) -->
     <div class="w-full bg-white border-b border-gray-200 shadow-sm">
-        <div class="max-w-[1440px] mx-auto px-4 md:px-16 py-4 flex items-center justify-between gap-6">
-            <div class="flex items-center gap-3 shrink-0">
-                <a href="/" class="flex items-center gap-2">
-                    <i class="bi bi-bag-fill text-[#f97316] text-3xl"></i>
-                    <h1 class="font-bold text-2xl text-[#004d38] tracking-tight">MarketConnect</h1>
-                </a>
+        <div class="max-w-[1440px] mx-auto px-4 md:px-16 py-3 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
+            
+            <!-- DROPDOWN CHỌN CHỢ (ĐỒNG BỘ CHUẨN 100% TRANG HOME - HÌNH 2) -->
+            <div class="relative shrink-0" id="marketSelectorContainer">
+                <button id="selectedMarketBtn" type="button" onclick="toggleMarketDropdown(event)" class="flex items-center gap-2.5 bg-[#e6f9f3] px-3.5 py-1.5 rounded-full border border-[#ceead6] cursor-pointer hover:bg-[#dcf5ed] transition-colors shadow-xs">
+                    <span class="material-symbols-outlined text-[#006d5b] text-[18px]">store</span>
+                    <span id="selectedMarketName" class="text-xs font-bold text-[#004d3d]">
+                        Chợ Nhân Chính
+                    </span>
+                    <div id="selectedMarketDistanceBadge" class="bg-[#006d5b] text-white px-2 py-0.5 rounded-full text-[10px] font-bold ml-0.5">
+                        cách 0.5 km
+                    </div>
+                    <span class="material-symbols-outlined text-[#004d3d] text-[16px] transition-transform" id="marketChevron">expand_more</span>
+                </button>
 
-                <!-- DROPDOWN CHỌN CHỢ BÊN CẠNH MARKETCONNECT -->
-                <div class="relative ml-1" id="marketSelectorContainer">
-                    <button id="selectedMarketBtn" type="button" onclick="toggleMarketDropdown(event)" class="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-[#004d38] font-bold text-xs px-3 py-1.5 rounded-full border border-emerald-200 transition-all cursor-pointer shadow-sm">
-                        <i class="bi bi-geo-alt-fill text-red-500 text-sm"></i>
-                        <span id="selectedMarketName">Chợ Đồng Xuân</span>
-                        <i id="marketChevron" class="bi bi-chevron-down text-[10px] text-gray-500 transition-transform"></i>
-                    </button>
-
-                    <!-- Dropdown danh sách các chợ -->
-                    <div id="marketDropdownMenu" class="absolute left-0 top-full pt-1 w-56 hidden z-50">
-                        <div class="bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 max-h-80 overflow-y-auto">
-                            <div class="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 mb-1">
-                                Chọn chợ
-                            </div>
-                            <div id="marketListOptions" class="space-y-0.5"></div>
-                        </div>
+                <!-- Dropdown danh sách các chợ & Phường (Đồng bộ chuẩn Trang Home) -->
+                <div id="marketDropdownMenu" class="absolute left-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 hidden z-50">
+                    <div class="px-4 py-2 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 flex justify-between items-center">
+                        <span>Danh sách Chợ & Phường (Nội thành Hà Nội)</span>
+                        <button type="button" onclick="openCascadingLocationModal()" class="text-emerald-700 hover:underline font-extrabold text-[10px] flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-[14px]">tune</span> Lọc Tỉnh → Xã → Chợ
+                        </button>
+                    </div>
+                    <div class="max-h-64 overflow-y-auto divide-y divide-gray-50" id="marketListOptions">
+                        <!-- Rendered by JS matching Hình 2 -->
                     </div>
                 </div>
             </div>
 
-            <div class="flex-grow max-w-2xl hidden md:block">
-                <form method="get" action="/Products/Category" class="flex bg-white border-2 border-[#f97316] rounded-sm p-[2px]">
-                    <input name="q" class="flex-grow border-none focus:ring-0 px-4 text-sm outline-none" placeholder="Tìm kiếm sản phẩm, nông sản, chợ..." type="text" />
-                    <button type="submit" class="bg-[#f97316] text-white px-6 py-1.5 flex items-center justify-center hover:opacity-95 transition-all">
-                        <i class="bi bi-search text-base"></i>
+            <!-- Thanh tìm kiếm chính -->
+            <div class="flex-grow max-w-2xl">
+                <form method="get" action="/Products/Category" class="flex bg-white border-2 border-[#f97316] rounded-lg p-[2px] shadow-2xs">
+                    <input name="q" class="flex-grow border-none focus:ring-0 px-4 text-sm outline-none bg-transparent" placeholder="Tìm kiếm sản phẩm, nông sản, chợ..." type="text" />
+                    <button type="submit" class="bg-[#f97316] text-white px-6 py-2 rounded-md flex items-center justify-center hover:bg-orange-600 transition-colors font-bold text-xs gap-1 cursor-pointer">
+                        <i class="bi bi-search text-xs"></i>
+                        <span>Tìm kiếm</span>
                     </button>
                 </form>
             </div>
 
-            <div class="flex items-center pr-4">
-                <div class="relative cursor-pointer">
-                    <i class="bi bi-cart3 text-[#004d38] text-2xl"></i>
-                    <span class="absolute -top-2 -right-2 bg-[#f97316] text-white text-[10px] px-1.5 rounded-full border-2 border-white font-bold">5</span>
-                </div>
-            </div>
         </div>
     </div>
 
     <main class="flex-grow">
         @RenderBody()
     </main>
+
+    <!-- Modal Chọn Chợ Theo Tỉnh -> Quận -> Phường -> Chợ (Đồng bộ toàn ứng dụng) -->
+    <div id="cascadingLocationModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <h3 class="font-extrabold text-base text-gray-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-700">pin_drop</span> Chọn Chợ Theo Tỉnh → Quận → Phường
+                </h3>
+                <button type="button" onclick="closeCascadingLocationModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold cursor-pointer">✕</button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">1. Chọn Tỉnh / Thành Phố (*)</label>
+                    <select id="modalProvinceSelect" onchange="onProvinceChanged()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-emerald-700 font-medium">
+                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">2. Chọn Quận / Huyện (*)</label>
+                    <select id="modalDistrictSelect" onchange="onDistrictChanged()" disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-emerald-700 font-medium disabled:opacity-50">
+                        <option value="">-- Chọn Quận / Huyện --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">3. Chọn Phường / Xã (*)</label>
+                    <select id="modalWardSelect" onchange="onWardChanged()" disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-emerald-700 font-medium disabled:opacity-50">
+                        <option value="">-- Chọn Phường / Xã --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">4. Chọn Chợ Tương Ứng (*)</label>
+                    <select id="modalMarketSelect" disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-emerald-700 font-bold text-emerald-800 disabled:opacity-50">
+                        <option value="">-- Chọn Chợ --</option>
+                    </select>
+                </div>
+
+                <button type="button" onclick="confirmSelectedMarketFromModal()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer mt-2">
+                    Xác Nhận Chọn Chợ
+                </button>
+            </div>
+        </div>
+    </div>
 
     <footer class="bg-white border-t border-gray-200 pt-8 mt-auto">
         <div class="max-w-[1440px] mx-auto px-4 md:px-16 py-6 text-center text-gray-500 text-xs">
@@ -204,76 +280,354 @@
     <script src="~/js/layout-scripts.js" asp-append-version="true"></script>
 
     <script>
-        const marketsList = [
-            "Chợ Đồng Xuân",
-            "Chợ Hàng Bè",
-            "Chợ Long Biên",
-            "Chợ Thành Công",
-            "Chợ Ngọc Hà",
-            "Chợ Ngã Tư Sở",
-            "Chợ Nam Đồng",
-            "Chợ Láng Hạ",
-            "Chợ Hôm",
-            "Chợ Mơ",
-            "Chợ Nguyễn Công Trứ",
-            "Chợ Nhà Xanh",
-            "Chợ Nghĩa Tân",
-            "Chợ Dịch Vọng",
-            "Chợ Nhân Chính",
-            "Chợ Bưởi"
+        // 1. Tọa độ địa lý thực tế & Phường của 10 Chợ nông sản chính thức
+        const marketsData = [
+            { id: 1, name: "Chợ Nhân Chính", lat: 21.0040, lng: 105.8050, ward: "Phường Nhân Chính" },
+            { id: 2, name: "Chợ Đồng Xuân", lat: 21.0378, lng: 105.8495, ward: "Phường Đồng Xuân" },
+            { id: 3, name: "Chợ Hàng Bè", lat: 21.0322, lng: 105.8530, ward: "Phường Hàng Bạc" },
+            { id: 4, name: "Chợ Long Biên", lat: 21.0425, lng: 105.8528, ward: "Phường Phúc Xá" },
+            { id: 5, name: "Chợ Thành Công", lat: 21.0195, lng: 105.8150, ward: "Phường Thành Công" },
+            { id: 6, name: "Chợ Ngô Sĩ Liên", lat: 21.0265, lng: 105.8360, ward: "Phường Văn Miếu" },
+            { id: 7, name: "Chợ Hôm - Đức Viên", lat: 21.0170, lng: 105.8520, ward: "Phường Ngô Thì Nhậm" },
+            { id: 8, name: "Chợ Mơ", lat: 20.9982, lng: 105.8523, ward: "Phường Trương Định" },
+            { id: 9, name: "Chợ Bưởi", lat: 21.0460, lng: 105.8080, ward: "Phường Bưởi" },
+            { id: 10, name: "Chợ Nghĩa Tân", lat: 21.0360, lng: 105.7920, ward: "Phường Nghĩa Tân" }
         ];
+
+        const officialMarketIds = {
+            "Chợ Nhân Chính": 1,
+            "Chợ Đồng Xuân": 2,
+            "Chợ Hàng Bè": 3,
+            "Chợ Long Biên": 4,
+            "Chợ Thành Công": 5,
+            "Chợ Ngô Sĩ Liên": 6,
+            "Chợ Hôm - Đức Viên": 7,
+            "Chợ Hôm": 7,
+            "Chợ Mơ": 8,
+            "Chợ Bưởi": 9,
+            "Chợ Nghĩa Tân": 10
+        };
+
+        const officialMarketNamesById = {
+            1: "Chợ Nhân Chính",
+            2: "Chợ Đồng Xuân",
+            3: "Chợ Hàng Bè",
+            4: "Chợ Long Biên",
+            5: "Chợ Thành Công",
+            6: "Chợ Ngô Sĩ Liên",
+            7: "Chợ Hôm - Đức Viên",
+            8: "Chợ Mơ",
+            9: "Chợ Bưởi",
+            10: "Chợ Nghĩa Tân"
+        };
+
+        function getLayoutCookieValue(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
+        // Hằng số chuyển đổi Radian & Bán kính Trái Đất
+        const DEG_TO_RAD = Math.PI / 180;
+        const EARTH_RADIUS_KM = 6371;
+
+        // Pre-compute tọa độ Radian và Math.cos(lat) để loại bỏ phép tính lặp lại khi tính khoảng cách
+        const preparedMarkets = marketsData.map(m => {
+            const latRad = m.lat * DEG_TO_RAD;
+            return {
+                id: m.id,
+                name: m.name,
+                ward: m.ward,
+                lat: m.lat,
+                lng: m.lng,
+                latRad: latRad,
+                lngRad: m.lng * DEG_TO_RAD,
+                cosLat: Math.cos(latRad)
+            };
+        });
+
+        let currentUserCoords = null;
+        let cachedCalculatedMarkets = null;
+        let marketMapByName = null;
+
+        // Cache DOM elements để tránh truy vấn DOM trùng lặp (giảm Reflow/Repaint)
+        let domCache = null;
+        function getDomElements() {
+            if (!domCache) {
+                domCache = {
+                    menu: document.getElementById('marketDropdownMenu'),
+                    chevron: document.getElementById('marketChevron'),
+                    container: document.getElementById('marketSelectorContainer'),
+                    nameElem: document.getElementById('selectedMarketName'),
+                    badgeElem: document.getElementById('selectedMarketDistanceBadge'),
+                    listContainer: document.getElementById('marketListOptions')
+                };
+            }
+            return domCache;
+        }
+
+        // 2. Công thức Haversine tính khoảng cách địa lý thực (km) giữa 2 tọa độ GPS
+        function calculateHaversineDistanceKm(lat1, lon1, lat2, lon2) {
+            const dLat = (lat2 - lat1) * DEG_TO_RAD;
+            const dLon = (lon2 - lon1) * DEG_TO_RAD;
+            const a = Math.sin(dLat * 0.5) ** 2 +
+                      Math.cos(lat1 * DEG_TO_RAD) * Math.cos(lat2 * DEG_TO_RAD) *
+                      (Math.sin(dLon * 0.5) ** 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return Math.round(EARTH_RADIUS_KM * c * 10) / 10;
+        }
 
         function toggleMarketDropdown(e) {
             if (e) e.stopPropagation();
-            const menu = document.getElementById('marketDropdownMenu');
-            const chevron = document.getElementById('marketChevron');
+            const { menu, chevron } = getDomElements();
             if (menu) {
                 menu.classList.toggle('hidden');
                 if (chevron) chevron.classList.toggle('rotate-180');
             }
         }
 
-        // Close dropdown on outside click
+        // Đóng dropdown khi nhấp ra ngoài
         document.addEventListener('click', function(e) {
-            const container = document.getElementById('marketSelectorContainer');
-            const menu = document.getElementById('marketDropdownMenu');
-            const chevron = document.getElementById('marketChevron');
-            if (container && !container.contains(e.target) && menu && !menu.classList.contains('hidden')) {
+            const { container, menu, chevron } = getDomElements();
+            if (container && menu && !menu.classList.contains('hidden') && !container.contains(e.target)) {
                 menu.classList.add('hidden');
                 if (chevron) chevron.classList.remove('rotate-180');
             }
         });
 
-        function initMarketSelector() {
-            const savedMarket = localStorage.getItem('selected_market') || "Chợ Đồng Xuân";
-            const nameElem = document.getElementById('selectedMarketName');
-            if (nameElem) nameElem.innerText = savedMarket;
+        // 3. Tự động lấy vị trí GPS thực tế của người dùng & hiển thị danh sách chuẩn
+        function detectRealGpsLocationAndSelectNearestMarket() {
+            const applyRealCoords = (lat, lng) => {
+                currentUserCoords = { lat, lng };
 
-            const listContainer = document.getElementById('marketListOptions');
-            if (listContainer) {
-                listContainer.innerHTML = marketsList.map(m => {
-                    const isSelected = m === savedMarket;
-                    return `
-                        <button type="button" onclick="selectMarket('${m}')" class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-emerald-50 hover:text-[#004d38] font-medium transition-colors ${isSelected ? 'bg-emerald-50 text-[#004d38] font-bold' : 'text-gray-700'}">
-                            <span>${m}</span>
-                            ${isSelected ? '<i class="bi bi-check-lg text-emerald-600 font-bold"></i>' : ''}
-                        </button>
-                    `;
-                }).join('');
+                const lat1Rad = lat * DEG_TO_RAD;
+                const lng1Rad = lng * DEG_TO_RAD;
+                const cosLat1 = Math.cos(lat1Rad);
+
+                const calculatedMarkets = preparedMarkets.map(m => {
+                    const dLatHalf = (m.latRad - lat1Rad) * 0.5;
+                    const dLonHalf = (m.lngRad - lng1Rad) * 0.5;
+                    const sinDlat = Math.sin(dLatHalf);
+                    const sinDlon = Math.sin(dLonHalf);
+                    const a = sinDlat * sinDlat + cosLat1 * m.cosLat * sinDlon * sinDlon;
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                    const dist = Math.round(EARTH_RADIUS_KM * c * 10) / 10;
+                    return { id: m.id, name: m.name, ward: m.ward, lat: m.lat, lng: m.lng, distanceKm: dist };
+                }).sort((a, b) => a.distanceKm - b.distanceKm);
+
+                cachedCalculatedMarkets = calculatedMarkets;
+                marketMapByName = new Map();
+                for (let i = 0; i < calculatedMarkets.length; i++) {
+                    marketMapByName.set(calculatedMarkets[i].name, calculatedMarkets[i]);
+                }
+
+                const nearestMarket = calculatedMarkets[0];
+                let savedMarketName = localStorage.getItem('selected_market_user_choice')
+                    || localStorage.getItem('selected_market_name')
+                    || localStorage.getItem('selected_market')
+                    || sessionStorage.getItem('selected_market_name')
+                    || sessionStorage.getItem('selected_market');
+
+                if (!savedMarketName) {
+                    const cookieId = getLayoutCookieValue('SelectedMarketId');
+                    if (cookieId && officialMarketNamesById[cookieId]) {
+                        savedMarketName = officialMarketNamesById[cookieId];
+                    }
+                }
+
+                const activeMarket = (savedMarketName && marketMapByName.get(savedMarketName)) || nearestMarket;
+
+                localStorage.setItem('selected_market_user_choice', activeMarket.name);
+                localStorage.setItem('selected_market', activeMarket.name);
+                localStorage.setItem('selected_market_name', activeMarket.name);
+                localStorage.setItem('selected_market_id', activeMarket.id);
+                sessionStorage.setItem('selected_market', activeMarket.name);
+                sessionStorage.setItem('selected_market_name', activeMarket.name);
+                sessionStorage.setItem('selected_market_id', activeMarket.id);
+                document.cookie = "SelectedMarketId=" + activeMarket.id + "; path=/; max-age=2592000";
+
+                const { nameElem, badgeElem, listContainer } = getDomElements();
+                if (nameElem) nameElem.innerText = activeMarket.name;
+                if (badgeElem) badgeElem.innerText = `cách ${activeMarket.distanceKm} km`;
+
+                if (listContainer) {
+                    listContainer.innerHTML = calculatedMarkets.map((m) => {
+                        const isSelected = m.name === activeMarket.name;
+                        const distText = m.distanceKm < 0.2 ? "Cách < 200m" : `Cách ${m.distanceKm} km`;
+                        return `
+                            <button type="button" onclick="selectMarketManual('${m.name}')" class="w-full text-left px-4 py-2.5 text-xs flex items-center justify-between hover:bg-emerald-50 text-gray-800 font-medium transition-colors cursor-pointer ${isSelected ? 'bg-emerald-50 font-bold' : ''}">
+                                <div class="flex items-center gap-2 truncate">
+                                    <span class="material-symbols-outlined text-emerald-700 text-[18px]">storefront</span>
+                                    <div class="truncate">
+                                        <span class="truncate font-bold block text-gray-900">${m.name}</span>
+                                        <span class="text-[10px] text-emerald-800 font-medium">${m.ward || 'Phường nội thành Hà Nội'}</span>
+                                    </div>
+                                </div>
+                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">${distText}</span>
+                            </button>
+                        `;
+                    }).join('');
+                }
+            };
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    position => applyRealCoords(position.coords.latitude, position.coords.longitude),
+                    error => applyRealCoords(21.0040, 105.8050),
+                    { timeout: 10000, enableHighAccuracy: true }
+                );
+            } else {
+                applyRealCoords(21.0040, 105.8050);
             }
         }
 
-        function selectMarket(marketName) {
+        function selectMarketManual(marketName) {
+            const mId = officialMarketIds[marketName] || 1;
+            document.cookie = "SelectedMarketId=" + mId + "; path=/; max-age=2592000";
+            localStorage.setItem('selected_market_user_choice', marketName);
             localStorage.setItem('selected_market', marketName);
-            const nameElem = document.getElementById('selectedMarketName');
-            if (nameElem) nameElem.innerText = marketName;
-            initMarketSelector();
-            const menu = document.getElementById('marketDropdownMenu');
+            localStorage.setItem('selected_market_name', marketName);
+            localStorage.setItem('selected_market_id', mId);
+            sessionStorage.setItem('selected_market', marketName);
+            sessionStorage.setItem('selected_market_name', marketName);
+            sessionStorage.setItem('selected_market_id', mId);
+
+            const { menu } = getDomElements();
             if (menu) menu.classList.add('hidden');
-            window.dispatchEvent(new CustomEvent('marketChanged', { detail: marketName }));
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('marketId', mId);
+            window.location.href = url.toString();
         }
 
-        document.addEventListener('DOMContentLoaded', initMarketSelector);
+        // 4. Cascading Location Selection Modal Functions
+        function openCascadingLocationModal() {
+            const modal = document.getElementById('cascadingLocationModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                loadProvinces();
+            }
+        }
+
+        function closeCascadingLocationModal() {
+            const modal = document.getElementById('cascadingLocationModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function loadProvinces() {
+            const provSelect = document.getElementById('modalProvinceSelect');
+            if (!provSelect) return;
+            provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố --</option>';
+            try {
+                const res = await fetch('/api/location/provinces');
+                const data = await res.json();
+                data.forEach(p => {
+                    provSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function onProvinceChanged() {
+            const pId = document.getElementById('modalProvinceSelect').value;
+            const distSelect = document.getElementById('modalDistrictSelect');
+            const wardSelect = document.getElementById('modalWardSelect');
+            const mktSelect = document.getElementById('modalMarketSelect');
+
+            distSelect.innerHTML = '<option value="">-- Chọn Quận / Huyện --</option>';
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường / Xã --</option>';
+            mktSelect.innerHTML = '<option value="">-- Chọn Chợ --</option>';
+
+            if (!pId) {
+                distSelect.disabled = true;
+                wardSelect.disabled = true;
+                mktSelect.disabled = true;
+                return;
+            }
+
+            distSelect.disabled = false;
+            try {
+                const res = await fetch('/api/location/districts?provinceId=' + pId);
+                const data = await res.json();
+                data.forEach(d => {
+                    distSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+                });
+                loadMarketsByFilter(pId, null, null);
+            } catch(e) { console.error(e); }
+        }
+
+        async function onDistrictChanged() {
+            const pId = document.getElementById('modalProvinceSelect').value;
+            const dId = document.getElementById('modalDistrictSelect').value;
+            const wardSelect = document.getElementById('modalWardSelect');
+            const mktSelect = document.getElementById('modalMarketSelect');
+
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường / Xã --</option>';
+            mktSelect.innerHTML = '<option value="">-- Chọn Chợ --</option>';
+
+            if (!dId) {
+                wardSelect.disabled = true;
+                return;
+            }
+
+            wardSelect.disabled = false;
+            try {
+                const res = await fetch('/api/location/wards?districtId=' + dId);
+                const data = await res.json();
+                data.forEach(w => {
+                    wardSelect.innerHTML += `<option value="${w.id}">${w.name}</option>`;
+                });
+                loadMarketsByFilter(pId, dId, null);
+            } catch(e) { console.error(e); }
+        }
+
+        async function onWardChanged() {
+            const pId = document.getElementById('modalProvinceSelect').value;
+            const dId = document.getElementById('modalDistrictSelect').value;
+            const wId = document.getElementById('modalWardSelect').value;
+            loadMarketsByFilter(pId, dId, wId);
+        }
+
+        async function loadMarketsByFilter(pId, dId, wId) {
+            const mktSelect = document.getElementById('modalMarketSelect');
+            mktSelect.innerHTML = '<option value="">-- Chọn Chợ --</option>';
+            mktSelect.disabled = false;
+
+            let url = `/api/location/markets?`;
+            if (pId) url += `provinceId=${pId}&`;
+            if (dId) url += `districtId=${dId}&`;
+            if (wId) url += `wardId=${wId}&`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.length > 0) {
+                    data.forEach(m => {
+                        const areaInfo = m.wardName ? `(${m.wardName})` : '';
+                        mktSelect.innerHTML += `<option value="${m.id}" data-name="${m.name}">${m.name} ${areaInfo}</option>`;
+                    });
+                } else {
+                    mktSelect.innerHTML = '<option value="">Chưa có dữ liệu chợ ở khu vực này</option>';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function confirmSelectedMarketFromModal() {
+            const mktSelect = document.getElementById('modalMarketSelect');
+            const selectedOpt = mktSelect.options[mktSelect.selectedIndex];
+            if (!mktSelect.value || !selectedOpt) {
+                alert('Vui lòng chọn chợ từ danh sách!');
+                return;
+            }
+
+            const marketName = selectedOpt.getAttribute('data-name');
+            closeCascadingLocationModal();
+            selectMarketManual(marketName);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            detectRealGpsLocationAndSelectNearestMarket();
+        });
     </script>
 </body>
 </html>

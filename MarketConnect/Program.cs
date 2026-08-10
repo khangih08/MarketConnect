@@ -32,6 +32,13 @@ builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IMerchantStoreService, MerchantStoreService>();
+builder.Services.AddScoped<IContentModerationService, ContentModerationService>();
+builder.Services.AddScoped<IMultiMerchantCartService, MultiMerchantCartService>();
+builder.Services.AddScoped<IReviewAbuseService, ReviewAbuseService>();
+builder.Services.AddScoped<IAdService, AdService>();
+builder.Services.AddScoped<IMobileVendorService, MobileVendorService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 var esUrl = builder.Configuration["Elasticsearch:Url"] ?? "http://localhost:9200";
 var esSettings = new ElasticsearchClientSettings(new Uri(esUrl));
@@ -88,10 +95,17 @@ using (var scope = app.Services.CreateScope())
         {
             dbContext.Database.Migrate();
         }
-        catch
+        catch { }
+
+        try
         {
-            dbContext.Database.EnsureCreated();
+            dbContext.Database.ExecuteSqlRaw(@"
+                ALTER TABLE ""Users"" ADD COLUMN IF NOT EXISTS ""AccessFailedCount"" integer NOT NULL DEFAULT 0;
+                ALTER TABLE ""Users"" ADD COLUMN IF NOT EXISTS ""LockoutEnd"" timestamp with time zone NULL;
+                ALTER TABLE ""Stores"" ADD COLUMN IF NOT EXISTS ""IdentityInfo"" text NULL;
+            ");
         }
+        catch { }
         await SeedData.InitializeAsync(dbContext);
         Console.WriteLine("--> Database initialization and seeding completed successfully.");
     }

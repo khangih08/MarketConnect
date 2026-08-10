@@ -15,6 +15,9 @@ namespace MarketConnect.Services
         // Verify OTP and finalize registration, returning AuthResponse with JWT
         Task<AuthResponse> VerifyOtpAsync(string phoneNumber, string otpCode);
         Task<AuthResponse?> PhoneLoginAsync(PhoneLoginRequest request);
+        Task<PhoneLoginResult> PhoneLoginDetailedAsync(PhoneLoginRequest request);
+        Task<PhoneCheckResult> CheckPhoneAsync(string phoneNumber);
+        Task<AuthResponse> RegisterPhonePasswordAsync(PhoneRegisterRequest request);
         Task<UserProfileDto> GetProfileAsync(int userId);
     }
 }

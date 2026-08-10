@@ -720,6 +720,7 @@
       },
       "MarketConnect.Services/1.0.0": {
         "dependencies": {
+          "BCrypt.Net-Next": "4.2.0",
           "Elastic.Clients.Elasticsearch": "9.4.2",
           "Google.Apis.Auth": "1.75.0",
           "MarketConnect.Data": "1.0.0",

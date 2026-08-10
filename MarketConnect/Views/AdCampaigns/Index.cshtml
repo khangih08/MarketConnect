@@ -1,0 +1,74 @@
+@model List<MarketConnect.Data.AdCampaign>
+
+@{
+    ViewData["Title"] = "Quảng Cáo & Ưu Tiên Hiển Thị - Chợ Việt Online";
+}
+
+<div class="max-w-[1440px] mx-auto px-4 md:px-16 py-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+            <span class="material-symbols-outlined text-cyan-600">campaign</span> Quảng Cáo & Ưu Tiên Hiển Thị Gian Hàng
+        </h1>
+        <p class="text-xs text-gray-500 mt-1">Đăng ký các gói quảng cáo minh bạch để tăng lượt tiếp cận khách hàng trên Chợ Việt Online.</p>
+    </div>
+
+    <!-- Ad Packages Selection -->
+    <h2 class="text-lg font-bold text-gray-900 mb-4">Các Gói Quảng Cáo Khả Dụng</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        @if (ViewBag.Packages != null)
+        {
+            foreach (var p in ViewBag.Packages)
+            {
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-3 flex flex-col justify-between">
+                    <div>
+                        <span class="bg-cyan-100 text-cyan-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">@p.Position</span>
+                        <h3 class="font-extrabold text-base text-gray-900 mt-2">@p.Name</h3>
+                        <p class="text-xs text-gray-500">Thời hạn: @p.DurationDays ngày | Dự kiến tiếp cận: ~@p.TargetImpressions lượt</p>
+                    </div>
+                    <div class="pt-3 border-t border-gray-50 flex items-center justify-between">
+                        <span class="text-cyan-700 font-black text-lg">@p.Price.ToString("N0") đ</span>
+                        <form method="post" action="/AdCampaigns/Create">
+                            <input type="hidden" name="storeId" value="1" />
+                            <input type="hidden" name="adPackageId" value="@p.Id" />
+                            <button type="submit" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all active:scale-95 cursor-pointer">
+                                Đăng Ký Gói Này
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Existing Campaigns List -->
+    <h2 class="text-lg font-bold text-gray-900 mb-4">Chiến Dịch Đã Đăng Ký</h2>
+    <div class="space-y-4">
+        @if (!Model.Any())
+        {
+            <div class="bg-white p-8 rounded-2xl text-center text-gray-500 text-xs border border-gray-100">
+                Bạn chưa có chiến dịch quảng cáo nào.
+            </div>
+        }
+        else
+        {
+            @foreach (var c in Model)
+            {
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-sm text-gray-900">Chiến dịch #@c.Id</span>
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">@c.Status.ToString()</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Thời gian: @c.StartDate.ToString("dd/MM") - @c.EndDate.ToString("dd/MM/yyyy")</p>
+                    </div>
+
+                    <div class="flex items-center gap-6 text-xs text-gray-700">
+                        <div>Lượt Hiển Thị: <strong class="text-gray-900">@c.ImpressionsCount</strong></div>
+                        <div>Lượt Nhấp: <strong class="text-gray-900">@c.ClicksCount</strong></div>
+                        <div>Lượt Bấm Liên Hệ: <strong class="text-emerald-700 font-extrabold">@c.ContactClicksCount</strong></div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

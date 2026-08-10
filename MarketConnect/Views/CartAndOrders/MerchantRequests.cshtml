@@ -1,0 +1,60 @@
+@model List<MarketConnect.Data.PurchaseRequest>
+
+@{
+    ViewData["Title"] = "Quản Lý Yêu Cầu Đặt Mua Dành Cho Tiểu Thương";
+}
+
+<div class="max-w-[1440px] mx-auto px-4 md:px-16 py-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-700">inbox</span> Yêu Cầu Đặt Mua Khách Hàng Gửi Tới Quầy
+        </h1>
+        <p class="text-xs text-gray-500 mt-1">Tiểu thương chủ động liên hệ phản hồi khách hàng để chốt tồn kho, giá cuối cùng và giao nhận.</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="bg-white p-8 rounded-2xl text-center text-gray-500 text-xs border border-gray-100">
+            Hiện chưa có yêu cầu đặt mua mới nào.
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var req in Model)
+            {
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-50">
+                        <div>
+                            <span class="font-extrabold text-sm text-gray-900">Mã đơn: @req.RequestCode</span>
+                            <span class="text-xs text-gray-400 ml-2">@req.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">
+                            Trạng thái: @req.Status.ToString()
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="space-y-1">
+                            <p>Tên khách hàng: <strong class="text-gray-900">@req.BuyerName</strong></p>
+                            <p>Số điện thoại: <strong class="text-emerald-700">@req.BuyerPhone</strong></p>
+                        </div>
+                        <div class="space-y-1">
+                            <p>Hình thức đề xuất: <strong>@req.PreferredPickupMethod</strong></p>
+                            <p>Tổng tham khảo: <strong class="text-emerald-700 font-extrabold">@req.ReferenceTotalPrice.ToString("N0") đ</strong></p>
+                        </div>
+                    </div>
+
+                    <!-- Update Status Buttons -->
+                    <form method="post" action="/CartAndOrders/UpdateRequestStatus" class="flex flex-wrap gap-2 pt-2 border-t border-gray-50">
+                        <input type="hidden" name="requestId" value="@req.Id" />
+                        <button type="submit" name="status" value="Viewed" class="bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-blue-100">Đã Xem</button>
+                        <button type="submit" name="status" value="Contacting" class="bg-purple-50 text-purple-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-purple-100">Đang Liên Hệ Khách</button>
+                        <button type="submit" name="status" value="Confirmed" class="bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-emerald-100">Xác Nhận Đơn</button>
+                        <button type="submit" name="status" value="Completed" class="bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-emerald-800">Hoàn Tất Giao Dịch</button>
+                    </form>
+                </div>
+            }
+        </div>
+    }
+</div>

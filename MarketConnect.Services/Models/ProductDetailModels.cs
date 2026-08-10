@@ -34,7 +34,7 @@ namespace MarketConnect.Services
     public class SellerInfoDto
     {
         public string SellerId { get; set; } = "1";
-        public string SellerName { get; set; } = "Khôi Nguyễn";
+        public string SellerName { get; set; } = "Người bán MarketConnect";
         public string SellerAvatar { get; set; } = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150";
         public string SellerType { get; set; } = "Cá nhân";
         public double Rating { get; set; } = 4.9;
@@ -70,7 +70,8 @@ namespace MarketConnect.Services
         public string UserFullName { get; set; } = string.Empty;
         public string UserAvatar { get; set; } = string.Empty;
         public string CommentText { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
+        public string? ImageUrl { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string TimeAgo { get; set; } = string.Empty;
     }
 
@@ -78,6 +79,7 @@ namespace MarketConnect.Services
     {
         public string CommentText { get; set; } = string.Empty;
         public string UserFullName { get; set; } = "Khách hàng";
+        public string? ImageUrl { get; set; }
     }
 
     public class RelatedProductDto

@@ -195,26 +195,26 @@ public class ProductCompareService : IProductCompareService
             new RelatedProductDto
             {
                 Id = "rel-1",
-                GroupKey = "headphones",
-                Brand = "Cá nhân",
-                ProductName = "Tai nghe Bluetooth Sony WH-1000XM5",
-                Price = 6790000,
-                Address = "Quận Ba Đình, Hà Nội",
+                GroupKey = "tao-fuji-my",
+                Brand = "Tiểu thương Chợ",
+                ProductName = "Táo Fuji Mỹ Nhập Khẩu Tươi Giòn Ngọt",
+                Price = 120000,
+                Address = "Chợ Đồng Xuân, Hà Nội",
                 Rating = 4.9,
-                ReviewCount = 12,
-                ImageUrl = "/images/seed/headphones.svg"
+                ReviewCount = 45,
+                ImageUrl = "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600"
             },
             new RelatedProductDto
             {
                 Id = "rel-2",
-                GroupKey = "books",
-                Brand = "Bán chuyên",
-                ProductName = "Sách C# In Depth",
-                Price = 350000,
-                Address = "Quận Cầu Giấy, Hà Nội",
+                GroupKey = "thit-bo-my",
+                Brand = "Tiểu thương Chợ",
+                ProductName = "Thịt Bò Mỹ Ba Chỉ Cuộn Lẩu 500g",
+                Price = 185000,
+                Address = "Chợ Thành Công, Hà Nội",
                 Rating = 4.9,
-                ReviewCount = 8,
-                ImageUrl = "/images/seed/book.svg"
+                ReviewCount = 38,
+                ImageUrl = "https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=600"
             }
         };
     }

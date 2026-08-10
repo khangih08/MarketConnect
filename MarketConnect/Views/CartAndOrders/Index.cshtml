@@ -1,0 +1,116 @@
+@model List<MarketConnect.Services.CartGroupDto>
+
+@{
+    ViewData["Title"] = "Giỏ Hàng Đa Tiểu Thương - Chợ Việt Online";
+}
+
+<div class="max-w-[1440px] mx-auto px-4 md:px-16 py-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+            <span class="material-symbols-outlined text-orange-600">shopping_cart</span> Giỏ Hàng Đa Tiểu Thương
+        </h1>
+        <p class="text-xs text-gray-500 mt-1">Sản phẩm trong giỏ được tự động nhóm theo từng gian hàng/tiểu thương để gửi yêu cầu riêng biệt.</p>
+    </div>
+
+    <!-- Cảnh báo Nền tảng Không Thu Tiền -->
+    <div class="bg-amber-50 border-2 border-amber-300 text-amber-900 p-4 rounded-2xl mb-8 text-xs space-y-1 shadow-sm">
+        <div class="flex items-center gap-2 font-extrabold text-amber-800">
+            <span class="material-symbols-outlined text-[22px] text-amber-700">warning</span>
+            <span>THÔNG BÁO QUAN TRỌNG VỀ THANH TOÁN & GIAO DỊCH:</span>
+        </div>
+        <p>Nền tảng <strong>Chợ Việt Online</strong> là trung gian giới thiệu thông tin, không trực tiếp thu tiền hay tổ chức giao hàng. Tổng giá trong giỏ chỉ mang tính chất <strong>THAM KHẢO</strong>. Khi bấm gửi, hệ thống sẽ tách thành các Yêu Cầu Đặt Mua độc lập gửi riêng cho từng tiểu thương để thỏa thuận giá cuối cùng, tồn kho và cách thức giao nhận.</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="bg-white p-12 rounded-3xl border border-gray-100 text-center space-y-4">
+            <span class="material-symbols-outlined text-gray-300 text-[64px]">remove_shopping_cart</span>
+            <p class="text-gray-500 font-bold text-sm">Giỏ hàng của bạn đang trống.</p>
+            <a href="/Stores" class="inline-block bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs">Khám Phá Các Gian Hàng</a>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-8">
+            @foreach (var group in Model)
+            {
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+                    <!-- Store Header in Cart -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                        <div class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-emerald-700">store</span>
+                            <div>
+                                <h3 class="font-extrabold text-base text-gray-900">@group.StoreName</h3>
+                                <p class="text-xs text-gray-500">SĐT Liên Hệ: <strong class="text-gray-800">@group.VerifiedPhone</strong> | Hình thức: @group.PickupMethods</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500 block">Tổng giá tham khảo nhóm này:</span>
+                            <span class="text-emerald-700 font-black text-lg">@group.ReferenceTotal.ToString("N0") đ</span>
+                        </div>
+                    </div>
+
+                    <!-- Items List -->
+                    <div class="divide-y divide-gray-50">
+                        @foreach (var item in group.Items)
+                        {
+                            <div class="py-3 flex items-center justify-between gap-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="@(string.IsNullOrEmpty(item.Product?.ImageUrl) ? "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=200" : item.Product.ImageUrl)" class="w-12 h-12 rounded-xl object-cover" />
+                                    <div>
+                                        <h4 class="font-bold text-xs text-gray-900">@item.Product?.Name</h4>
+                                        <p class="text-[11px] text-gray-500">Số lượng: @item.Quantity | Đơn giá: @(item.Product?.Price.ToString("N0") ?? "Liên hệ") đ</p>
+                                    </div>
+                                </div>
+                                <form method="post" action="/CartAndOrders/RemoveItem">
+                                    <input type="hidden" name="cartItemId" value="@item.Id" />
+                                    <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 cursor-pointer">
+                                        <span class="material-symbols-outlined text-[16px]">delete</span> Xóa
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Form Gửi Yêu Cầu -->
+            <div class="bg-gradient-to-r from-emerald-900 to-teal-900 text-white p-6 rounded-3xl space-y-4 shadow-md">
+                <h3 class="font-extrabold text-base flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-300">send</span> Xác Nhận Thông Tin Để Gửi Yêu Cầu Đặt Mua
+                </h3>
+
+                <form method="post" action="/CartAndOrders/SubmitPurchaseRequests" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-200 mb-1">Họ và Tên Người Mua (*)</label>
+                        <input type="text" id="cartBuyerName" name="buyerName" required placeholder="Nhập họ và tên" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/50 outline-none focus:border-amber-300" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-200 mb-1">Số Điện Thoại Liên Hệ (*)</label>
+                        <input type="tel" id="cartBuyerPhone" name="buyerPhone" required placeholder="Nhập số điện thoại" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/50 outline-none focus:border-amber-300" />
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-2.5 rounded-xl text-xs transition-all shadow-md active:scale-95 cursor-pointer">
+                            Tách Giỏ & Gửi @Model.Count Yêu Cầu Độc Lập
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.getElementById('cartBuyerName');
+        const phoneInput = document.getElementById('cartBuyerPhone');
+        if (nameInput) {
+            const uName = sessionStorage.getItem('user_name') || (sessionStorage.getItem('user_email') ? sessionStorage.getItem('user_email').split('@@')[0] : '');
+            if (uName) nameInput.value = uName;
+        }
+        if (phoneInput) {
+            const uPhone = sessionStorage.getItem('user_phone') || '';
+            if (uPhone) phoneInput.value = uPhone;
+        }
+    });
+</script>

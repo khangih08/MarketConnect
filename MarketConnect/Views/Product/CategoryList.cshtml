@@ -492,6 +492,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // Initial load execution on page load
+    try {
+        if (selectedCat) {
+            localStorage.setItem('marketconnect_last_viewed_category', selectedCat);
+        }
+    } catch(e) {}
+
     renderSubCategories(selectedCat);
     updateMarketHeading();
     await fetchCategoryProducts();

@@ -1,0 +1,102 @@
+@model MarketConnect.Data.Store
+
+@{
+    ViewData["Title"] = "Đăng Ký Bán Hàng - Hồ Sơ Gian Hàng Tiểu Thương";
+}
+
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-xl p-6 md:p-8 space-y-6">
+        <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold mb-3 border border-emerald-100">
+                <span class="material-symbols-outlined text-sm">storefront</span> Dành Cho Tiểu Thương Đăng Ký Mới
+            </div>
+            <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                Đăng Ký Bán Hàng (Hồ Sơ Gian Hàng)
+            </h1>
+            <p class="text-xs text-gray-500 mt-1">Vui lòng cung cấp đầy đủ thông tin bên dưới để Ban quản lý chợ xác minh và phê duyệt gian hàng của bạn.</p>
+        </div>
+
+        <form method="post" action="/Stores/Create" class="space-y-5">
+            <!-- 1. Tên gian hàng -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">1. Tên Gian Hàng / Quầy Hàng <span class="text-red-500">*</span></label>
+                <input type="text" name="StoreName" required placeholder="Ví dụ: Gian Hàng Nông Sản Tám Đồng Xuân" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-emerald-700 font-medium" />
+            </div>
+
+            <!-- 2. Người đại diện & Số điện thoại đã xác minh -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">2. Họ Tên Người Đại Diện <span class="text-red-500">*</span></label>
+                    <input type="text" name="RepresentativeName" required placeholder="Nguyễn Thị Tám" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-emerald-700 font-medium" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">3. Số Điện Thoại Đã Xác Minh <span class="text-red-500">*</span></label>
+                    <input type="tel" name="VerifiedPhone" required placeholder="0912 345 678" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-emerald-700 font-medium" />
+                </div>
+            </div>
+
+            <!-- 3. Chọn Chợ trong app & Ngành hàng -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">4. Chọn Chợ Đang Kinh Doanh (Theo danh sách chợ trong App) <span class="text-red-500">*</span></label>
+                    <select name="MarketId" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-emerald-700 font-medium">
+                        <option value="">-- Chọn chợ đang hoạt động --</option>
+                        @if (ViewBag.Markets != null)
+                        {
+                            foreach (var m in ViewBag.Markets)
+                            {
+                                <option value="@m.Id">@m.Name (@m.Address)</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">5. Ngành Hàng Kinh Doanh <span class="text-red-500">*</span></label>
+                    <select name="CategoryId" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-emerald-700 font-medium">
+                        <option value="">-- Chọn ngành hàng --</option>
+                        @if (ViewBag.Categories != null)
+                        {
+                            foreach (var c in ViewBag.Categories)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- 4. Vị trí quầy / khu vực -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">6. Khu Vực / Số Quầy Đang Kinh Doanh <span class="text-red-500">*</span></label>
+                <input type="text" name="StallLocation" required placeholder="Ví dụ: Quầy 42, Dãy B, Tầng 1" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-emerald-700 font-medium" />
+            </div>
+
+            <!-- 5. Ảnh quầy hàng / Giấy chứng nhận -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">7. Ảnh Quầy Hàng / Giấy Tờ Chứng Minh Liên Quan</label>
+                <input type="text" name="PhotoProofUrl" placeholder="Dán đường dẫn ảnh quầy hàng hoặc giấy phép kinh doanh (nếu có)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-emerald-700 font-medium" />
+            </div>
+
+            <!-- 6. Thông tin định danh phục vụ xác minh (Bảo mật) -->
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2">
+                <label class="block text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-amber-600 text-sm">lock</span>
+                    Thông Tin Định Danh Phục Vụ Xác Minh (Lưu Bảo Mật - Không Hiển Thị Công Khai)
+                </label>
+                <input type="text" name="IdentityInfo" placeholder="Số CCCD / CMND, Ngày cấp, Nơi cấp..." class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-emerald-700 font-medium" />
+                <p class="text-[11px] text-gray-500">Các trường định danh này chỉ phục vụ cho Quản trị viên đối soát xác minh, tuyệt đối không hiển thị công khai ra gian hàng bên ngoài.</p>
+            </div>
+
+            <!-- Mô tả bổ sung -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Mô Tả Giới Thiệu Gian Hàng</label>
+                <textarea name="Description" rows="3" placeholder="Chuyên kinh doanh hoa quả tươi sạch, giao tận nơi theo yêu cầu..." class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-xs outline-none focus:border-emerald-700 font-medium"></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-[#065f46] hover:bg-[#004532] text-white font-bold py-3.5 rounded-full text-xs transition-all cursor-pointer shadow-md active:scale-95 flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-base">send</span>
+                <span>Gửi Hồ Sơ Gian Hàng Để Kiểm Duyệt</span>
+            </button>
+        </form>
+    </div>
+</div>
