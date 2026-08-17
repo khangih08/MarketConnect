@@ -42,6 +42,13 @@ namespace MarketConnect.Data
 
         public DateTime? LockoutEnd { get; set; }
 
+        public bool IsMfaEnabled { get; set; } = false;
+
+        [MaxLength(500)]
+        public string? MfaSecretEncrypted { get; set; }
+
+        public DateTime? MfaEnrolledAt { get; set; }
+
         // Navigation property for listings posted by user
         [InverseProperty(nameof(Product.Seller))]
         public ICollection<Product>? Products { get; set; }

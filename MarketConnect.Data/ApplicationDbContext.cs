@@ -48,6 +48,12 @@ namespace MarketConnect.Data
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
         public DbSet<UserSession> UserSessions { get; set; } = null!;
 
+        public DbSet<Permission> Permissions { get; set; } = null!;
+        public DbSet<RolePermission> RolePermissions { get; set; } = null!;
+        public DbSet<ContentVersion> ContentVersions { get; set; } = null!;
+        public DbSet<ModerationActionHistory> ModerationActionHistories { get; set; } = null!;
+        public DbSet<ModerationAppeal> ModerationAppeals { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

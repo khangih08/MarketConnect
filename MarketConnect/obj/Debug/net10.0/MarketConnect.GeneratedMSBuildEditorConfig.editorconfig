@@ -27,6 +27,10 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBZGRQaG9uZUFuZFNldFBhc3N3b3JkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Account/Appeals.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBcHBlYWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/Account/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxDaGFuZ2VQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -49,6 +53,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/AdCampaigns/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRDYW1wYWlnbnNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/AdminMfa/Enroll.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5NZmFcRW5yb2xsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/AdminMfa/Verify.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5NZmFcVmVyaWZ5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/AdminRole/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5Sb2xlXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/CartAndOrders/BuyerRequests.cshtml]

@@ -4,6 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MarketConnect.Data
 {
+    public enum RiskLevel
+    {
+        Low,
+        Medium,
+        High,
+        Critical
+    }
+
     public enum ModerationDecision
     {
         LowRiskAutoApproved,
@@ -37,11 +45,26 @@ namespace MarketConnect.Data
 
         public int RiskScore { get; set; } // 0-100
 
-        public string? TriggeredRulesJson { get; set; } // Chi tiết các rule bị kích hoạt
+        public RiskLevel RiskLevel { get; set; } = RiskLevel.Low;
+
+        public string? TriggeredRulesJson { get; set; }
+
+        public string? RuleResultsJson { get; set; }
 
         public ModerationDecision Decision { get; set; }
 
         public ModerationStatus Status { get; set; }
+
+        public int CurrentVersionNumber { get; set; } = 1;
+
+        public int? ProvinceId { get; set; }
+
+        public int? MarketId { get; set; }
+
+        public bool IsEscalated { get; set; } = false;
+
+        [MaxLength(1000)]
+        public string? EscalatedReason { get; set; }
 
         [ForeignKey(nameof(AssignedAdmin))]
         public int? AssignedAdminId { get; set; }
@@ -50,7 +73,7 @@ namespace MarketConnect.Data
         [MaxLength(1000)]
         public string? AdminNotes { get; set; }
 
-        public string? ContentSnapshotJson { get; set; } // Phiên bản nội dung khi gửi duyệt
+        public string? ContentSnapshotJson { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? HandledAt { get; set; }

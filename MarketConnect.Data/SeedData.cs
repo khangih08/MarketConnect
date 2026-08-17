@@ -319,6 +319,67 @@ namespace MarketConnect.Data
                         ""LoginTime"" TIMESTAMP DEFAULT NOW(),
                         ""LastActiveTime"" TIMESTAMP DEFAULT NOW()
                     );
+
+                    CREATE TABLE IF NOT EXISTS ""Permissions"" (
+                        ""Id"" SERIAL PRIMARY KEY,
+                        ""Code"" VARCHAR(100) NOT NULL,
+                        ""Name"" VARCHAR(200) NOT NULL,
+                        ""Category"" VARCHAR(100) DEFAULT 'General',
+                        ""Description"" VARCHAR(500)
+                    );
+
+                    CREATE TABLE IF NOT EXISTS ""RolePermissions"" (
+                        ""Id"" SERIAL PRIMARY KEY,
+                        ""Role"" INT NOT NULL,
+                        ""PermissionId"" INT NOT NULL
+                    );
+
+                    CREATE TABLE IF NOT EXISTS ""ContentVersions"" (
+                        ""Id"" SERIAL PRIMARY KEY,
+                        ""EntityName"" VARCHAR(50) NOT NULL,
+                        ""EntityId"" INT NOT NULL,
+                        ""VersionNumber"" INT DEFAULT 1,
+                        ""SnapshotJson"" TEXT NOT NULL,
+                        ""CreatedByUserId"" INT,
+                        ""CreatedAt"" TIMESTAMP DEFAULT NOW()
+                    );
+
+                    CREATE TABLE IF NOT EXISTS ""ModerationActionHistories"" (
+                        ""Id"" SERIAL PRIMARY KEY,
+                        ""CaseId"" INT NOT NULL,
+                        ""AdminId"" INT NOT NULL,
+                        ""ActionType"" VARCHAR(50) NOT NULL,
+                        ""OldStatus"" VARCHAR(50),
+                        ""NewStatus"" VARCHAR(50),
+                        ""OldDecision"" VARCHAR(50),
+                        ""NewDecision"" VARCHAR(50),
+                        ""Reason"" VARCHAR(1000) NOT NULL,
+                        ""Timestamp"" TIMESTAMP DEFAULT NOW()
+                    );
+
+                    CREATE TABLE IF NOT EXISTS ""ModerationAppeals"" (
+                        ""Id"" SERIAL PRIMARY KEY,
+                        ""CaseId"" INT NOT NULL,
+                        ""MerchantId"" INT NOT NULL,
+                        ""Reason"" VARCHAR(2000) NOT NULL,
+                        ""Status"" INT DEFAULT 0,
+                        ""AdminResponse"" VARCHAR(1000),
+                        ""HandledByAdminId"" INT,
+                        ""CreatedAt"" TIMESTAMP DEFAULT NOW(),
+                        ""HandledAt"" TIMESTAMP
+                    );
+
+                    ALTER TABLE ""Users"" ADD COLUMN IF NOT EXISTS ""IsMfaEnabled"" BOOLEAN DEFAULT FALSE;
+                    ALTER TABLE ""Users"" ADD COLUMN IF NOT EXISTS ""MfaSecretEncrypted"" VARCHAR(500);
+                    ALTER TABLE ""Users"" ADD COLUMN IF NOT EXISTS ""MfaEnrolledAt"" TIMESTAMP;
+
+                    ALTER TABLE ""ModerationCases"" ADD COLUMN IF NOT EXISTS ""RiskLevel"" INT DEFAULT 0;
+                    ALTER TABLE ""ModerationCases"" ADD COLUMN IF NOT EXISTS ""RuleResultsJson"" TEXT;
+                    ALTER TABLE ""ModerationCases"" ADD COLUMN IF NOT EXISTS ""CurrentVersionNumber"" INT DEFAULT 1;
+                    ALTER TABLE ""ModerationCases"" ADD COLUMN IF NOT EXISTS ""ProvinceId"" INT;
+                    ALTER TABLE ""ModerationCases"" ADD COLUMN IF NOT EXISTS ""MarketId"" INT;
+                    ALTER TABLE ""ModerationCases"" ADD COLUMN IF NOT EXISTS ""IsEscalated"" BOOLEAN DEFAULT FALSE;
+                    ALTER TABLE ""ModerationCases"" ADD COLUMN IF NOT EXISTS ""EscalatedReason"" VARCHAR(1000);
                 ");
             }
             catch (Exception ex)
@@ -549,19 +610,31 @@ namespace MarketConnect.Data
             }
 
             // 4. Seed Users (SuperAdmin, Merchant, Buyer, MobileSeller)
-            var adminUser = await db.Users.FirstOrDefaultAsync(u => u.Email == "admin@choviet.vn");
+            var adminUser = await db.Users.FirstOrDefaultAsync(u => u.Email == "admin@choviet.vn" || u.Phone == "0900000000");
             if (adminUser == null)
             {
                 adminUser = new User
                 {
                     Email = "admin@choviet.vn",
-                    PasswordHash = "hashed_admin_pass",
+                    PasswordHash = "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
                     Name = "Quản Trị Viên Chợ Việt",
                     Phone = "0900000000",
                     Role = UserRole.SuperAdmin,
-                    Address = "Hà Nội"
+                    Address = "Hà Nội",
+                    AccessFailedCount = 0,
+                    LockoutEnd = null
                 };
                 db.Users.Add(adminUser);
+            }
+            else
+            {
+                adminUser.Email = "admin@choviet.vn";
+                adminUser.Phone = "0900000000";
+                adminUser.PasswordHash = "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+                adminUser.Role = UserRole.SuperAdmin;
+                adminUser.AccessFailedCount = 0;
+                adminUser.LockoutEnd = null;
+                db.Users.Update(adminUser);
             }
 
             var defaultUser = await db.Users.FirstOrDefaultAsync(u => u.Email == "user@marketconnect.vn");
@@ -751,6 +824,98 @@ namespace MarketConnect.Data
                 await db.SaveChangesAsync();
             }
 
+            // 9. Seed default System Permissions & Role-Permission Mappings
+            if (!await db.Permissions.AnyAsync())
+            {
+                var permList = new List<Permission>
+                {
+                    new Permission { Code = "CONTENT_VIEW", Name = "Xem nội dung sản phẩm", Category = "Content" },
+                    new Permission { Code = "CONTENT_CREATE", Name = "Tạo mới sản phẩm", Category = "Content" },
+                    new Permission { Code = "CONTENT_EDIT", Name = "Sửa sản phẩm", Category = "Content" },
+                    new Permission { Code = "CONTENT_APPROVE", Name = "Duyệt sản phẩm", Category = "Content" },
+                    new Permission { Code = "CONTENT_REJECT", Name = "Từ chối sản phẩm", Category = "Content" },
+                    new Permission { Code = "CONTENT_REQUEST_EDIT", Name = "Yêu cầu chỉnh sửa sản phẩm", Category = "Content" },
+                    new Permission { Code = "CONTENT_HIDE", Name = "Ẩn sản phẩm vi phạm", Category = "Content" },
+                    new Permission { Code = "CONTENT_ESCALATE", Name = "Chuyển cấp duyệt sản phẩm", Category = "Content" },
+                    new Permission { Code = "CONTENT_OVERRIDE", Name = "Ghi đè quyết định duyệt sản phẩm", Category = "Content" },
+
+                    new Permission { Code = "STORE_VIEW", Name = "Xem hồ sơ gian hàng", Category = "Store" },
+                    new Permission { Code = "STORE_APPROVE", Name = "Phê duyệt gian hàng", Category = "Store" },
+                    new Permission { Code = "STORE_REJECT", Name = "Từ chối gian hàng", Category = "Store" },
+                    new Permission { Code = "STORE_SUSPEND", Name = "Tạm ngừng gian hàng", Category = "Store" },
+                    new Permission { Code = "STORE_LOCK", Name = "Khóa gian hàng", Category = "Store" },
+
+                    new Permission { Code = "MERCHANT_VIEW", Name = "Xem tiểu thương", Category = "Merchant" },
+                    new Permission { Code = "MERCHANT_MANAGE", Name = "Quản lý tiểu thương", Category = "Merchant" },
+
+                    new Permission { Code = "USER_VIEW", Name = "Xem người dùng", Category = "User" },
+                    new Permission { Code = "USER_MANAGE", Name = "Quản lý người dùng", Category = "User" },
+
+                    new Permission { Code = "REPORT_VIEW", Name = "Xem báo cáo vi phạm", Category = "Report" },
+                    new Permission { Code = "REPORT_MANAGE", Name = "Xử lý báo cáo vi phạm", Category = "Report" },
+
+                    new Permission { Code = "REVIEW_VIEW", Name = "Xem đánh giá", Category = "Review" },
+                    new Permission { Code = "REVIEW_MANAGE", Name = "Quản lý đánh giá", Category = "Review" },
+
+                    new Permission { Code = "ADVERTISEMENT_VIEW", Name = "Xem quảng cáo", Category = "Ad" },
+                    new Permission { Code = "ADVERTISEMENT_MANAGE", Name = "Quản lý quảng cáo", Category = "Ad" },
+
+                    new Permission { Code = "ANALYTICS_VIEW", Name = "Xem báo cáo thống kê", Category = "Analytics" },
+
+                    new Permission { Code = "ROLE_VIEW", Name = "Xem phân quyền", Category = "Role" },
+                    new Permission { Code = "ROLE_ASSIGN", Name = "Cấp quyền", Category = "Role" },
+                    new Permission { Code = "ROLE_REVOKE", Name = "Thu hồi quyền", Category = "Role" },
+
+                    new Permission { Code = "AUDIT_VIEW", Name = "Xem nhật ký hệ thống (Audit)", Category = "System" },
+                    new Permission { Code = "MODERATION_RULE_VIEW", Name = "Xem quy tắc kiểm duyệt", Category = "System" },
+                    new Permission { Code = "MODERATION_RULE_MANAGE", Name = "Quản lý quy tắc kiểm duyệt", Category = "System" }
+                };
+
+                db.Permissions.AddRange(permList);
+                await db.SaveChangesAsync();
+
+                var allPerms = await db.Permissions.ToListAsync();
+                var rolePerms = new List<RolePermission>();
+
+                // SuperAdmin: ALL
+                foreach (var p in allPerms)
+                {
+                    rolePerms.Add(new RolePermission { Role = UserRole.SuperAdmin, PermissionId = p.Id });
+                }
+
+                // ProvinceAdmin
+                foreach (var p in allPerms.Where(x => x.Category != "Ad"))
+                {
+                    rolePerms.Add(new RolePermission { Role = UserRole.ProvinceAdmin, PermissionId = p.Id });
+                }
+
+                // MarketAdmin
+                foreach (var p in allPerms.Where(x => x.Category == "Content" || x.Category == "Store" || x.Category == "Merchant" || x.Category == "Review"))
+                {
+                    rolePerms.Add(new RolePermission { Role = UserRole.MarketAdmin, PermissionId = p.Id });
+                }
+
+                // Moderator
+                foreach (var p in allPerms.Where(x => x.Code.StartsWith("CONTENT_") || x.Code.StartsWith("STORE_") || x.Code.StartsWith("REVIEW_")))
+                {
+                    rolePerms.Add(new RolePermission { Role = UserRole.Moderator, PermissionId = p.Id });
+                }
+
+                // AdStaff
+                foreach (var p in allPerms.Where(x => x.Category == "Ad" || x.Code == "ANALYTICS_VIEW"))
+                {
+                    rolePerms.Add(new RolePermission { Role = UserRole.AdStaff, PermissionId = p.Id });
+                }
+
+                // SupportStaff
+                foreach (var p in allPerms.Where(x => x.Category == "User" || x.Category == "Report" || x.Code == "MERCHANT_VIEW"))
+                {
+                    rolePerms.Add(new RolePermission { Role = UserRole.SupportStaff, PermissionId = p.Id });
+                }
+
+                db.RolePermissions.AddRange(rolePerms);
+                await db.SaveChangesAsync();
+            }
         }
     }
 }

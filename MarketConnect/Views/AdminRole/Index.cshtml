@@ -1,0 +1,136 @@
+@model List<MarketConnect.Data.User>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Quản Lý Phân Quyền & Phạm Vi Dữ Liệu Quản Trị (RBAC & Data Scope)";
+    var markets = ViewBag.Markets as List<MarketConnect.Data.Market> ?? new List<MarketConnect.Data.Market>();
+    var provinces = ViewBag.Provinces as List<MarketConnect.Data.Province> ?? new List<MarketConnect.Data.Province>();
+}
+
+<main class="max-w-[1440px] mx-auto w-full px-4 md:px-16 py-8">
+    <div class="space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-4">
+            <div>
+                <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-800 text-[28px]">admin_panel_settings</span>
+                    <span>Quản Lý Phân Quyền & Phạm Vi Dữ Liệu (RBAC & Data Scope)</span>
+                </h1>
+                <p class="text-xs text-gray-500 mt-1">Cấp quyền tài khoản quản trị, gán khu vực phụ trách (Tỉnh/Chợ) và chống nâng quyền trái phép (Privilege Escalation Protection).</p>
+            </div>
+            <a href="/Moderation" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-800 text-white font-extrabold rounded-2xl text-xs shadow-sm hover:bg-emerald-900 transition-all">
+                <span class="material-symbols-outlined text-[18px]">gavel</span> Quay lại Cổng Kiểm Duyệt &rarr;
+            </a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="p-4 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold border border-emerald-200 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="p-4 bg-red-50 text-red-800 rounded-2xl text-xs font-bold border border-red-200 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">warning</span>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
+        }
+
+        <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm space-y-6">
+            <h3 class="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-700">group</span> Danh Sách Người Dùng & Phân Quyền Quản Trị
+            </h3>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-gray-700 border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200 text-gray-900 font-extrabold uppercase tracking-wider">
+                            <th class="p-3">ID</th>
+                            <th class="p-3">Họ Tên / Email</th>
+                            <th class="p-3">Vai Trò Hiện Tại</th>
+                            <th class="p-3">Phạm Vi Dữ Liệu (AdminScope)</th>
+                            <th class="p-3 text-right">Thao Tác Nâng/Đổi Quyền</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach (var u in Model)
+                        {
+                            <tr class="hover:bg-gray-50/80 transition-colors">
+                                <td class="p-3 font-bold text-gray-900">#@u.Id</td>
+                                <td class="p-3">
+                                    <div class="font-bold text-gray-900">@(u.Name ?? "Chưa đặt tên")</div>
+                                    <div class="text-[11px] text-gray-500">@u.Email (@(u.Phone ?? "Chưa có SĐT"))</div>
+                                </td>
+                                <td class="p-3">
+                                    <span class="px-2.5 py-1 rounded-full font-extrabold text-[11px] @(u.Role == MarketConnect.Data.UserRole.SuperAdmin ? "bg-purple-100 text-purple-900 border border-purple-300" : u.Role == MarketConnect.Data.UserRole.ProvinceAdmin ? "bg-blue-100 text-blue-900 border border-blue-300" : u.Role == MarketConnect.Data.UserRole.MarketAdmin ? "bg-emerald-100 text-emerald-900 border border-emerald-300" : "bg-gray-100 text-gray-800")">
+                                        @u.Role.ToString()
+                                    </span>
+                                </td>
+                                <td class="p-3">
+                                    @if (u.AdminScopes != null && u.AdminScopes.Any())
+                                    {
+                                        <div class="space-y-1">
+                                            @foreach (var s in u.AdminScopes)
+                                            {
+                                                <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-gray-100 text-gray-800 text-[10px] font-bold">
+                                                    <span>@s.ScopeLevel:</span>
+                                                    @if (s.Market != null) { <span>@s.Market.Name</span> }
+                                                    else if (s.Province != null) { <span>@s.Province.Name</span> }
+                                                    else { <span>Toàn hệ thống</span> }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400 italic">Chưa gán phạm vi</span>
+                                    }
+                                </td>
+                                <td class="p-3 text-right">
+                                    <div class="flex items-center justify-end gap-2 flex-wrap">
+                                        <!-- Form Đổi Role -->
+                                        <form method="post" action="/AdminRole/AssignRole" class="flex items-center gap-1">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="targetUserId" value="@u.Id" />
+                                            <select name="newRole" class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1 text-[11px] font-bold outline-none">
+                                                @foreach (MarketConnect.Data.UserRole r in Enum.GetValues(typeof(MarketConnect.Data.UserRole)))
+                                                {
+                                                    <option value="@r" selected="@(r == u.Role)">@r.ToString()</option>
+                                                }
+                                            </select>
+                                            <button type="submit" class="bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-2.5 py-1 rounded-xl text-[11px] cursor-pointer">
+                                                Lưu Role
+                                            </button>
+                                        </form>
+
+                                        <!-- Form Gán AdminScope -->
+                                        <form method="post" action="/AdminRole/AssignScope" class="flex items-center gap-1">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="targetUserId" value="@u.Id" />
+                                            <select name="scopeLevel" class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1 text-[11px] font-bold outline-none">
+                                                <option value="Market">Chợ</option>
+                                                <option value="Province">Tỉnh</option>
+                                                <option value="System">Hệ Thống</option>
+                                            </select>
+                                            <select name="marketId" class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1 text-[11px] outline-none max-w-[120px]">
+                                                <option value="">-- Chọn chợ --</option>
+                                                @foreach (var m in markets)
+                                                {
+                                                    <option value="@m.Id">@m.Name</option>
+                                                }
+                                            </select>
+                                            <button type="submit" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-2.5 py-1 rounded-xl text-[11px] cursor-pointer">
+                                                + Scope
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>

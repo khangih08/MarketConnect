@@ -492,6 +492,37 @@ namespace MarketConnect.Controllers
             }
         }
 
+        // GET: /Account/QuickLoginAdmin (Dành cho Test / Dev Mode)
+        [HttpGet("Account/QuickLoginAdmin")]
+        public async Task<IActionResult> QuickLoginAdmin()
+        {
+            var adminUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == "admin@choviet.vn" || u.Role == UserRole.SuperAdmin);
+            if (adminUser == null)
+            {
+                adminUser = new User
+                {
+                    Email = "admin@choviet.vn",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123456"),
+                    Name = "Quản Trị Viên Chợ Việt",
+                    Phone = "0900000000",
+                    Role = UserRole.SuperAdmin,
+                    Address = "Hà Nội"
+                };
+                _db.Users.Add(adminUser);
+                await _db.SaveChangesAsync();
+            }
+
+            // Set cookies for authentication & MFA
+            Response.Cookies.Append("user_id", adminUser.Id.ToString(), new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(7) });
+            Response.Cookies.Append("user_email", adminUser.Email, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(7) });
+            Response.Cookies.Append("user_role", adminUser.Role.ToString(), new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(7) });
+            Response.Cookies.Append("AdminMfaVerified", "true", new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddHours(12) });
+            HttpContext.Session.SetString("AdminMfaVerified", "true");
+
+            TempData["SuccessMessage"] = "Đã đăng nhập nhanh thành công với quyền SuperAdmin!";
+            return RedirectToAction("Index", "Moderation");
+        }
+
         public class ChangePasswordModel
         {
             public string? CurrentPassword { get; set; }

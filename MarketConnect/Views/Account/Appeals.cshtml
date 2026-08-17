@@ -1,0 +1,63 @@
+@model List<MarketConnect.Data.ModerationAppeal>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Quản Lý Khiếu Nại Kiểm Duyệt | MarketConnect";
+}
+
+<main class="max-w-[1440px] mx-auto w-full px-4 md:px-16 py-8">
+    <div class="space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-4">
+            <div>
+                <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-800 text-[28px]">connect_without_contact</span>
+                    <span>Quản Lý Khiếu Nại Kiểm Duyệt Sản Phẩm / Gian Hàng</span>
+                </h1>
+                <p class="text-xs text-gray-500 mt-1">Gửi khiếu nại và theo dõi tiến độ phản hồi từ Ban Quản Trị đối với các sản phẩm hoặc hồ sơ gian hàng bị từ chối.</p>
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="p-4 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold border border-emerald-200 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        }
+
+        <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm space-y-6">
+            <h3 class="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-800">history</span> Danh Sách Khiếu Nại Đã Gửi
+            </h3>
+
+            @if (!Model.Any())
+            {
+                <div class="p-8 text-center text-gray-500 text-xs bg-gray-50 rounded-2xl border border-gray-100">
+                    Bạn chưa gửi đơn khiếu nại kiểm duyệt nào.
+                </div>
+            }
+            else
+            {
+                <div class="space-y-4">
+                    @foreach (var a in Model)
+                    {
+                        <div class="p-5 bg-gray-50 rounded-2xl border border-gray-200 text-xs space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="font-extrabold text-gray-900">Khiếu Nại Hồ Sơ Case #@a.CaseId</div>
+                                <span class="px-3 py-0.5 rounded-full font-black text-xs @(a.Status == MarketConnect.Data.ModerationAppealStatus.Accepted ? "bg-emerald-100 text-emerald-800" : a.Status == MarketConnect.Data.ModerationAppealStatus.Rejected ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-900")">
+                                    Trạng thái: @a.Status.ToString()
+                                </span>
+                            </div>
+                            <p class="text-gray-700"><strong>Lý do của bạn:</strong> @a.Reason</p>
+                            @if (!string.IsNullOrEmpty(a.AdminResponse))
+                            {
+                                <div class="p-3 bg-white rounded-xl border border-gray-200 text-gray-900 font-medium">
+                                    <strong>Ban Quản Trị Phản Hồi:</strong> @a.AdminResponse
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</main>

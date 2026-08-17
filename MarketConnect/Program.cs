@@ -29,6 +29,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<MarketConnect.Services.Models.JwtSettings>() ?? new MarketConnect.Services.Models.JwtSettings();
 builder.Services.AddSingleton(jwtSettings);
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IAdminMfaService, AdminMfaService>();
+builder.Services.AddScoped<IModerationWorkflowGuard, ModerationWorkflowGuard>();
+builder.Services.AddScoped<IModerationAppealService, ModerationAppealService>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
