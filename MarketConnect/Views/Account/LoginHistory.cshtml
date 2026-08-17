@@ -1,0 +1,162 @@
+@model IEnumerable<MarketConnect.Data.UserSession>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Quản lý lịch sử đăng nhập | MarketConnect";
+    var currentSession = Model?.FirstOrDefault(s => s.IsCurrentSession);
+    var otherSessions = Model?.Where(s => !s.IsCurrentSession).ToList() ?? new List<MarketConnect.Data.UserSession>();
+    var user = ViewBag.CurrentUser as MarketConnect.Data.User;
+}
+
+<main class="max-w-[1440px] mx-auto w-full px-4 md:px-16 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+        <!-- Left Column: Sidebar Navigation -->
+        <aside class="md:col-span-4 lg:col-span-3 space-y-4">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col items-center text-center shadow-sm">
+                <div class="relative mb-2">
+                    <img id="sidebar_avatar" alt="Profile" class="w-24 h-24 rounded-full object-cover border-4 border-[#004532]/10" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" />
+                    <div class="absolute bottom-1 right-1 bg-[#004532] text-white rounded-full p-1 border-2 border-white flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    </div>
+                </div>
+                <h2 id="sidebar_fullname" class="text-base font-bold text-gray-800">@(user?.Name ?? "Tài khoản")</h2>
+                <p id="sidebar_username" class="text-xs text-gray-500">@@marketconnect</p>
+                <div class="mt-2 inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-[#004532] text-[10px] font-bold uppercase tracking-wider">
+                    Đã xác minh
+                </div>
+            </div>
+
+            <nav class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                <ul class="flex flex-col list-none m-0 p-0">
+                    <li>
+                        <a class="flex items-center gap-3 px-6 py-3.5 text-gray-600 hover:bg-gray-50 transition-all" href="/Account/Profile">
+                            <span class="material-symbols-outlined">person</span>
+                            <span class="text-sm font-medium">Thông tin cá nhân</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center gap-3 px-6 py-3.5 text-gray-600 hover:bg-gray-50 transition-all" href="/Account/ChangePassword">
+                            <span class="material-symbols-outlined">lock</span>
+                            <span class="text-sm font-medium">Đổi mật khẩu</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center gap-3 px-6 py-3.5 text-gray-600 hover:bg-gray-50 transition-all" href="/CartAndOrders/BuyerRequests">
+                            <span class="material-symbols-outlined">shopping_bag</span>
+                            <span class="text-sm font-medium">Lịch sử mua hàng</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center gap-3 px-6 py-3.5 transition-all bg-emerald-50 text-[#004532] border-l-4 border-[#004532]" href="/Account/LoginHistory">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">devices</span>
+                            <span class="text-sm font-medium">Quản lý lịch sử đăng nhập</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Right Column: Main Content (Lịch sử đăng nhập) -->
+        <section class="md:col-span-8 lg:col-span-9">
+            <div class="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="p-4 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold border border-emerald-200 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px] text-emerald-600">check_circle</span>
+                        <span>@TempData["SuccessMessage"]</span>
+                    </div>
+                }
+
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#004532] text-[24px]">devices</span>
+                        <span>Quản lý lịch sử đăng nhập</span>
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-1">Theo dõi thiết bị và các phiên đăng nhập vào tài khoản MarketConnect của bạn</p>
+                </div>
+
+                <!-- THIẾT BỊ HIỆN TẠI -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-extrabold text-gray-500 uppercase tracking-wider">Thiết bị hiện tại</h4>
+                    <div class="bg-gray-50/80 p-5 rounded-2xl border border-gray-200 flex items-start gap-4 shadow-2xs">
+                        <div class="w-12 h-12 rounded-2xl bg-white text-[#004532] border border-gray-200 flex items-center justify-center shrink-0 shadow-2xs">
+                            <span class="material-symbols-outlined text-[28px]">
+                                @(currentSession?.DeviceName?.Contains("Android") == true || currentSession?.DeviceName?.Contains("iOS") == true ? "smartphone" : "desktop_windows")
+                            </span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-extrabold text-sm text-gray-900 flex items-center gap-2.5 flex-wrap">
+                                <span>@(currentSession?.DeviceName ?? "Windows 10.0 (Chrome 151.0.0.0)")</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">Thiết bị hiện tại</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1.5 flex items-center gap-2 flex-wrap">
+                                <span>Đăng nhập hệ thống lúc @(currentSession?.LoginTime.AddHours(7).ToString("dd/MM/yyyy - HH:mm") ?? DateTime.Now.ToString("dd/MM/yyyy - HH:mm"))</span>
+                                <span>•</span>
+                                <span>@(currentSession?.Location ?? "Hanoi, Viet Nam")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LỊCH SỬ ĐĂNG NHẬP (CÁC THIẾT BỊ KHÁC) -->
+                <div class="space-y-4 pt-2 border-t border-gray-100">
+                    <h4 class="text-xs font-extrabold text-gray-500 uppercase tracking-wider">Lịch sử đăng nhập</h4>
+
+                    <!-- Security Alert Banner (GIỐNG ẢNH KHÁCH HÀNG MÔ TẢ) -->
+                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
+                        <div class="text-amber-950 leading-relaxed max-w-xl">
+                            <span>Nếu phát hiện thiết bị lạ, MarketConnect khuyến khích bạn </span>
+                            <a href="/Account/ChangePassword" class="font-extrabold text-amber-900 underline hover:text-amber-950">đổi mật khẩu</a>
+                            <span> để tăng cường bảo mật tài khoản.</span>
+                        </div>
+                        <form action="/Account/LogoutAllSessions" method="POST" class="shrink-0">
+                            <button type="submit" onclick="return confirm('Bạn có chắc chắn muốn đăng xuất tất cả các thiết bị khác?')" class="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white border border-gray-300 hover:bg-red-50 hover:text-red-700 text-gray-800 font-extrabold rounded-xl text-xs shadow-2xs transition-all cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">logout</span>
+                                <span>Đăng xuất tất cả</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- History Sessions Container -->
+                    <div class="space-y-3">
+                        @if (otherSessions.Any())
+                        {
+                            @foreach (var sess in otherSessions)
+                            {
+                                <div class="bg-white p-4 rounded-2xl border border-gray-200 flex items-center justify-between gap-4 shadow-2xs hover:border-gray-300 transition-colors">
+                                    <div class="flex items-center gap-4 min-w-0">
+                                        <div class="w-10 h-10 rounded-xl bg-gray-100 text-gray-700 border border-gray-200 flex items-center justify-center shrink-0">
+                                            <span class="material-symbols-outlined text-[22px]">
+                                                @(sess.DeviceName.Contains("Android") || sess.DeviceName.Contains("iOS") ? "smartphone" : "desktop_windows")
+                                            </span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-xs text-gray-900">@sess.DeviceName</div>
+                                            <div class="text-[11px] text-gray-500 mt-0.5">
+                                                Đăng nhập lúc @sess.LoginTime.AddHours(7).ToString("dd/MM/yyyy - HH:mm") • @sess.Location
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <form action="/Account/LogoutSession" method="POST" class="shrink-0">
+                                        <input type="hidden" name="sessionId" value="@sess.Id" />
+                                        <button type="submit" onclick="return confirm('Bạn có chắc muốn đăng xuất thiết bị này?')" class="px-4 py-2 bg-white border border-gray-200 hover:bg-red-50 hover:text-red-600 text-gray-700 font-bold rounded-xl text-xs transition-all cursor-pointer">
+                                            Đăng xuất
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="p-6 bg-gray-50 rounded-2xl border border-gray-200 text-center text-xs text-gray-500">
+                                Không có phiên đăng nhập nào khác trên các thiết bị khác.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+</main>

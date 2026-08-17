@@ -1,60 +1,803 @@
 @model List<MarketConnect.Data.PurchaseRequest>
 
 @{
-    ViewData["Title"] = "Quản Lý Yêu Cầu Đặt Mua Dành Cho Tiểu Thương";
+    ViewData["Title"] = "Yêu cầu đặt mua | MarketConnect";
+
+    var requests = Model ?? new List<MarketConnect.Data.PurchaseRequest>();
+    var totalCount = requests.Count;
+    var sentCount = requests.Count(r => r.Status == MarketConnect.Data.PurchaseRequestStatus.Sent);
+    var viewedCount = requests.Count(r => r.Status == MarketConnect.Data.PurchaseRequestStatus.Viewed);
+    var contactingCount = requests.Count(r => r.Status == MarketConnect.Data.PurchaseRequestStatus.Contacting);
+    var confirmedCount = requests.Count(r => r.Status == MarketConnect.Data.PurchaseRequestStatus.Confirmed);
+    var completedCount = requests.Count(r => r.Status == MarketConnect.Data.PurchaseRequestStatus.Completed);
+    var cancelledCount = requests.Count(r => r.Status == MarketConnect.Data.PurchaseRequestStatus.CancelledByBuyer || r.Status == MarketConnect.Data.PurchaseRequestStatus.DeclinedByMerchant);
+    var noResponseCount = requests.Count(r => r.Status == MarketConnect.Data.PurchaseRequestStatus.NoResponse);
 }
 
-<div class="max-w-[1440px] mx-auto px-4 md:px-16 py-6">
-    <div class="mb-6">
-        <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
-            <span class="material-symbols-outlined text-emerald-700">inbox</span> Yêu Cầu Đặt Mua Khách Hàng Gửi Tới Quầy
-        </h1>
-        <p class="text-xs text-gray-500 mt-1">Tiểu thương chủ động liên hệ phản hồi khách hàng để chốt tồn kho, giá cuối cùng và giao nhận.</p>
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
+
+<div class="max-w-[1440px] mx-auto px-4 md:px-12 py-6 space-y-5 select-none">
+
+    <!-- 1. HEADER CHÍNH & TÌM KIẾM BỘ LỌC -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
+                Yêu cầu đặt mua
+            </h1>
+            <p class="text-xs text-gray-500 mt-1">Quản lý các yêu cầu đặt mua thực tế từ người mua gửi tới quầy tiểu thương</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="relative min-w-[240px] hidden md:block" id="searchBoxContainer">
+                <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-[18px]">search</span>
+                <input type="text" id="searchInput" oninput="filterRequests()" placeholder="Tìm theo tên khách, mã yêu cầu..." class="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-xs outline-none focus:border-indigo-600 font-medium" />
+            </div>
+            <button type="button" onclick="toggleFilterDrawer()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">filter_alt</span>
+                <span>Tìm kiếm & Bộ lọc</span>
+            </button>
+        </div>
     </div>
 
-    @if (!Model.Any())
+    <!-- Thanh tìm kiếm Mobile / Drawer Toggle -->
+    <div id="filterDrawer" class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm hidden space-y-3">
+        <div class="text-xs font-bold text-gray-700">Tìm kiếm yêu cầu</div>
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-[18px]">search</span>
+            <input type="text" id="searchInputMobile" oninput="syncMobileSearch(this.value)" placeholder="Tìm theo tên người mua hoặc mã yêu cầu..." class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-xs outline-none focus:border-indigo-600 font-medium" />
+        </div>
+    </div>
+
+    @if (ViewBag.NoStore == true)
     {
-        <div class="bg-white p-8 rounded-2xl text-center text-gray-500 text-xs border border-gray-100">
-            Hiện chưa có yêu cầu đặt mua mới nào.
+        <!-- CHƯA ĐĂNG KÝ GIAN HÀNG -->
+        <div class="bg-white p-10 rounded-3xl text-center text-gray-600 text-xs border border-gray-200 shadow-sm space-y-4 max-w-xl mx-auto my-12">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto">
+                <span class="material-symbols-outlined text-3xl">storefront</span>
+            </div>
+            <h3 class="text-base font-extrabold text-gray-900">Bạn chưa có Gian hàng Tiểu thương nào trên hệ thống</h3>
+            <p class="text-gray-500">Đăng ký mở gian hàng trực tuyến để tiếp nhận đơn đặt mua từ khách hàng tại các chợ nông sản nội thành.</p>
+            <div>
+                <a href="/Stores/Create" class="inline-flex items-center gap-2 bg-[#004532] hover:bg-[#065f46] text-white font-bold px-6 py-2.5 rounded-xl shadow transition-all">
+                    <span class="material-symbols-outlined text-base">add_business</span>
+                    <span>Đăng ký bán hàng ngay</span>
+                </a>
+            </div>
         </div>
     }
     else
     {
-        <div class="space-y-4">
-            @foreach (var req in Model)
-            {
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-50">
-                        <div>
-                            <span class="font-extrabold text-sm text-gray-900">Mã đơn: @req.RequestCode</span>
-                            <span class="text-xs text-gray-400 ml-2">@req.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
-                        </div>
-                        <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">
-                            Trạng thái: @req.Status.ToString()
-                        </span>
-                    </div>
+        <!-- 2. THANH FILTER PILLS (TRẠNG THÁI YÊU CẦU) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar" id="statusFilterPills">
+            <button type="button" onclick="filterByStatus('all', this)" class="filter-pill px-3.5 py-1.5 rounded-full font-bold transition-all shrink-0 bg-indigo-600 text-white shadow-xs">
+                Tất cả <span class="ml-1 bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full font-extrabold" id="pill_count_all">@totalCount</span>
+            </button>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                        <div class="space-y-1">
-                            <p>Tên khách hàng: <strong class="text-gray-900">@req.BuyerName</strong></p>
-                            <p>Số điện thoại: <strong class="text-emerald-700">@req.BuyerPhone</strong></p>
-                        </div>
-                        <div class="space-y-1">
-                            <p>Hình thức đề xuất: <strong>@req.PreferredPickupMethod</strong></p>
-                            <p>Tổng tham khảo: <strong class="text-emerald-700 font-extrabold">@req.ReferenceTotalPrice.ToString("N0") đ</strong></p>
-                        </div>
-                    </div>
+            <button type="button" onclick="filterByStatus('Sent', this)" class="filter-pill px-3.5 py-1.5 rounded-full font-semibold transition-all shrink-0 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200">
+                Đã gửi <span class="ml-1 bg-indigo-100 text-indigo-700 text-[10px] px-1.5 py-0.5 rounded-full font-extrabold" id="pill_count_sent">@sentCount</span>
+            </button>
 
-                    <!-- Update Status Buttons -->
-                    <form method="post" action="/CartAndOrders/UpdateRequestStatus" class="flex flex-wrap gap-2 pt-2 border-t border-gray-50">
-                        <input type="hidden" name="requestId" value="@req.Id" />
-                        <button type="submit" name="status" value="Viewed" class="bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-blue-100">Đã Xem</button>
-                        <button type="submit" name="status" value="Contacting" class="bg-purple-50 text-purple-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-purple-100">Đang Liên Hệ Khách</button>
-                        <button type="submit" name="status" value="Confirmed" class="bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-emerald-100">Xác Nhận Đơn</button>
-                        <button type="submit" name="status" value="Completed" class="bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-emerald-800">Hoàn Tất Giao Dịch</button>
-                    </form>
-                </div>
-            }
+            <button type="button" onclick="filterByStatus('Viewed', this)" class="filter-pill px-3.5 py-1.5 rounded-full font-semibold transition-all shrink-0 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200">
+                Đã xem <span class="ml-1 bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full font-extrabold" id="pill_count_viewed">@viewedCount</span>
+            </button>
+
+            <button type="button" onclick="filterByStatus('Contacting', this)" class="filter-pill px-3.5 py-1.5 rounded-full font-semibold transition-all shrink-0 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200">
+                Đang liên hệ <span class="ml-1 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded-full font-extrabold" id="pill_count_contacting">@contactingCount</span>
+            </button>
+
+            <button type="button" onclick="filterByStatus('Confirmed', this)" class="filter-pill px-3.5 py-1.5 rounded-full font-semibold transition-all shrink-0 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200">
+                Đã xác nhận <span class="ml-1 bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded-full font-extrabold" id="pill_count_confirmed">@confirmedCount</span>
+            </button>
+
+            <button type="button" onclick="filterByStatus('Completed', this)" class="filter-pill px-3.5 py-1.5 rounded-full font-semibold transition-all shrink-0 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200">
+                Hoàn tất <span class="ml-1 bg-emerald-700 text-white text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">@completedCount</span>
+            </button>
+
+            <button type="button" onclick="filterByStatus('Cancelled', this)" class="filter-pill px-3.5 py-1.5 rounded-full font-semibold transition-all shrink-0 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200">
+                Hủy <span class="ml-1 bg-red-100 text-red-700 text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">@cancelledCount</span>
+            </button>
+
+            <button type="button" onclick="filterByStatus('NoResponse', this)" class="filter-pill px-3.5 py-1.5 rounded-full font-semibold transition-all shrink-0 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200">
+                Không phản hồi <span class="ml-1 bg-gray-200 text-gray-700 text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">@noResponseCount</span>
+            </button>
         </div>
+
+        @if (!requests.Any())
+        {
+            <div class="bg-white p-12 rounded-3xl text-center text-gray-500 text-xs border border-gray-200 space-y-2">
+                <span class="material-symbols-outlined text-4xl text-gray-300">inbox</span>
+                <p class="font-bold text-gray-700">Hiện chưa có yêu cầu đặt mua nào gửi tới gian hàng của bạn.</p>
+            </div>
+        }
+        else
+        {
+            <!-- 3. DASHBOARD BỐ CỤC 2 CỘT CHUẨN MẪU -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+                <!-- CỘT TRÁI: DANH SÁCH THẺ YÊU CẦU DẠNG SCROLL -->
+                <div class="lg:col-span-4 space-y-3">
+                    <div class="space-y-3 max-h-[720px] overflow-y-auto pr-1 custom-scrollbar" id="requestsListContainer">
+                        @foreach (var req in requests)
+                        {
+                            var localCreated = req.CreatedAt.AddHours(7);
+                            var statusStr = req.Status.ToString();
+                            var statusBadgeBg = statusStr switch
+                            {
+                                "Sent" => "bg-indigo-100 text-indigo-800 border-indigo-200",
+                                "Viewed" => "bg-blue-100 text-blue-800 border-blue-200",
+                                "Contacting" => "bg-amber-100 text-amber-800 border-amber-200",
+                                "Confirmed" => "bg-emerald-100 text-emerald-800 border-emerald-200",
+                                "Completed" => "bg-emerald-700 text-white border-emerald-700",
+                                "CancelledByBuyer" or "DeclinedByMerchant" => "bg-red-100 text-red-800 border-red-200",
+                                _ => "bg-gray-100 text-gray-700 border-gray-200"
+                            };
+
+                            var statusText = statusStr switch
+                            {
+                                "Sent" => "Đã gửi",
+                                "Viewed" => "Đã xem",
+                                "Contacting" => "Đang liên hệ",
+                                "Confirmed" => "Đã xác nhận",
+                                "Completed" => "Hoàn tất",
+                                "CancelledByBuyer" => "Hủy bởi khách",
+                                "DeclinedByMerchant" => "Đã từ chối",
+                                "NoResponse" => "Không phản hồi",
+                                _ => statusStr
+                            };
+
+                            var reqTotal = (req.Items != null && req.Items.Any()) ? req.Items.Sum(i => i.Price * i.Quantity) : req.ReferenceTotalPrice;
+                            var itemCount = req.Items?.Count ?? 0;
+                            var pickupMethod = string.IsNullOrWhiteSpace(req.PreferredPickupMethod) ? "Giao tận nơi" : req.PreferredPickupMethod;
+
+                            <div id="requestCard_@req.Id"
+                                 onclick="selectRequestCard(@req.Id)"
+                                 data-status="@statusStr"
+                                 data-id="@req.Id"
+                                 data-search="@req.BuyerName.ToLower() @req.RequestCode.ToLower()"
+                                 class="request-card cursor-pointer bg-white border border-gray-200 hover:border-indigo-400 rounded-2xl p-4 transition-all shadow-2xs space-y-2.5">
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="font-extrabold text-xs text-indigo-950 font-mono">@req.RequestCode</span>
+                                    <span id="badge_left_@req.Id" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border @statusBadgeBg">
+                                        @statusText
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center justify-between text-xs">
+                                    <div class="flex items-center gap-1.5 text-gray-800 font-bold truncate">
+                                        <span class="material-symbols-outlined text-[16px] text-gray-500">account_circle</span>
+                                        <span class="truncate">@req.BuyerName</span>
+                                    </div>
+                                    <div class="font-extrabold text-gray-900 text-sm">
+                                        @reqTotal.ToString("N0") đ
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-100">
+                                    <div class="flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">schedule</span>
+                                        <span>@localCreated.ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                    <div>
+                                        <span>@(itemCount > 0 ? $"{itemCount} sản phẩm" : "0 sản phẩm") • @pickupMethod</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Phân trang nhỏ dưới cột trái -->
+                    <div class="flex items-center justify-between text-xs text-gray-500 pt-2 px-1">
+                        <span>Hiển thị 1 - @requests.Count của @requests.Count yêu cầu</span>
+                        <div class="flex items-center gap-1">
+                            <button class="w-7 h-7 rounded-lg border border-gray-200 bg-white font-bold hover:bg-gray-50 flex items-center justify-center cursor-pointer">1</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CỘT PHẢI: CHI TIẾT ĐƠN HÀNG ĐƯỢC CHỌN (lg:col-span-8) -->
+                <div class="lg:col-span-8 space-y-5">
+                    @foreach (var req in requests)
+                    {
+                        var localCreated = req.CreatedAt.AddHours(7);
+                        var localUpdated = req.UpdatedAt.AddHours(7);
+
+                        var statusStr = req.Status.ToString();
+                        var statusBadgeBg = statusStr switch
+                        {
+                            "Sent" => "bg-indigo-100 text-indigo-800 border-indigo-200",
+                            "Viewed" => "bg-blue-100 text-blue-800 border-blue-200",
+                            "Contacting" => "bg-amber-100 text-amber-800 border-amber-200",
+                            "Confirmed" => "bg-emerald-100 text-emerald-800 border-emerald-200",
+                            "Completed" => "bg-emerald-700 text-white border-emerald-700",
+                            "CancelledByBuyer" or "DeclinedByMerchant" => "bg-red-100 text-red-800 border-red-200",
+                            _ => "bg-gray-100 text-gray-700 border-gray-200"
+                        };
+
+                        var statusText = statusStr switch
+                        {
+                            "Sent" => "Đã gửi",
+                            "Viewed" => "Đã xem",
+                            "Contacting" => "Đang liên hệ",
+                            "Confirmed" => "Đã xác nhận",
+                            "Completed" => "Hoàn tất",
+                            "CancelledByBuyer" => "Hủy bởi khách",
+                            "DeclinedByMerchant" => "Đã từ chối",
+                            "NoResponse" => "Không phản hồi",
+                            _ => statusStr
+                        };
+
+                        var reqTotal = (req.Items != null && req.Items.Any()) ? req.Items.Sum(i => i.Price * i.Quantity) : req.ReferenceTotalPrice;
+                        
+                        var rawPickup = req.PreferredPickupMethod ?? "";
+                        bool isHomeDelivery = rawPickup.Contains("Giao tận nơi") || string.IsNullOrWhiteSpace(rawPickup);
+                        bool isAtStall = rawPickup.Contains("Nhận tại điểm bán") || rawPickup.Contains("tại quầy") || rawPickup.Contains("AtStall");
+                        bool isAgreedPoint = rawPickup.Contains("Thỏa thuận điểm nhận") || rawPickup.Contains("AgreedDelivery");
+
+                        <div id="requestDetailPane_@req.Id" class="request-detail-pane bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 hidden">
+                            
+                            <!-- Detailed Header -->
+                            <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                                <div class="flex items-center gap-3">
+                                    <h2 class="text-lg font-extrabold text-gray-900">
+                                        Yêu cầu: <span class="font-mono text-indigo-900">@req.RequestCode</span>
+                                    </h2>
+                                    <span id="badge_detail_@req.Id" class="px-3 py-1 rounded-full text-xs font-extrabold border @statusBadgeBg">
+                                        @statusText
+                                    </span>
+                                </div>
+                                <div class="text-xs text-gray-500 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">schedule</span>
+                                    <span>Thời gian gửi: @localCreated.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                            </div>
+
+                            <!-- 3 Thẻ Thông tin người mua - Phương thức nhận hàng - Ghi chú -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Thẻ 1: Người mua -->
+                                <div class="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 space-y-2 text-xs">
+                                    <div class="font-extrabold text-gray-900 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-indigo-600 text-[18px]">person</span>
+                                        <span>Thông tin người mua</span>
+                                    </div>
+                                    <div class="font-bold text-gray-900 text-sm">@req.BuyerName</div>
+                                    <a href="tel:@req.BuyerPhone" onclick="onContactBuyerClick(event, @req.Id, '@req.BuyerPhone')" class="inline-flex items-center gap-1 text-emerald-700 hover:underline font-bold text-xs">
+                                        <span class="material-symbols-outlined text-[14px]">call</span> @req.BuyerPhone
+                                    </a>
+                                    <div class="text-gray-500 text-[11px] flex items-start gap-1">
+                                        <span class="material-symbols-outlined text-[14px] shrink-0 mt-0.5">location_on</span>
+                                        <span>@(string.IsNullOrWhiteSpace(req.Buyer?.Address) ? "Chưa cập nhật địa chỉ giao hàng" : req.Buyer.Address)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Thẻ 2: Phương thức nhận hàng (CHỈ HIỂN THỊ DUY NHẤT 1 PHƯƠNG THỨC NGUYÊN BẢN NGƯỜI MUA CHỌN) -->
+                                <div class="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 space-y-2.5 text-xs">
+                                    <div class="font-extrabold text-gray-900 flex items-center gap-1.5 border-b border-gray-100 pb-2">
+                                        <span class="material-symbols-outlined text-indigo-600 text-[18px]">local_shipping</span>
+                                        <span>Phương thức nhận hàng</span>
+                                    </div>
+
+                                    @{
+                                        var chosenPickup = string.IsNullOrWhiteSpace(req.PreferredPickupMethod) ? "Giao tận nơi" : req.PreferredPickupMethod;
+                                        bool isHomeDeliverySelected = chosenPickup.Contains("Giao tận nơi");
+                                    }
+
+                                    <div class="font-bold text-blue-600 text-sm flex items-center gap-1.5 pt-0.5">
+                                        <span class="material-symbols-outlined text-[18px]">@(isHomeDeliverySelected ? "two_wheeler" : "storefront")</span>
+                                        <span>@chosenPickup</span>
+                                    </div>
+
+                                    @if (isHomeDeliverySelected)
+                                    {
+                                        <div class="pt-2 border-t border-gray-200/60 text-[11px] text-gray-700 space-y-0.5">
+                                            <div class="font-bold text-blue-900 flex items-center gap-1">
+                                                <span class="material-symbols-outlined text-[14px]">location_on</span>
+                                                <span>Địa chỉ nhận hàng:</span>
+                                            </div>
+                                            <p class="text-gray-600 pl-4 italic">
+                                                @(string.IsNullOrWhiteSpace(req.Buyer?.Address) ? "Chưa cập nhật địa chỉ giao hàng" : req.Buyer.Address)
+                                            </p>
+                                        </div>
+                                    }
+
+                                    <div class="text-gray-500 text-[11px] pt-1">
+                                        Thời gian mong muốn: <strong>@localCreated.ToString("dd/MM/yyyy") (cả ngày)</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Thẻ 3: Ghi chú của người mua -->
+                                <div class="bg-gray-50/80 rounded-2xl p-4 border border-gray-100 space-y-2 text-xs">
+                                    <div class="font-extrabold text-gray-900 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-indigo-600 text-[18px]">description</span>
+                                        <span>Ghi chú của người mua</span>
+                                    </div>
+                                    <p class="text-gray-700 italic text-[11px] leading-relaxed">
+                                        @(string.IsNullOrWhiteSpace(req.Note) ? "Không có ghi chú thêm." : req.Note)
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- KHU VỰC BỐ CỤC: BẢNG SẢN PHẨM (BÊN TRÁI) VÀ TRẠNG THÁI YÊU CẦU (BÊN PHẢI GIỐNG MẪU) -->
+                            @{
+                                bool isCancelled = req.Status == MarketConnect.Data.PurchaseRequestStatus.CancelledByBuyer || req.Status == MarketConnect.Data.PurchaseRequestStatus.DeclinedByMerchant;
+                                bool isNoResponse = req.Status == MarketConnect.Data.PurchaseRequestStatus.NoResponse;
+
+                                bool stepViewed = req.Status >= MarketConnect.Data.PurchaseRequestStatus.Viewed && !isCancelled && !isNoResponse;
+                                bool stepContacting = req.Status >= MarketConnect.Data.PurchaseRequestStatus.Contacting && !isCancelled && !isNoResponse;
+                                bool stepConfirmed = req.Status >= MarketConnect.Data.PurchaseRequestStatus.Confirmed && !isCancelled && !isNoResponse;
+                                bool stepCompleted = req.Status == MarketConnect.Data.PurchaseRequestStatus.Completed;
+
+                                string viewedTimeText = stepViewed ? (req.UpdatedAt > req.CreatedAt ? localUpdated.ToString("dd/MM/yyyy HH:mm") : localCreated.ToString("dd/MM/yyyy HH:mm")) : "";
+                                string contactingTimeText = stepContacting ? localUpdated.ToString("dd/MM/yyyy HH:mm") : "";
+                                string confirmedTimeText = stepConfirmed ? localUpdated.ToString("dd/MM/yyyy HH:mm") : "";
+                                string completedTimeText = (stepCompleted || isCancelled || isNoResponse) ? localUpdated.ToString("dd/MM/yyyy HH:mm") : "";
+                            }
+
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+                                
+                                <!-- CỘT TRÁI: BẢNG SẢN PHẨM YÊU CẦU (lg:col-span-8) -->
+                                <div class="lg:col-span-8 space-y-3">
+                                    <h3 class="font-extrabold text-sm text-gray-900 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-indigo-600 text-[18px]">shopping_bag</span> Sản phẩm yêu cầu
+                                    </h3>
+
+                                    <div class="border border-gray-200 rounded-2xl overflow-hidden shadow-2xs">
+                                        <table class="w-full text-left border-collapse text-xs">
+                                            <thead>
+                                                <tr class="bg-gray-50 border-b border-gray-200 font-extrabold text-gray-600">
+                                                    <th class="py-3 px-4">Sản phẩm</th>
+                                                    <th class="py-3 px-4 text-right">Đơn giá (đ)</th>
+                                                    <th class="py-3 px-4 text-center">Số lượng</th>
+                                                    <th class="py-3 px-4 text-right">Thành tiền (đ)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-100">
+                                                @if (req.Items != null && req.Items.Any())
+                                                {
+                                                    foreach (var item in req.Items)
+                                                    {
+                                                        var imgUrl = string.IsNullOrWhiteSpace(item.Product?.ImageUrl) ? "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=100&q=80" : item.Product.ImageUrl;
+                                                        var lineTotal = item.Price * item.Quantity;
+
+                                                        <tr>
+                                                            <td class="py-3.5 px-4">
+                                                                <div class="flex items-center gap-3">
+                                                                    <img src="@imgUrl" alt="@item.ProductName" class="w-10 h-10 rounded-xl object-cover border border-gray-200 shrink-0" />
+                                                                    <div>
+                                                                        <div class="font-bold text-gray-900">@item.ProductName</div>
+                                                                        @if (!string.IsNullOrWhiteSpace(item.OptionsNote))
+                                                                        {
+                                                                            <div class="text-[10px] text-gray-500">Phân loại: @item.OptionsNote</div>
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td class="py-3.5 px-4 text-right font-medium text-gray-700">@item.Price.ToString("N0")</td>
+                                                            <td class="py-3.5 px-4 text-center font-bold text-gray-900">@item.Quantity</td>
+                                                            <td class="py-3.5 px-4 text-right font-bold text-indigo-950">@lineTotal.ToString("N0")</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="4" class="py-4 text-center text-gray-400">Không có thông tin chi tiết sản phẩm.</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                            <tfoot>
+                                                <tr class="bg-indigo-50/50 font-extrabold text-xs">
+                                                    <td colspan="2" class="py-3 px-4 text-gray-600">
+                                                        Ghi chú đơn hàng: <span class="font-normal text-gray-500">@(string.IsNullOrWhiteSpace(req.Note) ? "Không có" : req.Note)</span>
+                                                    </td>
+                                                    <td class="py-3 px-4 text-right text-gray-900 font-extrabold">Tổng tiền:</td>
+                                                    <td class="py-3 px-4 text-right text-indigo-700 font-extrabold text-sm">@reqTotal.ToString("N0") đ</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- CỘT PHẢI: TRẠNG THÁI YÊU CẦU (TIMELINE THỜI GIAN THỰC TẾ 100%) (lg:col-span-4) -->
+                                <div class="lg:col-span-4 space-y-3">
+                                    <h3 class="font-extrabold text-sm text-gray-900 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-indigo-600 text-[18px]">timeline</span> Trạng thái yêu cầu
+                                    </h3>
+
+                                    <div class="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                        <div class="relative pl-6 space-y-5 border-l-2 border-indigo-100 text-xs">
+                                            
+                                            <!-- Step 1: Đã gửi -->
+                                            <div class="relative">
+                                                <div class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-indigo-600 border-2 border-white ring-2 ring-indigo-200"></div>
+                                                <div class="font-bold text-gray-900">Đã gửi</div>
+                                                <div class="text-[10px] text-gray-400">@localCreated.ToString("dd/MM/yyyy HH:mm")</div>
+                                            </div>
+
+                                            <!-- Step 2: Đã xem -->
+                                            <div class="relative">
+                                                <div id="timeline_dot_viewed_@req.Id" class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full @(stepViewed ? "bg-indigo-600 border-2 border-white ring-2 ring-indigo-200" : "bg-white border-2 border-gray-300")"></div>
+                                                <div id="timeline_text_viewed_@req.Id" class="font-bold @(stepViewed ? "text-gray-900" : "text-gray-400")">Đã xem</div>
+                                                <div id="timeline_sub_viewed_@req.Id" class="text-[10px] text-gray-400">@viewedTimeText</div>
+                                            </div>
+
+                                            <!-- Step 3: Đang liên hệ -->
+                                            <div class="relative">
+                                                <div id="timeline_dot_contacting_@req.Id" class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full @(stepContacting ? "bg-indigo-600 border-2 border-white ring-2 ring-indigo-200" : "bg-white border-2 border-gray-300")"></div>
+                                                <div id="timeline_text_contacting_@req.Id" class="font-bold @(stepContacting ? "text-gray-900" : "text-gray-400")">Đang liên hệ</div>
+                                                <div id="timeline_sub_contacting_@req.Id" class="text-[10px] text-gray-400">@contactingTimeText</div>
+                                            </div>
+
+                                            <!-- Step 4: Đã xác nhận -->
+                                            <div class="relative">
+                                                <div id="timeline_dot_confirmed_@req.Id" class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full @(stepConfirmed ? "bg-indigo-600 border-2 border-white ring-2 ring-indigo-200" : "bg-white border-2 border-gray-300")"></div>
+                                                <div id="timeline_text_confirmed_@req.Id" class="font-bold @(stepConfirmed ? "text-gray-900" : "text-gray-400")">Đã xác nhận</div>
+                                                <div id="timeline_sub_confirmed_@req.Id" class="text-[10px] text-gray-400">@confirmedTimeText</div>
+                                            </div>
+
+                                            <!-- Step 5: Hoàn tất / Hủy / Không phản hồi -->
+                                            <div class="relative">
+                                                <div id="timeline_dot_completed_@req.Id" class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full @(stepCompleted ? "bg-emerald-600 border-2 border-white ring-2 ring-emerald-200" : (isCancelled ? "bg-red-600 border-2 border-white ring-2 ring-red-200" : (isNoResponse ? "bg-amber-600" : "bg-white border-2 border-gray-300")))"></div>
+                                                <div id="timeline_text_completed_@req.Id" class="font-bold @(stepCompleted ? "text-emerald-800" : (isCancelled ? "text-red-700" : (isNoResponse ? "text-amber-800" : "text-gray-400")))">
+                                                    Hoàn tất / Hủy / Không phản hồi
+                                                </div>
+                                                <div id="timeline_sub_completed_@req.Id" class="text-[10px] text-gray-400">
+                                                    @completedTimeText
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- LƯU Ý QUAN TRỌNG BANNER -->
+                            <div class="bg-blue-50/70 border border-blue-200 text-blue-900 rounded-2xl p-4 text-xs flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-blue-600 text-[20px] shrink-0 mt-0.5">info</span>
+                                <div>
+                                    <strong class="font-extrabold">Lưu ý quan trọng:</strong>
+                                    <span class="ml-1">Nền tảng hỗ trợ kết nối trực tiếp. Giá cuối cùng, thanh toán và giao nhận được người mua và tiểu thương chủ động thỏa thuận.</span>
+                                </div>
+                            </div>
+
+                            <!-- THANH NÚT THAO TÁC ACTION BOTTOM (KHÓA/MỞ THEO ĐÚNG TRÌNH TỰ TRẠNG THÁI) -->
+                            @{
+                                bool isLockedFromContacting = req.Status == MarketConnect.Data.PurchaseRequestStatus.Confirmed || req.Status == MarketConnect.Data.PurchaseRequestStatus.Completed || isCancelled || isNoResponse;
+                                bool canConfirmUnit = req.Status == MarketConnect.Data.PurchaseRequestStatus.Contacting;
+                                bool isAlreadyConfirmedUnit = req.Status == MarketConnect.Data.PurchaseRequestStatus.Confirmed || req.Status == MarketConnect.Data.PurchaseRequestStatus.Completed;
+                                bool canCompleteUnit = req.Status == MarketConnect.Data.PurchaseRequestStatus.Confirmed;
+                                bool isAlreadyCompletedUnit = req.Status == MarketConnect.Data.PurchaseRequestStatus.Completed;
+                            }
+
+                            <div class="pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                                <div class="flex items-center gap-2">
+                                    <!-- Nút 1: Liên hệ người mua (Bấm vào -> chuyển Đang liên hệ, bị khóa khi đã xác nhận/hoàn tất) -->
+                                    @if (isLockedFromContacting)
+                                    {
+                                        <button type="button" disabled title="Không thể thay đổi sau khi đã xác nhận/hoàn tất" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-400 font-bold rounded-xl text-xs cursor-not-allowed opacity-60">
+                                            <span class="material-symbols-outlined text-[16px]">call</span>
+                                            <span>Liên hệ người mua</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <a id="btn_contact_@req.Id" href="tel:@req.BuyerPhone" onclick="onContactBuyerClick(event, @req.Id, '@req.BuyerPhone')" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition-colors cursor-pointer">
+                                            <span class="material-symbols-outlined text-[16px]">call</span>
+                                            <span>Liên hệ người mua</span>
+                                        </a>
+                                    }
+
+                                    <!-- Nút 2: Từ chối yêu cầu (bị khóa khi đã xác nhận/hoàn tất) -->
+                                    <form method="post" action="/CartAndOrders/UpdateRequestStatus" class="inline">
+                                        <input type="hidden" name="requestId" value="@req.Id" />
+                                        @if (isLockedFromContacting)
+                                        {
+                                            <button type="button" disabled title="Không thể từ chối sau khi đã xác nhận/hoàn tất" class="inline-flex items-center gap-1 px-4 py-2 bg-gray-100 text-gray-400 font-bold rounded-xl text-xs cursor-not-allowed opacity-60">
+                                                <span class="material-symbols-outlined text-[16px]">close</span>
+                                                <span>Từ chối yêu cầu</span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" id="btn_decline_@req.Id" name="status" value="DeclinedByMerchant" class="inline-flex items-center gap-1 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-xl text-xs transition-colors cursor-pointer">
+                                                <span class="material-symbols-outlined text-[16px]">close</span>
+                                                <span>Từ chối yêu cầu</span>
+                                            </button>
+                                        }
+                                    </form>
+                                </div>
+
+                                <!-- Cụm các nút chuyển trạng thái bên phải -->
+                                <form method="post" action="/CartAndOrders/UpdateRequestStatus" class="flex flex-wrap items-center gap-2">
+                                    <input type="hidden" name="requestId" value="@req.Id" />
+
+                                    <!-- Nút 3: Xác nhận đơn (Chỉ mở khi đã Đang liên hệ, bị khóa khi ở Đã gửi/Đã xem) -->
+                                    @if (canConfirmUnit)
+                                    {
+                                        <button type="submit" id="btn_confirm_@req.Id" name="status" value="Confirmed" class="inline-flex items-center gap-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs shadow-xs transition-all cursor-pointer">
+                                            <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                            <span>Xác nhận đơn</span>
+                                        </button>
+                                    }
+                                    else if (isAlreadyConfirmedUnit)
+                                    {
+                                        <button type="button" disabled class="inline-flex items-center gap-1 px-4 py-2 bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold rounded-xl text-xs opacity-75 cursor-not-allowed">
+                                            <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                            <span>Đã xác nhận</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" id="btn_confirm_@req.Id" disabled title="Vui lòng bấm 'Liên hệ người mua' trước khi xác nhận đơn" class="inline-flex items-center gap-1 px-4 py-2 bg-gray-200 text-gray-400 font-extrabold rounded-xl text-xs cursor-not-allowed opacity-60">
+                                            <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                            <span>Xác nhận đơn</span>
+                                        </button>
+                                    }
+
+                                    <!-- Nút 4: Hoàn tất đơn hàng (Chỉ mở khi đã Đã xác nhận) -->
+                                    @if (canCompleteUnit)
+                                    {
+                                        <button type="submit" id="btn_complete_@req.Id" name="status" value="Completed" class="inline-flex items-center gap-1 px-4 py-2 bg-[#004532] hover:bg-[#065f46] text-white font-extrabold rounded-xl text-xs shadow-md transition-all cursor-pointer">
+                                            <span class="material-symbols-outlined text-[16px]">task_alt</span>
+                                            <span>Hoàn tất đơn hàng</span>
+                                        </button>
+                                    }
+                                    else if (isAlreadyCompletedUnit)
+                                    {
+                                        <button type="button" disabled class="inline-flex items-center gap-1 px-4 py-2 bg-emerald-700 text-white font-extrabold rounded-xl text-xs opacity-80 cursor-not-allowed">
+                                            <span class="material-symbols-outlined text-[16px]">task_alt</span>
+                                            <span>Đã hoàn tất</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" id="btn_complete_@req.Id" disabled title="Vui lòng xác nhận đơn trước khi hoàn tất" class="inline-flex items-center gap-1 px-4 py-2 bg-gray-200 text-gray-400 font-extrabold rounded-xl text-xs cursor-not-allowed opacity-60">
+                                            <span class="material-symbols-outlined text-[16px]">task_alt</span>
+                                            <span>Hoàn tất đơn hàng</span>
+                                        </button>
+                                    }
+                                </form>
+                            </div>
+
+                        </div>
+                    }
+                </div>
+
+            </div>
+        }
     }
 </div>
+
+<script>
+    let activeFilterStatus = 'all';
+    let currentSelectedId = null;
+
+    function filterByStatus(status, btnElem) {
+        activeFilterStatus = status;
+
+        document.querySelectorAll('#statusFilterPills .filter-pill').forEach(pill => {
+            pill.classList.remove('bg-indigo-600', 'text-white', 'shadow-xs');
+            pill.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100', 'border', 'border-gray-200');
+        });
+
+        if (btnElem) {
+            btnElem.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-100', 'border', 'border-gray-200');
+            btnElem.classList.add('bg-indigo-600', 'text-white', 'shadow-xs');
+        }
+
+        filterRequests();
+    }
+
+    function filterRequests() {
+        const desktopSearch = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
+        const mobileSearch = document.getElementById('searchInputMobile')?.value.toLowerCase().trim() || '';
+        const searchQuery = desktopSearch || mobileSearch;
+
+        const cards = document.querySelectorAll('#requestsListContainer .request-card');
+        let firstVisibleCardId = null;
+
+        cards.forEach(card => {
+            const cardStatus = card.getAttribute('data-status');
+            const cardId = card.getAttribute('data-id');
+            const searchData = card.getAttribute('data-search') || '';
+
+            let matchesStatus = false;
+            if (activeFilterStatus === 'all') {
+                matchesStatus = true;
+            } else if (activeFilterStatus === 'Cancelled') {
+                matchesStatus = cardStatus === 'CancelledByBuyer' || cardStatus === 'DeclinedByMerchant';
+            } else {
+                matchesStatus = cardStatus === activeFilterStatus;
+            }
+
+            let matchesSearch = !searchQuery || searchData.includes(searchQuery);
+
+            if (matchesStatus && matchesSearch) {
+                card.style.display = 'block';
+                if (!firstVisibleCardId) firstVisibleCardId = cardId;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        if (firstVisibleCardId) {
+            selectRequestCard(firstVisibleCardId);
+        } else {
+            document.querySelectorAll('.request-detail-pane').forEach(pane => pane.classList.add('hidden'));
+        }
+    }
+
+    function syncMobileSearch(val) {
+        const desktopSearch = document.getElementById('searchInput');
+        if (desktopSearch) desktopSearch.value = val;
+        filterRequests();
+    }
+
+    function selectRequestCard(id) {
+        currentSelectedId = id;
+
+        document.querySelectorAll('#requestsListContainer .request-card').forEach(card => {
+            card.classList.remove('border-indigo-600', 'bg-indigo-50/50', 'ring-2', 'ring-indigo-100', 'shadow-md');
+            card.classList.add('border-gray-200', 'bg-white');
+        });
+
+        const activeCard = document.getElementById('requestCard_' + id);
+        if (activeCard) {
+            activeCard.classList.remove('border-gray-200', 'bg-white');
+            activeCard.classList.add('border-indigo-600', 'bg-indigo-50/50', 'ring-2', 'ring-indigo-100', 'shadow-md');
+
+            // TỰ ĐỘNG CHUYỂN TRẠNG THÁI SANG "ĐÃ XEM" KHI NHẤN VÀO ĐƠN "ĐÃ GỬI"
+            const status = activeCard.getAttribute('data-status');
+            if (status === 'Sent') {
+                activeCard.setAttribute('data-status', 'Viewed');
+                
+                // Cập nhật Badge bên thẻ trái
+                const badgeLeft = document.getElementById('badge_left_' + id);
+                if (badgeLeft) {
+                    badgeLeft.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border bg-blue-100 text-blue-800 border-blue-200';
+                    badgeLeft.innerText = 'Đã xem';
+                }
+
+                // Cập nhật Badge bên pane phải
+                const badgeDetail = document.getElementById('badge_detail_' + id);
+                if (badgeDetail) {
+                    badgeDetail.className = 'px-3 py-1 rounded-full text-xs font-extrabold border bg-blue-100 text-blue-800 border-blue-200';
+                    badgeDetail.innerText = 'Đã xem';
+                }
+
+                const nowStr = getFormattedNow();
+
+                // Cập nhật Timeline Đã xem với thời gian thực tế
+                const dotViewed = document.getElementById('timeline_dot_viewed_' + id);
+                const textViewed = document.getElementById('timeline_text_viewed_' + id);
+                const subViewed = document.getElementById('timeline_sub_viewed_' + id);
+                if (dotViewed) dotViewed.className = 'absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-indigo-600 border-2 border-white ring-2 ring-indigo-200';
+                if (textViewed) textViewed.className = 'font-bold text-gray-900';
+                if (subViewed) subViewed.innerText = nowStr;
+
+                // Cập nhật đếm Pills
+                const sentElem = document.getElementById('pill_count_sent');
+                const viewedElem = document.getElementById('pill_count_viewed');
+                if (sentElem && viewedElem) {
+                    let sVal = parseInt(sentElem.innerText) || 0;
+                    let vVal = parseInt(viewedElem.innerText) || 0;
+                    if (sVal > 0) sentElem.innerText = sVal - 1;
+                    viewedElem.innerText = vVal + 1;
+                }
+
+                // Gửi request ngầm lên server lưu DB
+                fetch('/CartAndOrders/UpdateRequestStatusJson', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `requestId=${id}&status=Viewed`
+                }).catch(err => console.error(err));
+            }
+        }
+
+        document.querySelectorAll('.request-detail-pane').forEach(pane => pane.classList.add('hidden'));
+
+        const activePane = document.getElementById('requestDetailPane_' + id);
+        if (activePane) {
+            activePane.classList.remove('hidden');
+        }
+    }
+
+    function onContactBuyerClick(e, id, phone) {
+        const activeCard = document.getElementById('requestCard_' + id);
+        const currentStatus = activeCard ? activeCard.getAttribute('data-status') : '';
+
+        if (currentStatus === 'Sent' || currentStatus === 'Viewed') {
+            if (activeCard) activeCard.setAttribute('data-status', 'Contacting');
+
+            const badgeLeft = document.getElementById('badge_left_' + id);
+            if (badgeLeft) {
+                badgeLeft.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border bg-amber-100 text-amber-800 border-amber-200';
+                badgeLeft.innerText = 'Đang liên hệ';
+            }
+
+            const badgeDetail = document.getElementById('badge_detail_' + id);
+            if (badgeDetail) {
+                badgeDetail.className = 'px-3 py-1 rounded-full text-xs font-extrabold border bg-amber-100 text-amber-800 border-amber-200';
+                badgeDetail.innerText = 'Đang liên hệ';
+            }
+
+            const nowStr = getFormattedNow();
+
+            const dotContacting = document.getElementById('timeline_dot_contacting_' + id);
+            const textContacting = document.getElementById('timeline_text_contacting_' + id);
+            const subContacting = document.getElementById('timeline_sub_contacting_' + id);
+            if (dotContacting) dotContacting.className = 'absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-indigo-600 border-2 border-white ring-2 ring-indigo-200';
+            if (textContacting) textContacting.className = 'font-bold text-gray-900';
+            if (subContacting) subContacting.innerText = nowStr;
+
+            // KÍCH HOẠT NÚT "XÁC NHẬN ĐƠN" VÀ THAY ĐỔI CỤM NÚT SANG CHỈ BẤM ĐƯỢC XÁC NHẬN ĐƠN
+            const actionContainer = document.getElementById('confirm_complete_container_' + id);
+            if (actionContainer) {
+                actionContainer.innerHTML = `
+                    <form method="post" action="/CartAndOrders/UpdateRequestStatus" class="inline">
+                        <input type="hidden" name="requestId" value="${id}" />
+                        <button type="submit" name="status" value="Confirmed" class="inline-flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs shadow-md transition-all active:scale-95 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                            <span>Xác nhận đơn</span>
+                        </button>
+                    </form>
+                `;
+            }
+
+            const viewedElem = document.getElementById('pill_count_viewed');
+            const contactingElem = document.getElementById('pill_count_contacting');
+            if (viewedElem && contactingElem) {
+                let vVal = parseInt(viewedElem.innerText) || 0;
+                let cVal = parseInt(contactingElem.innerText) || 0;
+                if (vVal > 0) viewedElem.innerText = vVal - 1;
+                contactingElem.innerText = cVal + 1;
+            }
+
+            fetch('/CartAndOrders/UpdateRequestStatusJson', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `requestId=${id}&status=Contacting`
+            }).catch(err => console.error(err));
+        }
+    }
+
+    function getFormattedNow() {
+        const d = new Date();
+        const pad = n => n.toString().padStart(2, '0');
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function toggleFilterDrawer() {
+        const drawer = document.getElementById('filterDrawer');
+        if (drawer) {
+            drawer.classList.toggle('hidden');
+            const mobileInput = document.getElementById('searchInputMobile');
+            if (mobileInput && !drawer.classList.contains('hidden')) {
+                mobileInput.focus();
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const firstCard = document.querySelector('#requestsListContainer .request-card');
+        if (firstCard) {
+            const firstId = firstCard.getAttribute('data-id');
+            selectRequestCard(firstId);
+        }
+    });
+</script>

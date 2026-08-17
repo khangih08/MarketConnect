@@ -176,15 +176,39 @@
                 </div>
             </div>
 
-            <!-- 3. Communication Actions & Quick Question -->
+            <!-- 3. Communication Actions, Add to Cart & Quick Question -->
             <div class="bg-white rounded-2xl p-6 card-shadow border border-gray-100 flex flex-col gap-4">
+                
+                <!-- Quantity selector -->
+                <div class="flex items-center justify-between gap-4 border-b border-gray-100 pb-3 text-xs">
+                    <span class="font-bold text-gray-700">Số lượng mua:</span>
+                    <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                        <button type="button" onclick="updateQty(-1)" class="px-3 py-1.5 font-bold text-gray-600 hover:bg-gray-200 transition-colors">-</button>
+                        <input type="number" id="inputProductQty" value="1" min="1" max="99" class="w-12 text-center bg-transparent font-bold text-gray-800 text-xs border-none outline-none focus:ring-0" />
+                        <button type="button" onclick="updateQty(1)" class="px-3 py-1.5 font-bold text-gray-600 hover:bg-gray-200 transition-colors">+</button>
+                    </div>
+                </div>
+
+                <!-- Primary Action Buttons: Add To Cart & Buy Now -->
                 <div class="grid grid-cols-2 gap-3 w-full">
-                    <button id="btnCallSeller" type="button" class="bg-[#004532] hover:bg-[#065f46] text-white font-bold h-12 rounded-xl text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md shadow-emerald-900/10 cursor-pointer">
-                        <span class="material-symbols-outlined text-[18px]">phone_enabled</span>
+                    <button id="btnAddToCart" type="button" onclick="addToCartFromDetail()" class="bg-emerald-50 border-2 border-[#004532] text-[#004532] hover:bg-emerald-100 font-extrabold h-12 rounded-xl text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-2xs">
+                        <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                        <span>Thêm vào giỏ hàng</span>
+                    </button>
+                    <button id="btnBuyNow" type="button" onclick="buyNowFromDetail()" class="bg-[#004532] hover:bg-[#065f46] text-white font-extrabold h-12 rounded-xl text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md shadow-emerald-900/10 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+                        <span>Đặt mua ngay</span>
+                    </button>
+                </div>
+
+                <!-- Secondary Communication Buttons -->
+                <div class="grid grid-cols-2 gap-3 w-full pt-1 border-t border-gray-100">
+                    <button id="btnCallSeller" type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold h-10 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px] text-emerald-700">phone_enabled</span>
                         <span>Gọi điện thoại</span>
                     </button>
-                    <button id="btnChatSeller" type="button" class="bg-white border-2 border-[#004532] text-[#004532] hover:bg-emerald-50 font-bold h-12 rounded-xl text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer">
-                        <span class="material-symbols-outlined text-[18px]">chat</span>
+                    <button id="btnChatSeller" type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold h-10 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px] text-blue-700">chat</span>
                         <span>Chat nhanh</span>
                     </button>
                 </div>
@@ -327,5 +351,52 @@
 </main>
 
 @section Scripts {
-    <script src="~/js/product-detail.js" asp-append-version="true"></script>
+<script>
+    function updateQty(change) {
+        const input = document.getElementById('inputProductQty');
+        if (input) {
+            let val = parseInt(input.value || '1') + change;
+            if (val < 1) val = 1;
+            input.value = val;
+        }
+    }
+
+    async function addToCartFromDetail() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id') || (window.currentProduct ? window.currentProduct.id : '1');
+        const qty = parseInt(document.getElementById('inputProductQty')?.value || '1');
+
+        try {
+            const formData = new FormData();
+            formData.append('productId', productId);
+            formData.append('quantity', qty);
+
+            await fetch('/CartAndOrders/AddToCart', {
+                method: 'POST',
+                body: formData
+            });
+
+            const badge = document.getElementById('globalCartBadge');
+            if (badge) {
+                const currentCount = parseInt(badge.innerText || '0');
+                badge.innerText = currentCount + qty;
+            }
+
+            if (typeof showToast === 'function') {
+                showToast('Đã thêm sản phẩm vào giỏ hàng thành công!');
+            } else {
+                alert('Đã thêm sản phẩm vào giỏ hàng thành công!');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Đã thêm sản phẩm vào giỏ hàng!');
+        }
+    }
+
+    async function buyNowFromDetail() {
+        await addToCartFromDetail();
+        window.location.href = '/CartAndOrders/Index';
+    }
+</script>
+<script src="~/js/product-detail.js" asp-append-version="true"></script>
 }

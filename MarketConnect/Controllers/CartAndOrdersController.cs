@@ -94,10 +94,10 @@ namespace MarketConnect.Controllers
 
         // POST: /CartAndOrders/SubmitPurchaseRequests
         [HttpPost]
-        public async Task<IActionResult> SubmitPurchaseRequests(string buyerName, string buyerPhone)
+        public async Task<IActionResult> SubmitPurchaseRequests(string buyerName, string buyerPhone, string? preferredPickupMethod = null)
         {
             int buyerId = await GetCurrentUserIdAsync();
-            var requests = await _cartService.CreatePurchaseRequestsFromCartAsync(buyerId, buyerName, buyerPhone);
+            var requests = await _cartService.CreatePurchaseRequestsFromCartAsync(buyerId, buyerName, buyerPhone, null, preferredPickupMethod);
             TempData["SuccessMessage"] = $"Đã gửi thành công {requests.Count} yêu cầu đặt mua tới các tiểu thương tương ứng!";
             return RedirectToAction("BuyerRequests");
         }
@@ -121,7 +121,16 @@ namespace MarketConnect.Controllers
             }
 
             var myStore = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Stores, s => s.UserId == currentUser.Id);
-            int targetStoreId = storeId ?? (myStore != null ? myStore.Id : 1);
+            if (myStore == null && !storeId.HasValue)
+            {
+                ViewBag.NoStore = true;
+                ViewBag.StoreId = 0;
+                ViewBag.MyStore = null;
+                ViewBag.UserRole = currentUser.Role;
+                return View(new List<MarketConnect.Data.PurchaseRequest>());
+            }
+
+            int targetStoreId = storeId ?? myStore!.Id;
 
             var requests = await _cartService.GetPurchaseRequestsForMerchantStoreAsync(targetStoreId);
             ViewBag.StoreId = targetStoreId;
@@ -134,8 +143,26 @@ namespace MarketConnect.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateRequestStatus(int requestId, PurchaseRequestStatus status)
         {
-            await _cartService.UpdateRequestStatusAsync(requestId, status);
+            var req = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.PurchaseRequests, r => r.Id == requestId);
+            if (req != null)
+            {
+                await _cartService.UpdateRequestStatusAsync(requestId, status);
+                return RedirectToAction("MerchantRequests", new { storeId = req.StoreId });
+            }
             return RedirectToAction("MerchantRequests");
+        }
+
+        // POST: /CartAndOrders/UpdateRequestStatusJson
+        [HttpPost]
+        public async Task<IActionResult> UpdateRequestStatusJson(int requestId, PurchaseRequestStatus status)
+        {
+            var req = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.PurchaseRequests, r => r.Id == requestId);
+            if (req != null)
+            {
+                await _cartService.UpdateRequestStatusAsync(requestId, status);
+                return Json(new { success = true });
+            }
+            return Json(new { success = false });
         }
     }
 }

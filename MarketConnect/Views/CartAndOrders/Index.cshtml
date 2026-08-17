@@ -80,18 +80,29 @@
                     <span class="material-symbols-outlined text-amber-300">send</span> Xác Nhận Thông Tin Để Gửi Yêu Cầu Đặt Mua
                 </h3>
 
-                <form method="post" action="/CartAndOrders/SubmitPurchaseRequests" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                    <div>
-                        <label class="block text-xs font-bold text-emerald-200 mb-1">Họ và Tên Người Mua (*)</label>
-                        <input type="text" id="cartBuyerName" name="buyerName" required placeholder="Nhập họ và tên" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/50 outline-none focus:border-amber-300" />
+                <form method="post" action="/CartAndOrders/SubmitPurchaseRequests" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-emerald-200 mb-1">Họ và Tên Người Mua (*)</label>
+                            <input type="text" id="cartBuyerName" name="buyerName" required placeholder="Nhập họ và tên" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/50 outline-none focus:border-amber-300" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-emerald-200 mb-1">Số Điện Thoại Liên Hệ (*)</label>
+                            <input type="tel" id="cartBuyerPhone" name="buyerPhone" required placeholder="Nhập số điện thoại" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/50 outline-none focus:border-amber-300" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-emerald-200 mb-1">Phương Thức Nhận Hàng Mong Muốn (*)</label>
+                            <select name="preferredPickupMethod" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-amber-300 cursor-pointer">
+                                <option value="Giao tận nơi" class="text-gray-900 font-medium">🚚 Giao tận nơi</option>
+                                <option value="Nhận tại điểm bán" class="text-gray-900 font-medium">🏪 Nhận tại điểm bán</option>
+                                <option value="Thỏa thuận điểm nhận" class="text-gray-900 font-medium">🤝 Thỏa thuận điểm nhận</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-emerald-200 mb-1">Số Điện Thoại Liên Hệ (*)</label>
-                        <input type="tel" id="cartBuyerPhone" name="buyerPhone" required placeholder="Nhập số điện thoại" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/50 outline-none focus:border-amber-300" />
-                    </div>
-                    <div>
-                        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-2.5 rounded-xl text-xs transition-all shadow-md active:scale-95 cursor-pointer">
-                            Tách Giỏ & Gửi @Model.Count Yêu Cầu Độc Lập
+                    <div class="pt-2 flex justify-end">
+                        <button type="submit" class="w-full md:w-auto px-8 bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3 rounded-xl text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">send</span>
+                            <span>Tách Giỏ & Gửi @Model.Count Yêu Cầu Độc Lập</span>
                         </button>
                     </div>
                 </form>

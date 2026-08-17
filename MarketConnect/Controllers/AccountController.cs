@@ -163,9 +163,9 @@ namespace MarketConnect.Controllers
                 .Where(s => s.UserId == user.Id)
                 .OrderByDescending(s => s.CreatedAt));
 
-            // Cập nhật phân quyền Role: Chuyển sang Merchant nếu người dùng này có gian hàng đã được duyệt APPROVED
-            bool hasApprovedStore = userStores.Any(s => s.Status == StoreStatus.Approved);
-            if (hasApprovedStore && user.Role == UserRole.Buyer)
+            // Cập nhật phân quyền Role: Chuyển sang Merchant nếu người dùng này có gian hàng
+            bool hasStore = userStores.Any();
+            if (hasStore && user.Role == UserRole.Buyer)
             {
                 user.Role = UserRole.Merchant;
                 _db.Users.Update(user);
@@ -222,6 +222,20 @@ namespace MarketConnect.Controllers
                 return Unauthorized(new { message = "Chưa đăng nhập hoặc phiên làm việc hết hạn." });
             }
 
+            var userStores = await _db.Stores
+                .Where(s => s.UserId == user.Id)
+                .OrderByDescending(s => s.CreatedAt)
+                .Select(s => new { s.Id, s.StoreName, status = s.Status.ToString() })
+                .ToListAsync();
+
+            bool isMerchant = user.Role == UserRole.Merchant || userStores.Any();
+            if (userStores.Any() && user.Role == UserRole.Buyer)
+            {
+                user.Role = UserRole.Merchant;
+                _db.Users.Update(user);
+                await _db.SaveChangesAsync();
+            }
+
             return Ok(new
             {
                 fullName = user.Name,
@@ -230,8 +244,123 @@ namespace MarketConnect.Controllers
                 gender = user.Gender,
                 dateOfBirth = user.DateOfBirth?.ToString("yyyy-MM-dd"),
                 hasPassword = !string.IsNullOrEmpty(user.PasswordHash),
-                role = user.Role.ToString()
+                role = user.Role.ToString(),
+                isMerchant = isMerchant,
+                stores = userStores
             });
+        }
+
+        [HttpGet("Account/LoginHistory")]
+        public async Task<IActionResult> LoginHistory()
+        {
+            User? currentUser = await GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            string currentDevice = ParseUserAgent(userAgent);
+            string currentIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "113.190.24.12";
+
+            var sessions = await _db.UserSessions
+                .Where(s => s.UserId == currentUser.Id && s.IsActive)
+                .OrderByDescending(s => s.LoginTime)
+                .ToListAsync();
+
+            var currentSess = sessions.FirstOrDefault(s => s.DeviceName == currentDevice);
+            if (currentSess == null)
+            {
+                foreach (var s in sessions)
+                {
+                    s.IsCurrentSession = false;
+                }
+
+                currentSess = new UserSession
+                {
+                    UserId = currentUser.Id,
+                    DeviceName = currentDevice,
+                    IpAddress = currentIp,
+                    Location = "Hanoi, Viet Nam",
+                    IsCurrentSession = true,
+                    IsActive = true,
+                    LoginTime = DateTime.UtcNow,
+                    LastActiveTime = DateTime.UtcNow
+                };
+
+                _db.UserSessions.Add(currentSess);
+                await _db.SaveChangesAsync();
+
+                sessions = await _db.UserSessions
+                    .Where(s => s.UserId == currentUser.Id && s.IsActive)
+                    .OrderByDescending(s => s.LoginTime)
+                    .ToListAsync();
+            }
+            else
+            {
+                foreach (var s in sessions)
+                {
+                    s.IsCurrentSession = (s.Id == currentSess.Id);
+                }
+                currentSess.LastActiveTime = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+            }
+
+            ViewBag.CurrentUser = currentUser;
+            return View(sessions);
+        }
+
+        [HttpPost("Account/LogoutSession")]
+        public async Task<IActionResult> LogoutSession(int sessionId)
+        {
+            User? currentUser = await GetCurrentUserAsync();
+            if (currentUser != null)
+            {
+                var session = await _db.UserSessions.FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == currentUser.Id);
+                if (session != null)
+                {
+                    session.IsActive = false;
+                    await _db.SaveChangesAsync();
+                }
+            }
+
+            return RedirectToAction("LoginHistory");
+        }
+
+        [HttpPost("Account/LogoutAllSessions")]
+        public async Task<IActionResult> LogoutAllSessions()
+        {
+            User? currentUser = await GetCurrentUserAsync();
+            if (currentUser != null)
+            {
+                var otherSessions = await _db.UserSessions.Where(s => s.UserId == currentUser.Id && !s.IsCurrentSession).ToListAsync();
+                foreach (var sess in otherSessions)
+                {
+                    sess.IsActive = false;
+                }
+                await _db.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Đã đăng xuất thành công khỏi tất cả các thiết bị khác!";
+            }
+
+            return RedirectToAction("LoginHistory");
+        }
+
+        private string ParseUserAgent(string? userAgent)
+        {
+            if (string.IsNullOrWhiteSpace(userAgent)) return "Windows 10.0 (Chrome 151.0.0.0)";
+
+            string os = "Windows 10.0";
+            if (userAgent.Contains("Android")) os = "Android 14";
+            else if (userAgent.Contains("iPhone") || userAgent.Contains("iPad")) os = "iOS 18.0";
+            else if (userAgent.Contains("Macintosh")) os = "macOS Sequoia";
+            else if (userAgent.Contains("Linux")) os = "Linux x86_64";
+
+            string browser = "Chrome 151.0.0.0";
+            if (userAgent.Contains("Edg/")) browser = "Edge 122.0";
+            else if (userAgent.Contains("Firefox/")) browser = "Firefox 125.0";
+            else if (userAgent.Contains("Safari/") && !userAgent.Contains("Chrome/")) browser = "Safari 17.4";
+
+            return $"{os} ({browser})";
         }
 
         private async Task<User?> GetCurrentUserAsync()

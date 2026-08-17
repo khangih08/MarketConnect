@@ -46,6 +46,7 @@ namespace MarketConnect.Data
         public DbSet<SellerCallRequest> SellerCallRequests { get; set; } = null!;
 
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+        public DbSet<UserSession> UserSessions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

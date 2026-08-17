@@ -307,6 +307,18 @@ namespace MarketConnect.Data
                         ""IpHash"" VARCHAR(64),
                         ""Timestamp"" TIMESTAMP DEFAULT NOW()
                     );
+
+                    CREATE TABLE IF NOT EXISTS ""UserSessions"" (
+                        ""Id"" SERIAL PRIMARY KEY,
+                        ""UserId"" INT NOT NULL,
+                        ""DeviceName"" VARCHAR(255) NOT NULL,
+                        ""IpAddress"" VARCHAR(100),
+                        ""Location"" VARCHAR(150),
+                        ""IsCurrentSession"" BOOLEAN DEFAULT FALSE,
+                        ""IsActive"" BOOLEAN DEFAULT TRUE,
+                        ""LoginTime"" TIMESTAMP DEFAULT NOW(),
+                        ""LastActiveTime"" TIMESTAMP DEFAULT NOW()
+                    );
                 ");
             }
             catch (Exception ex)

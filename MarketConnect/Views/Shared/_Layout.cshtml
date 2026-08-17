@@ -125,6 +125,34 @@
                 <div id="topbar_auth_zone" class="flex items-center gap-2">
                     @if (User.Identity != null && User.Identity.IsAuthenticated)
                     {
+                        bool isMerchantUser = User.IsInRole("Merchant") || User.IsInRole("Admin");
+                        if (!isMerchantUser)
+                        {
+                            int checkUserId = 0;
+                            if (Context.Request.Cookies.TryGetValue("user_id", out var cUid) && int.TryParse(cUid, out int pUid))
+                            {
+                                checkUserId = pUid;
+                            }
+                            if (checkUserId == 0 && User.Identity != null && User.Identity.IsAuthenticated)
+                            {
+                                var subClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                if (int.TryParse(subClaim, out int pId)) checkUserId = pId;
+                            }
+
+                            if (checkUserId > 0)
+                            {
+                                var db = Context.RequestServices.GetService(typeof(MarketConnect.Data.ApplicationDbContext)) as MarketConnect.Data.ApplicationDbContext;
+                                if (db != null)
+                                {
+                                    var u = db.Users.FirstOrDefault(x => x.Id == checkUserId);
+                                    if (u != null)
+                                    {
+                                        isMerchantUser = u.Role == MarketConnect.Data.UserRole.Merchant || db.Stores.Any(s => s.UserId == checkUserId);
+                                    }
+                                }
+                            }
+                        }
+
                         <!-- Khi đã đăng nhập: Hiện cụm tên và Menu Dropdown Hover -->
                         <div class="relative group user-menu-container">
                             <a class="flex items-center gap-1.5 font-medium hover:text-orange-400 cursor-pointer py-1 text-xs">
@@ -134,31 +162,67 @@
                             </a>
 
                             <!-- Dropdown Menu xuất hiện khi Hover vào cụm tên -->
-                            <div class="absolute right-0 top-full mt-1 w-52 bg-white text-gray-800 rounded-2xl shadow-xl py-1.5 hidden group-hover:block z-50 user-dropdown-menu border border-gray-100">
-                                <a href="/Account/Profile" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 font-semibold transition-colors">
-                                    <span class="material-symbols-outlined text-[16px] text-emerald-700">account_box</span> Quản lý hồ sơ
+                            <div class="absolute right-0 top-full mt-1 w-60 bg-white text-gray-800 rounded-2xl shadow-2xl py-2 hidden group-hover:block z-50 user-dropdown-menu border border-gray-100 text-xs">
+                                
+                                <!-- PHẦN 1: CÀI ĐẶT TÀI KHOẢN CÁ NHÂN (Ở TRÊN) -->
+                                <div class="px-3.5 py-1 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px] text-gray-400">manage_accounts</span>
+                                    <span>TÀI KHOẢN CÁ NHÂN</span>
+                                </div>
+                                <a href="/Account/Profile" class="flex items-center gap-2.5 px-4 py-2 hover:bg-emerald-50 hover:text-emerald-800 font-semibold transition-colors">
+                                    <span class="material-symbols-outlined text-[18px] text-emerald-700">account_box</span> Quản lý hồ sơ
                                 </a>
-                                <a href="/CartAndOrders/MerchantRequests" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 font-bold text-amber-600 transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">inbox</span> Đơn đặt mua gửi đến quầy
+                                <a href="/Account/ChangePassword" class="flex items-center gap-2.5 px-4 py-2 hover:bg-emerald-50 hover:text-emerald-800 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px] text-emerald-700">lock</span> Cài đặt & Đổi mật khẩu
                                 </a>
-                                <a href="/Stores/Create" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 font-bold text-emerald-800 transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">storefront</span> Đăng ký bán hàng
+                                <a href="/CartAndOrders/BuyerRequests" class="flex items-center gap-2.5 px-4 py-2 hover:bg-emerald-50 hover:text-emerald-800 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px] text-emerald-700">shopping_bag</span> Lịch sử mua hàng của tôi
                                 </a>
-                                <a href="/Account/Profile" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">settings</span> Cài đặt tài khoản
+                                <a href="/Help" class="flex items-center gap-2.5 px-4 py-2 hover:bg-emerald-50 hover:text-emerald-800 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px] text-blue-600">help_center</span> Trợ giúp
                                 </a>
-                                <a href="/Help" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">help_center</span> Trợ giúp
+                                <a href="/Feedback" class="flex items-center gap-2.5 px-4 py-2 hover:bg-emerald-50 hover:text-emerald-800 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px] text-amber-600">rate_review</span> Đóng góp ý kiến
                                 </a>
-                                <a href="/Feedback" class="flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-gray-100 hover:text-orange-500 transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">rate_review</span> Đóng góp ý kiến
-                                </a>
-                                <div class="border-t border-gray-100 my-1"></div>
+
+                                <div class="border-t border-gray-100 my-1.5"></div>
+
+                                <!-- PHẦN 2: TRẠNG THÁI GIAN HÀNG & KÊNH TIỂU THƯƠNG (Ở DƯỚI) -->
+                                @if (isMerchantUser)
+                                {
+                                    <div class="px-3.5 py-1 text-[10px] font-extrabold text-amber-700 uppercase tracking-wider flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px] text-amber-600">storefront</span>
+                                        <span>KÊNH TIỂU THƯƠNG / GIAN HÀNG</span>
+                                    </div>
+                                    <a href="/CartAndOrders/MerchantRequests" class="flex items-center justify-between px-4 py-2 hover:bg-amber-50 hover:text-amber-900 font-bold text-amber-800 transition-colors">
+                                        <div class="flex items-center gap-2.5">
+                                            <span class="material-symbols-outlined text-[18px] text-amber-600">inbox</span> Đơn đặt mua gửi đến quầy
+                                        </div>
+                                    </a>
+                                    <a href="/Account/Profile" class="flex items-center gap-2.5 px-4 py-2 hover:bg-emerald-50 hover:text-emerald-800 transition-colors font-medium">
+                                        <span class="material-symbols-outlined text-[18px] text-emerald-800">store</span> Quản lý gian hàng của tôi
+                                    </a>
+                                    <a href="/Stores/Create" class="flex items-center gap-2.5 px-4 py-2 hover:bg-emerald-50 hover:text-emerald-800 transition-colors text-emerald-800">
+                                        <span class="material-symbols-outlined text-[18px]">add_business</span> Đăng ký thêm gian hàng
+                                    </a>
+                                }
+                                else
+                                {
+                                    <div class="px-3.5 py-1 text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px] text-emerald-600">storefront</span>
+                                        <span>MỞ GIAN HÀNG BÁN HÀNG</span>
+                                    </div>
+                                    <a href="/Stores/Create" class="flex items-center gap-2.5 px-4 py-2 hover:bg-emerald-50 text-emerald-800 font-bold transition-colors">
+                                        <span class="material-symbols-outlined text-[18px] text-emerald-700">storefront</span> Đăng ký trở thành tiểu thương
+                                    </a>
+                                }
+
+                                <div class="border-t border-gray-100 my-1.5"></div>
 
                                 <!-- Form Logout ẩn chuẩn bảo mật Method POST -->
                                 <form id="logoutForm" action="/Account/Logout" method="post" class="hidden"></form>
-                                <a href="javascript:document.getElementById('logoutForm').submit();" class="flex items-center gap-2 px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">logout</span> Đăng xuất
+                                <a href="javascript:document.getElementById('logoutForm').submit();" class="flex items-center gap-2.5 px-4 py-2 text-red-600 hover:bg-red-50 font-semibold transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">logout</span> Đăng xuất
                                 </a>
                             </div>
                         </div>

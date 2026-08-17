@@ -20,7 +20,7 @@ namespace MarketConnect.Services
         Task<CartItem> AddToCartAsync(int buyerId, int productId, int quantity, string? options, string? note);
         Task<List<CartGroupDto>> GetCartGroupedByMerchantAsync(int buyerId);
         Task<bool> RemoveFromCartAsync(int cartItemId, int buyerId);
-        Task<List<PurchaseRequest>> CreatePurchaseRequestsFromCartAsync(int buyerId, string buyerName, string buyerPhone, Dictionary<int, string>? storeNotes = null);
+        Task<List<PurchaseRequest>> CreatePurchaseRequestsFromCartAsync(int buyerId, string buyerName, string buyerPhone, Dictionary<int, string>? storeNotes = null, string? preferredPickupMethod = null);
         Task<List<PurchaseRequest>> GetPurchaseRequestsForBuyerAsync(int buyerId);
         Task<List<PurchaseRequest>> GetPurchaseRequestsForMerchantStoreAsync(int storeId);
         Task<bool> UpdateRequestStatusAsync(int requestId, PurchaseRequestStatus newStatus);

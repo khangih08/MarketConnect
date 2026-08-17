@@ -1,0 +1,39 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Đóng Góp Ý Kiến | MarketConnect";
+}
+
+<main class="max-w-[1440px] mx-auto w-full px-4 md:px-16 py-8">
+    <div class="max-w-2xl mx-auto bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+        <div class="border-b border-gray-100 pb-4">
+            <h1 class="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500">rate_review</span> Đóng Góp Ý Kiến Phản Hồi
+            </h1>
+            <p class="text-xs text-gray-500 mt-1">Ý kiến đóng góp của bạn giúp MarketConnect nâng cao chất lượng dịch vụ chợ nông sản mỗi ngày.</p>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-600">check_circle</span>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        }
+
+        <form action="/Feedback/Submit" method="post" class="space-y-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-bold text-gray-700" for="email">Email hoặc Số điện thoại liên hệ (Không bắt buộc)</label>
+                <input type="text" name="email" id="email" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-emerald-700" placeholder="ví dụ: 0987xxxxxx hoặc user@gmail.com" />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-bold text-gray-700" for="content">Nội dung góp ý / Phản hồi (*)</label>
+                <textarea required name="content" id="content" rows="5" class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-xs outline-none focus:border-emerald-700" placeholder="Hãy mô tả chi tiết góp ý của bạn hoặc vấn đề bạn gặp phải..."></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-[#004532] hover:bg-[#065f46] text-white font-bold text-xs py-3 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer">
+                Gửi Đóng Góp Ý Kiến
+            </button>
+        </form>
+    </div>
+</main>

@@ -100,7 +100,7 @@ namespace MarketConnect.Services
             return true;
         }
 
-        public async Task<List<PurchaseRequest>> CreatePurchaseRequestsFromCartAsync(int buyerId, string buyerName, string buyerPhone, Dictionary<int, string>? storeNotes = null)
+        public async Task<List<PurchaseRequest>> CreatePurchaseRequestsFromCartAsync(int buyerId, string buyerName, string buyerPhone, Dictionary<int, string>? storeNotes = null, string? preferredPickupMethod = null)
         {
             var cartGroups = await GetCartGroupedByMerchantAsync(buyerId);
             if (!cartGroups.Any()) return new List<PurchaseRequest>();
@@ -120,7 +120,7 @@ namespace MarketConnect.Services
                     Status = PurchaseRequestStatus.Sent,
                     BuyerName = buyerName,
                     BuyerPhone = buyerPhone,
-                    PreferredPickupMethod = group.PickupMethods,
+                    PreferredPickupMethod = !string.IsNullOrWhiteSpace(preferredPickupMethod) ? preferredPickupMethod : group.PickupMethods,
                     Note = noteForStore,
                     ReferenceTotalPrice = group.ReferenceTotal,
                     CreatedAt = DateTime.UtcNow,
@@ -162,7 +162,8 @@ namespace MarketConnect.Services
         {
             return await _db.PurchaseRequests
                 .Include(r => r.Buyer)
-                .Include(r => r.Items)
+                .Include(r => r.Items)!
+                    .ThenInclude(i => i.Product)
                 .Where(r => r.StoreId == storeId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
