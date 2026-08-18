@@ -11,5 +11,6 @@ namespace MarketConnect.Controllers.Dtos
         public string Email { get; set; } = null!;
         public DateTime ExpiresAt { get; set; }
         public string FullName { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
     }
 }

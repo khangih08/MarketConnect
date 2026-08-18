@@ -681,6 +681,88 @@ namespace MarketConnect.Data
                 };
                 db.Users.Add(streetVendorUser);
             }
+
+            var modNhanChinh = await db.Users.FirstOrDefaultAsync(u => u.Email == "mod_nhanchinh@choviet.vn" || u.Phone == "0911000001");
+            if (modNhanChinh == null)
+            {
+                modNhanChinh = new User
+                {
+                    Email = "mod_nhanchinh@choviet.vn",
+                    PasswordHash = "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+                    Name = "Kiểm Duyệt Viên Chợ Nhân Chính",
+                    Phone = "0911000001",
+                    Role = UserRole.Moderator,
+                    Address = "Chợ Nhân Chính, Hà Nội",
+                    AccessFailedCount = 0,
+                    LockoutEnd = null
+                };
+                db.Users.Add(modNhanChinh);
+            }
+            else
+            {
+                modNhanChinh.Email = "mod_nhanchinh@choviet.vn";
+                modNhanChinh.Phone = "0911000001";
+                modNhanChinh.PasswordHash = "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+                modNhanChinh.Role = UserRole.Moderator;
+                modNhanChinh.AccessFailedCount = 0;
+                modNhanChinh.LockoutEnd = null;
+                db.Users.Update(modNhanChinh);
+            }
+
+            var modDongXuan = await db.Users.FirstOrDefaultAsync(u => u.Email == "mod_dongxuan@choviet.vn" || u.Phone == "0911000002");
+            if (modDongXuan == null)
+            {
+                modDongXuan = new User
+                {
+                    Email = "mod_dongxuan@choviet.vn",
+                    PasswordHash = "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+                    Name = "Kiểm Duyệt Viên Chợ Đồng Xuân",
+                    Phone = "0911000002",
+                    Role = UserRole.Moderator,
+                    Address = "Chợ Đồng Xuân, Hà Nội",
+                    AccessFailedCount = 0,
+                    LockoutEnd = null
+                };
+                db.Users.Add(modDongXuan);
+            }
+            else
+            {
+                modDongXuan.Email = "mod_dongxuan@choviet.vn";
+                modDongXuan.Phone = "0911000002";
+                modDongXuan.PasswordHash = "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+                modDongXuan.Role = UserRole.Moderator;
+                modDongXuan.AccessFailedCount = 0;
+                modDongXuan.LockoutEnd = null;
+                db.Users.Update(modDongXuan);
+            }
+
+            await db.SaveChangesAsync();
+
+            // 4b. Seed AdminScopes cho Moderator Chợ Nhân Chính & Chợ Đồng Xuân
+            var mNhanChinh = await db.Markets.FirstOrDefaultAsync(m => m.Slug == "cho-nhan-chinh") ?? await db.Markets.FirstAsync();
+            var mDongXuan = await db.Markets.FirstOrDefaultAsync(m => m.Slug == "cho-dong-xuan") ?? await db.Markets.Skip(1).FirstOrDefaultAsync() ?? mNhanChinh;
+
+            if (!await db.AdminScopes.AnyAsync(s => s.UserId == modNhanChinh.Id))
+            {
+                db.AdminScopes.Add(new AdminScope
+                {
+                    UserId = modNhanChinh.Id,
+                    ScopeLevel = ScopeLevel.Market,
+                    MarketId = mNhanChinh.Id,
+                    ProvinceId = mNhanChinh.ProvinceId
+                });
+            }
+
+            if (!await db.AdminScopes.AnyAsync(s => s.UserId == modDongXuan.Id))
+            {
+                db.AdminScopes.Add(new AdminScope
+                {
+                    UserId = modDongXuan.Id,
+                    ScopeLevel = ScopeLevel.Market,
+                    MarketId = mDongXuan.Id,
+                    ProvinceId = mDongXuan.ProvinceId
+                });
+            }
             await db.SaveChangesAsync();
 
             // 5. Seed Merchant Store
@@ -821,6 +903,85 @@ namespace MarketConnect.Data
                        CreatedAt = DateTime.Now
                    }
                 );
+                await db.SaveChangesAsync();
+            }
+
+            // 8b. Seed sample ModerationCases & ContentVersions cho Chợ Nhân Chính & Chợ Đồng Xuân
+            if (!await db.ModerationCases.AnyAsync())
+            {
+                var pNhanChinh = await db.Products.FirstOrDefaultAsync(p => p.Address != null && p.Address.Contains("Nhân Chính")) ?? await db.Products.FirstOrDefaultAsync();
+                var pDongXuan = await db.Products.FirstOrDefaultAsync(p => p.Address != null && p.Address.Contains("Đồng Xuân")) ?? await db.Products.Skip(1).FirstOrDefaultAsync() ?? pNhanChinh;
+
+                int pNhanChinhId = pNhanChinh?.Id ?? 1;
+                int pDongXuanId = pDongXuan?.Id ?? 2;
+
+                var case1 = new ModerationCase
+                {
+                    EntityType = "Product",
+                    EntityId = pNhanChinhId,
+                    RiskScore = 65,
+                    RiskLevel = RiskLevel.High,
+                    TriggeredRulesJson = "[\"UNAUTHORIZED_CONTACT: Chứa số điện thoại cá nhân 0912345678\", \"PRICE_ANOMALY: Giá bán chênh lệch 30%\"]",
+                    RuleResultsJson = "{\"UNAUTHORIZED_CONTACT\":\"FAILED\",\"PRICE_ANOMALY\":\"FAILED\"}",
+                    Decision = ModerationDecision.MediumRiskManualQueue,
+                    Status = ModerationStatus.PendingManualReview,
+                    CurrentVersionNumber = 2,
+                    MarketId = mNhanChinh.Id,
+                    ProvinceId = mNhanChinh.ProvinceId,
+                    ContentSnapshotJson = "{\"Name\":\"Táo Envy Mỹ Nhập Khẩu Tươi Giòn (Đã Sửa)\",\"Price\":120000,\"Phone\":\"0912345678\",\"Description\":\"Bán sỉ lẻ táo Envy nhập khẩu trực tiếp. Liên hệ Zalo 0912345678.\"}",
+                    CreatedAt = DateTime.UtcNow.AddHours(-2)
+                };
+
+                var case2 = new ModerationCase
+                {
+                    EntityType = "Product",
+                    EntityId = pDongXuanId,
+                    RiskScore = 45,
+                    RiskLevel = RiskLevel.Medium,
+                    TriggeredRulesJson = "[\"PRICE_ANOMALY: Đơn giá rau củ thấp hơn mặt bằng chung\"]",
+                    RuleResultsJson = "{\"PRICE_ANOMALY\":\"FAILED\"}",
+                    Decision = ModerationDecision.MediumRiskManualQueue,
+                    Status = ModerationStatus.PendingManualReview,
+                    CurrentVersionNumber = 1,
+                    MarketId = mDongXuan.Id,
+                    ProvinceId = mDongXuan.ProvinceId,
+                    ContentSnapshotJson = "{\"Name\":\"Cam Sành Tiền Giang Mọng Nước 2kg\",\"Price\":45000,\"Description\":\"Cam sành vắt nước vỏ mỏng tươi ngon.\"}",
+                    CreatedAt = DateTime.UtcNow.AddHours(-1)
+                };
+
+                db.ModerationCases.AddRange(case1, case2);
+                await db.SaveChangesAsync();
+
+                // Seed ContentVersion cho case 1 (Version 1 & Version 2)
+                db.ContentVersions.AddRange(
+                    new ContentVersion
+                    {
+                        EntityName = "Product",
+                        EntityId = pNhanChinhId,
+                        VersionNumber = 1,
+                        SnapshotJson = "{\"Name\":\"Táo Envy Mỹ Nhập Khẩu Tươi Giòn (Bản Gốc)\",\"Price\":150000,\"Description\":\"Táo Envy loại 1 thơm ngon.\",\"Phone\":\"\"}",
+                        CreatedAt = DateTime.UtcNow.AddDays(-1)
+                    },
+                    new ContentVersion
+                    {
+                        EntityName = "Product",
+                        EntityId = pNhanChinhId,
+                        VersionNumber = 2,
+                        SnapshotJson = "{\"Name\":\"Táo Envy Mỹ Nhập Khẩu Tươi Giòn (Đã Sửa)\",\"Price\":120000,\"Description\":\"Bán sỉ lẻ táo Envy nhập khẩu trực tiếp. Liên hệ Zalo 0912345678.\",\"Phone\":\"0912345678\"}",
+                        CreatedAt = DateTime.UtcNow.AddHours(-2)
+                    }
+                );
+
+                // Seed ModerationAppeals mẫu
+                db.ModerationAppeals.Add(new ModerationAppeal
+                {
+                    CaseId = case1.Id,
+                    MerchantId = merchantUser.Id,
+                    Reason = "Kính gửi Ban quản lý Chợ, thông tin số điện thoại của gian hàng tôi đã được xác minh chính chủ, kính mong BQL xem xét phê duyệt sản phẩm Táo Envy.",
+                    Status = ModerationAppealStatus.Pending,
+                    CreatedAt = DateTime.UtcNow.AddMinutes(-30)
+                });
+
                 await db.SaveChangesAsync();
             }
 

@@ -103,8 +103,36 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9iaWxlVmVuZG9yc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Moderation/Appeals.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9kZXJhdGlvblxBcHBlYWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Moderation/AuditLogs.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9kZXJhdGlvblxBdWRpdExvZ3MuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Moderation/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9kZXJhdGlvblxEYXNoYm9hcmQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/Moderation/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9kZXJhdGlvblxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Moderation/Markets.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9kZXJhdGlvblxNYXJrZXRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Moderation/Merchants.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9kZXJhdGlvblxNZXJjaGFudHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Moderation/RulesConfig.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9kZXJhdGlvblxSdWxlc0NvbmZpZy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Moderation/Users.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9kZXJhdGlvblxVc2Vycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/Product/CategoryList.cshtml]
@@ -121,6 +149,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/URL-Shortener/MarketConnect/MarketConnect/Views/Shared/_AdminLayout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9BZG1pbkxheW91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/URL-Shortener/MarketConnect/MarketConnect/Views/Shared/_ValidationScriptsPartial.cshtml]

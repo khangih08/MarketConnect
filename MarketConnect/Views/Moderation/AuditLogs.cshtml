@@ -1,0 +1,68 @@
+@model List<MarketConnect.Data.AuditLog>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Nhật Ký Thao Tác Hệ Thống (Audit Logs)";
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-800 text-3xl">receipt_long</span>
+                <span>Nhật Ký Thao Tác Quản Trị (System Audit Logs)</span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Ghi nhận toàn bộ lịch sử thao tác của Admin/Moderator (Đăng nhập, duyệt, từ chối, thay đổi quyền, gán scope, ghi đè).</p>
+        </div>
+    </div>
+
+    <!-- Audit Logs Table -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-extrabold text-sm text-slate-900 uppercase">Nhật Ký Thao Tác Gần Đây</h3>
+            <span class="text-xs font-bold text-slate-500">Hiển thị: @Model.Count bản ghi</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700 border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-900 font-extrabold uppercase tracking-wider text-[11px]">
+                        <th class="p-3.5">Thời Gian</th>
+                        <th class="p-3.5">Người Thực Hiện / Vai Trò</th>
+                        <th class="p-3.5">Hành Động (Action)</th>
+                        <th class="p-3.5">Thực Thể</th>
+                        <th class="p-3.5">Chi Tiết Thay Đổi (Details)</th>
+                        <th class="p-3.5">Địa Chỉ IP</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-mono">
+                    @foreach (var log in Model)
+                    {
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="p-3.5 text-slate-500 font-medium">
+                                @log.Timestamp.AddHours(7).ToString("HH:mm:ss dd/MM/yyyy")
+                            </td>
+                            <td class="p-3.5 font-sans">
+                                <div class="font-extrabold text-slate-900">User ID:#@(log.UserId ?? 1)</div>
+                                <div class="text-[10px] font-black text-emerald-800">@(log.UserRole ?? "Admin")</div>
+                            </td>
+                            <td class="p-3.5">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300">
+                                    @log.Action
+                                </span>
+                            </td>
+                            <td class="p-3.5 font-sans font-bold text-slate-800">
+                                @(log.EntityName ?? "Product") #@(log.EntityId ?? 0)
+                            </td>
+                            <td class="p-3.5 text-slate-700 max-w-xs truncate">
+                                @log.DetailsJson
+                            </td>
+                            <td class="p-3.5 text-slate-400">
+                                @(log.IpHash ?? "127.0.0.1")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

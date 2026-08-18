@@ -172,11 +172,13 @@ namespace MarketConnect.Controllers
                 Username = !string.IsNullOrEmpty(authData.FullName) ? authData.FullName : authData.Email.Split('@')[0],
                 Email = authData.Email,
                 ExpiresAt = authData.ExpiresAt,
-                FullName = authData.FullName
+                FullName = authData.FullName,
+                Role = authData.Role.ToString()
             };
 
             // Đính kèm Response Cookies để giữ phiên đăng nhập trên toàn bộ giao diện ASP.NET Core
             Response.Cookies.Append("user_id", authData.UserId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+            Response.Cookies.Append("user_role", authData.Role.ToString(), new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
             if (!string.IsNullOrEmpty(outDto.Email))
             {
                 Response.Cookies.Append("user_email", outDto.Email, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });

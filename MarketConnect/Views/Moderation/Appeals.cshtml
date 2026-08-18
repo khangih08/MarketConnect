@@ -1,0 +1,70 @@
+@model List<MarketConnect.Data.ModerationAppeal>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Hàng Đợi Khiếu Nại Từ Tiểu Thương (Moderation Appeals)";
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-800 text-3xl">mark_email_unread</span>
+                <span>Hàng Đợi Xử Lý Khiếu Nại (Moderation Appeals)</span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Xem xét các đơn khiếu nại từ tiểu thương đối với quyết định tự động Auto Rejected hoặc Từ Chối kiểm duyệt.</p>
+        </div>
+    </div>
+
+    <!-- Appeals Queue List -->
+    <div class="space-y-4">
+        @if (!Model.Any())
+        {
+            <div class="bg-white p-12 rounded-3xl text-center text-slate-500 border border-slate-200 shadow-xs">
+                <span class="material-symbols-outlined text-5xl text-purple-600 block mb-2">mark_email_read</span>
+                Hiện tại không có đơn khiếu nại nào từ tiểu thương cần giải quyết.
+            </div>
+        }
+        else
+        {
+            @foreach (var app in Model)
+            {
+                <div class="bg-white p-6 rounded-3xl border border-purple-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 rounded-full text-xs font-black bg-purple-100 text-purple-900 border border-purple-300">
+                                CHỜ XỬ LÝ KHIẾU NẠI #@app.Id
+                            </span>
+                            <span class="font-extrabold text-sm text-slate-900">Thực thể/Case ID: #@app.CaseId</span>
+                        </div>
+                        <span class="text-xs font-bold text-slate-400 font-mono">@app.CreatedAt.AddHours(7).ToString("HH:mm dd/MM/yyyy")</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
+                        <div>
+                            <span class="font-extrabold text-purple-900 block mb-1">Thông tin tiểu thương gửi đơn:</span>
+                            <p class="text-slate-800"><strong>Họ tên:</strong> @(app.Merchant?.Name ?? "Tiểu thương")</p>
+                            <p class="text-slate-800"><strong>Email / SĐT:</strong> @app.Merchant?.Email (@(app.Merchant?.Phone ?? "Chưa có"))</p>
+                        </div>
+                        <div>
+                            <span class="font-extrabold text-purple-900 block mb-1">Lý do khiếu nại chi tiết:</span>
+                            <p class="text-slate-900 font-medium bg-white p-2.5 rounded-xl border border-purple-200">@app.Reason</p>
+                        </div>
+                    </div>
+
+                    <!-- Action form: Approve or Reject Appeal -->
+                    <form method="post" action="/Moderation/ReviewAppeal" class="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="appealId" value="@app.Id" />
+                        <input type="text" name="adminResponse" placeholder="Nhập lý do phản hồi cho tiểu thương..." required class="flex-grow bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none font-medium" />
+                        <button type="submit" name="decisionStatus" value="Accepted" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold px-4 py-2 rounded-xl text-xs cursor-pointer shadow-xs">
+                            [ ✓ Chấp Nhận Khiếu Nại ]
+                        </button>
+                        <button type="submit" name="decisionStatus" value="Rejected" class="bg-red-600 hover:bg-red-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs cursor-pointer shadow-xs">
+                            [ ✕ Từ Chối Khiếu Nại ]
+                        </button>
+                    </form>
+                </div>
+            }
+        }
+    </div>
+</div>

@@ -1,0 +1,73 @@
+@model List<MarketConnect.Data.Market>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản Lý Chợ Hệ Thống (Markets Management)";
+    var provinces = ViewBag.Provinces as List<MarketConnect.Data.Province> ?? new List<MarketConnect.Data.Province>();
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-800 text-3xl">storefront</span>
+                <span>Quản Lý Chợ & Phạm Vi Quản Trị Hệ Thống</span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Danh sách chợ, tiểu thương thuộc chợ và phân bổ quản trị viên phụ trách.</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between text-xs shadow-2xs">
+        <form method="get" action="/Moderation/Markets" class="flex items-center gap-3">
+            <span class="font-bold text-slate-700">Lọc theo Tỉnh/Thành:</span>
+            <select name="provinceId" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-bold outline-none">
+                <option value="">-- Tất cả Tỉnh/Thành --</option>
+                @foreach (var p in provinces)
+                {
+                    <option value="@p.Id" selected="@(ViewBag.SelectedProvinceId == p.Id)">@p.Name</option>
+                }
+            </select>
+        </form>
+        <span class="font-extrabold text-slate-600">Tổng cộng: @Model.Count Chợ</span>
+    </div>
+
+    <!-- Markets Table -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700 border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-900 font-extrabold uppercase tracking-wider text-[11px]">
+                        <th class="p-3.5">ID</th>
+                        <th class="p-3.5">Tên Chợ</th>
+                        <th class="p-3.5">Địa Chỉ / Phường</th>
+                        <th class="p-3.5">Tỉnh/Thành</th>
+                        <th class="p-3.5 text-right">Thao Tác Quản Trị</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach (var m in Model)
+                    {
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="p-3.5 font-bold text-slate-900">#@m.Id</td>
+                            <td class="p-3.5">
+                                <div class="font-extrabold text-slate-900 text-sm">@m.Name</div>
+                                <div class="text-[11px] text-slate-400 font-mono">Slug: @m.Slug</div>
+                            </td>
+                            <td class="p-3.5 font-medium text-slate-700">
+                                @(m.Address ?? "Chưa cập nhật địa chỉ")
+                            </td>
+                            <td class="p-3.5 font-bold text-slate-900">
+                                @(m.Province?.Name ?? "Hà Nội")
+                            </td>
+                            <td class="p-3.5 text-right">
+                                <a href="/AdminRole?marketId=@m.Id" class="px-3 py-1.5 bg-emerald-800 text-white font-extrabold rounded-xl text-[11px] inline-flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs">admin_panel_settings</span> Quản trị Scope &rarr;
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

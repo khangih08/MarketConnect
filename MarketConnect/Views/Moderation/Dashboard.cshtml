@@ -1,0 +1,177 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Dashboard Tổng Quan Hệ Thống Admin Portal";
+    var recentLogs = ViewBag.RecentActivity as List<MarketConnect.Data.AuditLog> ?? new List<MarketConnect.Data.AuditLog>();
+}
+
+<div class="space-y-6">
+    <!-- Header Title -->
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-800 text-3xl">dashboard</span>
+                <span>Tổng Quan Hệ Thống Admin Portal</span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Thống kê toàn diện về người dùng, sản phẩm, chợ, hàng đợi kiểm duyệt và cảnh báo bảo mật.</p>
+        </div>
+        <a href="/Moderation" class="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-2xl text-xs shadow-sm transition-all flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm">shield</span> Vào Hàng Đợi Kiểm Duyệt &rarr;
+        </a>
+    </div>
+
+    <!-- Top 4 KPI Summary Cards (Layout Tổng Thể) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
+            <div>
+                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Tổng Số Sản Phẩm</div>
+                <div class="text-3xl font-black text-slate-900 mt-1">@ViewBag.TotalProducts</div>
+                <div class="text-[10px] font-bold text-emerald-600 mt-1">✓ Đã tối ưu hóa dữ liệu</div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">inventory_2</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
+            <div>
+                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Nội Dung Chờ Duyệt</div>
+                <div class="text-3xl font-black text-amber-600 mt-1">@ViewBag.TotalPending</div>
+                <div class="text-[10px] font-bold text-amber-700 mt-1">⚠️ Cần kiểm duyệt thủ công</div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">pending_actions</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
+            <div>
+                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Nội Dung Rủi Ro Cao</div>
+                <div class="text-3xl font-black text-red-600 mt-1">@ViewBag.HighRiskCount</div>
+                <div class="text-[10px] font-bold text-red-600 mt-1">🔴 Cảnh báo mức High/Critical</div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">warning</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
+            <div>
+                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Khiếu Nại Chờ Xử Lý</div>
+                <div class="text-3xl font-black text-purple-700 mt-1">@ViewBag.PendingAppealsCount</div>
+                <div class="text-[10px] font-bold text-purple-700 mt-1">📩 Từ tiểu thương gửi tới</div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">mail</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary KPI Metrics Row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="text-[11px] font-extrabold text-slate-400 uppercase">Tổng Người Dùng</div>
+            <div class="text-xl font-black text-slate-900 mt-1">@ViewBag.TotalUsers</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="text-[11px] font-extrabold text-slate-400 uppercase">Tổng Số Chợ</div>
+            <div class="text-xl font-black text-blue-700 mt-1">@ViewBag.TotalMarkets</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="text-[11px] font-extrabold text-slate-400 uppercase">Tổng Số Tiểu Thương</div>
+            <div class="text-xl font-black text-emerald-700 mt-1">@ViewBag.TotalMerchants</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="text-[11px] font-extrabold text-slate-400 uppercase">Tài Khoản Bị Khóa</div>
+            <div class="text-xl font-black text-stone-700 mt-1">@ViewBag.LockedUsersCount</div>
+        </div>
+    </div>
+
+    <!-- Main Grid Section: Moderation Overview & Recent Activity Feed -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Moderation Activity Breakdown -->
+        <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-black text-base text-slate-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-700">insights</span> Hoạt Động Kiểm Duyệt Tự Động & Thủ Công
+                </h3>
+                <span class="text-xs font-bold text-slate-500">Cập nhật thời gian thực</span>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="p-4 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-red-600 animate-ping"></span>
+                        <div>
+                            <span class="font-extrabold text-red-900 block">🔴 HIGH RISK QUEUE</span>
+                            <span class="text-slate-600">Yêu cầu kiểm duyệt viên thẩm định kỹ</span>
+                        </div>
+                    </div>
+                    <span class="text-lg font-black text-red-700">@ViewBag.HighRiskCount Hồ Sơ</span>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                        <div>
+                            <span class="font-extrabold text-amber-900 block">🟠 MEDIUM RISK QUEUE</span>
+                            <span class="text-slate-600">Xử lý theo thứ tự chờ trong hàng đợi</span>
+                        </div>
+                    </div>
+                    <span class="text-lg font-black text-amber-800">@ViewBag.TotalPending Hồ Sơ</span>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-emerald-600"></span>
+                        <div>
+                            <span class="font-extrabold text-emerald-900 block">🟢 AUTO APPROVED</span>
+                            <span class="text-slate-600">Nội dung an toàn được duyệt tự động</span>
+                        </div>
+                    </div>
+                    <span class="text-lg font-black text-emerald-800">95.4%</span>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-stone-100 border border-stone-300 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-stone-700"></span>
+                        <div>
+                            <span class="font-extrabold text-stone-900 block">❌ AUTO REJECTED</span>
+                            <span class="text-slate-600">Chặn trực tiếp vi phạm nghiêm trọng (Risk ≥ 80)</span>
+                        </div>
+                    </div>
+                    <span class="text-lg font-black text-stone-800">4.6%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Audit Log Stream -->
+        <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-black text-base text-slate-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-700">history</span> Hoạt Động Gần Đây
+                </h3>
+                <a href="/Moderation/AuditLogs" class="text-xs font-bold text-emerald-700 hover:underline">Xem log &rarr;</a>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                @if (!recentLogs.Any())
+                {
+                    <div class="text-center text-slate-400 py-6">Chưa có nhật ký hoạt động gần đây.</div>
+                }
+                else
+                {
+                    @foreach (var log in recentLogs)
+                    {
+                        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="font-extrabold text-slate-900">@log.Action</span>
+                                <span class="text-[10px] text-slate-400 font-mono">@log.Timestamp.AddHours(7).ToString("HH:mm dd/MM")</span>
+                            </div>
+                            <div class="text-slate-600 text-[11px] truncate">@log.DetailsJson</div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

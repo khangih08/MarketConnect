@@ -1,28 +1,27 @@
 @model List<MarketConnect.Data.ModerationCase>
-
 @{
-    ViewData["Title"] = "Cổng Kiểm Duyệt Nội Dung & Quản Trị Hệ Thống - MarketConnect";
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Hàng Đợi Kiểm Duyệt Nội Dung (Moderation Queue)";
     var markets = ViewBag.Markets as List<MarketConnect.Data.Market> ?? new List<MarketConnect.Data.Market>();
     var provinces = ViewBag.Provinces as List<MarketConnect.Data.Province> ?? new List<MarketConnect.Data.Province>();
-    var pendingAppeals = ViewBag.PendingAppeals as List<MarketConnect.Data.ModerationAppeal> ?? new List<MarketConnect.Data.ModerationAppeal>();
 }
 
-<div class="max-w-[1440px] mx-auto px-4 md:px-16 py-6 space-y-6">
-    <!-- Header Title & Role Access -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-4">
+<div class="space-y-6">
+    <!-- Header Title -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
-                <span class="material-symbols-outlined text-emerald-800 text-[28px]">gavel</span>
-                <span>Cổng Kiểm Duyệt Nội Dung & Phân Quyền Quản Trị</span>
+            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-800 text-3xl">gavel</span>
+                <span>Hàng Đợi Kiểm Duyệt Nội Dung & Phê Duyệt Nâng Cao</span>
             </h1>
-            <p class="text-xs text-gray-500 mt-1">Đánh giá rủi ro đa chiều tự động, hàng đợi kiểm duyệt ưu tiên thủ công và phê duyệt theo phạm vi địa lý (Data Scope).</p>
+            <p class="text-xs text-slate-500 mt-1">Đánh giá rủi ro đa chiều tự động (FR-06), kiểm duyệt ưu tiên thủ công và so sánh diff phiên bản (FR-07).</p>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="/AdminMfa/Verify" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-extrabold rounded-2xl text-xs border border-amber-300 transition-all">
-                <span class="material-symbols-outlined text-sm">security</span> Xác thực MFA Quản trị
+        <div class="flex items-center gap-2">
+            <a href="/Moderation/RulesConfig" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-900 font-extrabold rounded-2xl text-xs border border-blue-300 transition-all flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">tune</span> ⚙️ Cấu Hình Quy Tắc (FR-06)
             </a>
-            <a href="/AdminRole" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-2xl text-xs shadow-sm transition-all">
-                <span class="material-symbols-outlined text-sm">admin_panel_settings</span> Quản lý Phân Quyền (RBAC) &rarr;
+            <a href="/AdminRole" class="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-900 font-extrabold rounded-2xl text-xs border border-purple-300 transition-all flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">vpn_key</span> 🔐 Phân Quyền Scope (FR-08)
             </a>
         </div>
     </div>
@@ -43,348 +42,366 @@
         </div>
     }
 
-    <!-- KPI Statistics Dashboard Bar (FR-07) -->
-    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 text-center">
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Chờ Kiểm Duyệt</div>
-            <div class="text-2xl font-black text-amber-700 mt-1">@ViewBag.TotalPending</div>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Rủi Ro Cao (High)</div>
+    <!-- Quick Status Counter Bar -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">🔴 HIGH RISK</div>
             <div class="text-2xl font-black text-red-600 mt-1">@ViewBag.HighRiskCount</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Rủi Ro Trung Bình</div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">🟠 MEDIUM RISK</div>
             <div class="text-2xl font-black text-amber-800 mt-1">@ViewBag.MediumRiskCount</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Đã Tự Động Duyệt</div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">⚠️ ESCALATED</div>
+            <div class="text-2xl font-black text-purple-800 mt-1">@Model.Count(c => c.IsEscalated)</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">🟢 AUTO APPROVED</div>
             <div class="text-2xl font-black text-emerald-800 mt-1">@ViewBag.AutoApprovedCount</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Đã Tự Động Từ Chối</div>
-            <div class="text-2xl font-black text-stone-700 mt-1">@ViewBag.AutoRejectedCount</div>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Khiếu Nại Chờ Duyệt</div>
-            <div class="text-2xl font-black text-purple-800 mt-1">@ViewBag.PendingAppealsCount</div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">📩 APPEALS</div>
+            <div class="text-2xl font-black text-indigo-700 mt-1">@ViewBag.PendingAppealsCount</div>
         </div>
     </div>
 
-    <!-- Scoped Filters Bar -->
-    <div class="bg-white p-4 rounded-2xl border border-gray-200 flex flex-wrap gap-3 items-center text-xs shadow-2xs">
-        <span class="font-extrabold text-gray-700">Bộ lọc thông minh:</span>
-        <a href="/Moderation" class="px-3 py-1.5 rounded-xl border border-gray-200 font-bold hover:bg-emerald-50 @(ViewBag.EntityType == null ? "bg-emerald-800 text-white" : "")">Tất Cả Queue</a>
-        <a href="/Moderation?entityType=Product" class="px-3 py-1.5 rounded-xl border border-gray-200 font-bold hover:bg-emerald-50 @(ViewBag.EntityType == "Product" ? "bg-emerald-800 text-white" : "")">Sản Phẩm</a>
-        <a href="/Moderation?entityType=Store" class="px-3 py-1.5 rounded-xl border border-gray-200 font-bold hover:bg-emerald-50 @(ViewBag.EntityType == "Store" ? "bg-emerald-800 text-white" : "")">Gian Hàng</a>
+    <!-- Scoped Filter Toolbar (Layout Section 2) -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap gap-3 items-center text-xs shadow-2xs">
+        <span class="font-extrabold text-slate-700 flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm text-slate-500">filter_alt</span> Bộ lọc:
+        </span>
         
-        <div class="h-4 w-[1px] bg-gray-300 mx-1"></div>
-        <a href="/Moderation?riskLevel=High" class="px-3 py-1.5 rounded-xl border border-red-200 font-bold bg-red-50 text-red-700 hover:bg-red-100">⚠ Rủi Ro Cao (High)</a>
-        <a href="/Moderation?riskLevel=Medium" class="px-3 py-1.5 rounded-xl border border-amber-200 font-bold bg-amber-50 text-amber-900 hover:bg-amber-100">⚠ Rủi Ro TB (Medium)</a>
+        <form method="get" action="/Moderation" class="flex flex-wrap items-center gap-2">
+            <select name="entityType" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-bold outline-none">
+                <option value="">-- Loại thực thể --</option>
+                <option value="Product" selected="@(ViewBag.EntityType == "Product")">Sản Phẩm</option>
+                <option value="Store" selected="@(ViewBag.EntityType == "Store")">Gian Hàng</option>
+            </select>
+
+            <select name="riskLevel" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-bold outline-none">
+                <option value="">-- Mức rủi ro --</option>
+                <option value="High" selected="@(ViewBag.RiskLevel?.ToString() == "High")">🔴 High Risk (≥ 60)</option>
+                <option value="Medium" selected="@(ViewBag.RiskLevel?.ToString() == "Medium")">🟠 Medium Risk (30-59)</option>
+                <option value="Low" selected="@(ViewBag.RiskLevel?.ToString() == "Low")">🟢 Low Risk (&lt; 30)</option>
+            </select>
+
+            <select name="marketId" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-bold outline-none max-w-[160px]">
+                <option value="">-- Tất cả chợ --</option>
+                @foreach (var m in markets)
+                {
+                    <option value="@m.Id" selected="@(ViewBag.MarketId == m.Id)">@m.Name</option>
+                }
+            </select>
+
+            <a href="/Moderation" class="px-3 py-1.5 rounded-xl border border-slate-200 font-bold hover:bg-slate-100 text-slate-600">Xóa bộ lọc</a>
+        </form>
     </div>
 
-    <!-- Bulk Moderation Bar (FR-07 BULK REVIEW) -->
-    <form id="bulkForm" method="post" action="/Moderation/BulkReview">
-        @Html.AntiForgeryToken()
-        <div class="bg-emerald-900 text-white p-4 rounded-2xl mb-4 flex flex-wrap items-center justify-between gap-4 text-xs shadow-md">
-            <div class="flex items-center gap-3">
-                <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)" class="w-4 h-4 rounded cursor-pointer" />
-                <span class="font-extrabold">Chọn Tất Cả Hàng Đợi Kiểm Duyệt Hàng Loạt (Bulk Moderation)</span>
-            </div>
-            <div class="flex items-center gap-2 flex-grow max-w-md">
-                <input type="text" name="notes" placeholder="Lý do xử lý hàng loạt (Bắt buộc)..." class="w-full bg-white text-gray-900 rounded-xl px-3 py-1.5 text-xs outline-none font-medium" />
-            </div>
-            <div class="flex items-center gap-2">
-                <button type="submit" name="decisionStatus" value="Approved" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer shadow-xs">
-                    ✓ Duyệt Hàng Loạt
-                </button>
-                <button type="submit" name="decisionStatus" value="Rejected" class="bg-red-600 hover:bg-red-700 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer shadow-xs">
-                    ✕ Từ Chối Hàng Loạt
-                </button>
-            </div>
+    <!-- Moderation Queue List Table (Layout Section 2) -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-extrabold text-sm text-slate-900 uppercase tracking-wider">Danh Sách Hàng Đợi Kiểm Duyệt (Priority Queue)</h3>
+            <span class="text-xs text-slate-500 font-bold">Tổng cộng: @Model.Count hồ sơ</span>
         </div>
 
-        <!-- Moderation Priority Queue List -->
-        <div class="space-y-4">
-            @if (!Model.Any())
-            {
-                <div class="bg-white p-8 rounded-2xl text-center text-gray-500 text-xs border border-gray-200 shadow-2xs">
-                    <span class="material-symbols-outlined text-4xl text-emerald-600 block mb-2">check_circle</span>
-                    Hàng đợi kiểm duyệt hiện tại đang trống. Tất cả nội dung đã được xử lý chuẩn xác!
-                </div>
-            }
-            else
-            {
-                @foreach (var c in Model)
-                {
-                    <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4 hover:border-emerald-300 transition-colors">
-                        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-100">
-                            <div class="flex items-center gap-3">
-                                <input type="checkbox" name="caseIds" value="@c.Id" class="case-checkbox w-4 h-4 rounded cursor-pointer" />
-                                <span class="bg-emerald-100 text-emerald-900 text-xs font-black px-3 py-1 rounded-full uppercase">@c.EntityType</span>
-                                <span class="font-extrabold text-sm text-gray-900">ID thực thể: #@c.EntityId</span>
-                                @if (c.IsEscalated)
-                                {
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-900 border border-purple-300 animate-pulse">
-                                        ⚡ ĐÃ CHUYỂN CẤP DUYỆT (ESCALATED)
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700 border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-900 font-extrabold uppercase tracking-wider text-[11px]">
+                        <th class="p-3.5">Risk Score</th>
+                        <th class="p-3.5">Nội Dung Thực Thể</th>
+                        <th class="p-3.5">Chợ Phụ Trách</th>
+                        <th class="p-3.5">Thời Gian Chờ</th>
+                        <th class="p-3.5 text-right">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="p-8 text-center text-slate-500">
+                                <span class="material-symbols-outlined text-4xl text-emerald-600 block mb-2">check_circle</span>
+                                Hàng đợi kiểm duyệt hiện tại đang trống. Tất cả nội dung trong phạm vi quản lý đã được xử lý!
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var c in Model)
+                        {
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="p-3.5">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-black text-xs @(c.RiskLevel == MarketConnect.Data.RiskLevel.High || c.RiskLevel == MarketConnect.Data.RiskLevel.Critical || c.RiskScore >= 60 ? "bg-red-100 text-red-700 border border-red-300" : "bg-amber-100 text-amber-900 border border-amber-300")">
+                                        @(c.RiskScore >= 60 ? "🔴" : "🟠") @c.RiskScore/100
                                     </span>
-                                }
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span class="text-xs font-bold text-gray-500">Mức Rủi Ro:</span>
-                                <span class="px-3 py-1 rounded-full font-black text-xs @(c.RiskLevel == MarketConnect.Data.RiskLevel.High || c.RiskLevel == MarketConnect.Data.RiskLevel.Critical ? "bg-red-100 text-red-700 border border-red-300" : "bg-amber-100 text-amber-900 border border-amber-300")">
-                                    @c.RiskLevel.ToString().ToUpper() (Điểm: @c.RiskScore/100)
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Content Snapshot & Triggered Rules Breakdown -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-700 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                            <div class="space-y-1">
-                                <p class="font-extrabold text-gray-900">Chi tiết Snapshot Nội dung (Version #@c.CurrentVersionNumber):</p>
-                                <pre class="bg-white p-2.5 rounded-xl border border-gray-200 text-[11px] text-gray-800 font-mono overflow-x-auto max-h-32">@c.ContentSnapshotJson</pre>
-                            </div>
-                            <div class="space-y-1">
-                                <p class="font-extrabold text-gray-900">Quy tắc tự động bị kích hoạt (Triggered Rules):</p>
-                                <div class="bg-white p-2.5 rounded-xl border border-gray-200 text-[11px] space-y-1 max-h-32 overflow-y-auto">
-                                    @if (!string.IsNullOrEmpty(c.TriggeredRulesJson))
-                                    {
-                                        <p class="text-red-600 font-bold">@c.TriggeredRulesJson</p>
-                                    }
-                                    else
-                                    {
-                                        <p class="text-emerald-700 font-bold">✓ Không phát hiện vi phạm quy tắc cơ bản.</p>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Action Controls (Single Review, Request Edit, Reject, Escalate, Override) -->
-                        <div class="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100">
-                            <div class="flex items-center gap-2">
-                                <button type="button" onclick="loadActionHistory(@c.Id)" class="text-xs font-bold text-gray-600 hover:text-emerald-800 flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-sm">history</span> Xem lịch sử xử lý &rarr;
-                                </button>
-                                <button type="button" onclick="loadVersionHistory('@c.EntityType', @c.EntityId)" class="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-sm">inventory_2</span> Xem phiên bản (Versions) &rarr;
-                                </button>
-                            </div>
-
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <!-- Form Single Review Action -->
-                                <button type="button" onclick="submitSingleReview(@c.Id, 'Approved')" class="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer shadow-2xs">
-                                    ✓ Phê Duyệt
-                                </button>
-                                <button type="button" onclick="submitSingleReview(@c.Id, 'ChangesRequired')" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer shadow-2xs">
-                                    ✎ Yêu Cầu Sửa
-                                </button>
-                                <button type="button" onclick="submitSingleReview(@c.Id, 'Rejected')" class="bg-red-600 hover:bg-red-700 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer shadow-2xs">
-                                    ✕ Từ Chối
-                                </button>
-                                <button type="button" onclick="openOverrideModal(@c.Id)" class="bg-purple-700 hover:bg-purple-800 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer shadow-2xs">
-                                    ⚡ Ghi Đè (Override)
-                                </button>
-                                <button type="button" onclick="openEscalateModal(@c.Id)" class="bg-stone-800 hover:bg-stone-900 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer shadow-2xs">
-                                    ⬆ Chuyển Cấp Duyệt
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                }
-            }
+                                </td>
+                                <td class="p-3.5">
+                                    <div class="font-extrabold text-slate-900">#@c.Id - @c.EntityType ID:#@c.EntityId</div>
+                                    <div class="text-[11px] text-slate-500 font-mono truncate max-w-xs">@c.ContentSnapshotJson</div>
+                                </td>
+                                <td class="p-3.5 font-bold text-slate-700">
+                                    Market #@(c.MarketId ?? 1)
+                                </td>
+                                <td class="p-3.5 text-slate-500 font-medium">
+                                    @c.CreatedAt.AddHours(7).ToString("HH:mm dd/MM")
+                                </td>
+                                <td class="p-3.5 text-right">
+                                    <button type="button" onclick="openInspectModal(@c.Id)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs shadow-xs cursor-pointer inline-flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-sm">visibility</span> Xem Detail Case
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
         </div>
-    </form>
-
-    <!-- SECTION: KHUYẾN NẠI CỦA TIỂU THƯƠNG (MERCHANT APPEALS REVIEW TAB) -->
-    @if (pendingAppeals.Any())
-    {
-        <div class="mt-10 space-y-4 pt-6 border-t border-gray-200">
-            <h2 class="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-                <span class="material-symbols-outlined text-purple-800 text-[26px]">connect_without_contact</span>
-                <span>Danh Sách Khiếu Nại Từ Tiểu Thương (Appeals Queue)</span>
-            </h2>
-
-            <div class="grid grid-cols-1 gap-4">
-                @foreach (var app in pendingAppeals)
-                {
-                    <div class="bg-white p-6 rounded-3xl border border-purple-200 shadow-sm space-y-3">
-                        <div class="flex items-center justify-between pb-2 border-b border-gray-100">
-                            <div class="font-extrabold text-sm text-gray-900">Khiếu Nại Hồ Sơ/Sản Phẩm Case #@app.CaseId</div>
-                            <span class="px-3 py-0.5 rounded-full text-xs font-black bg-purple-100 text-purple-900">@app.Status.ToString()</span>
-                        </div>
-                        <div class="text-xs text-gray-700 space-y-1">
-                            <p><strong>Tiểu thương gửi:</strong> @(app.Merchant?.Name ?? "Tiểu thương") (@(app.Merchant?.Email))</p>
-                            <p><strong>Lý do khiếu nại:</strong> <span class="font-medium text-gray-900">@app.Reason</span></p>
-                        </div>
-                        <form method="post" action="/Moderation/ReviewAppeal" class="flex items-center gap-2 pt-2 border-t border-gray-100">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="appealId" value="@app.Id" />
-                            <input type="text" name="adminResponse" placeholder="Phản hồi lý do xử lý khiếu nại..." class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs outline-none flex-grow font-medium" />
-                            <button type="submit" name="decisionStatus" value="Accepted" class="bg-emerald-700 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer">
-                                Chap Nhan Khiếu Nại (Approve)
-                            </button>
-                            <button type="submit" name="decisionStatus" value="Rejected" class="bg-red-600 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs cursor-pointer">
-                                Bác Khiếu Nại (Reject)
-                            </button>
-                        </form>
-                    </div>
-                }
-            </div>
-        </div>
-    }
+    </div>
 </div>
 
-<!-- Modal Modals Script -->
+<!-- ========================================================= -->
+<!-- MODAL KIỂM DUYỆT CHI TIẾT CASE #MC-000123 (LAYOUT SECTION 3) -->
+<!-- ========================================================= -->
+<div id="inspectModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-5xl w-full p-6 space-y-6 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+        <!-- Top Title & Case Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-3">
+                <a href="javascript:void(0)" onclick="closeInspectModal()" class="text-xs font-extrabold text-slate-500 hover:text-slate-900 flex items-center gap-1">
+                    &larr; Quay lại hàng đợi
+                </a>
+                <span class="h-4 w-[1px] bg-slate-300"></span>
+                <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-800">gavel</span>
+                    <span id="inspectCaseTitle">KIỂM DUYỆT #MC-000000</span>
+                </h3>
+            </div>
+            <button type="button" onclick="closeInspectModal()" class="text-slate-400 hover:text-slate-700 font-extrabold text-2xl cursor-pointer">&times;</button>
+        </div>
+
+        <!-- Scrollable Modal Body -->
+        <div class="overflow-y-auto space-y-6 pr-1 text-xs">
+            <!-- 2-Column Split: Entity Info Left vs Auto Assessment Results Right -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- LEFT COLUMN: SẢN PHẨM / THỰC THỂ -->
+                <div class="bg-slate-50 rounded-3xl p-5 border border-slate-200 space-y-3">
+                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-2">Thông Tin Sản Phẩm / Gian Hàng</h4>
+                    <div class="flex gap-4">
+                        <img id="inspectImg" src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=300" alt="Product" class="w-24 h-24 object-cover rounded-2xl border border-slate-200 flex-shrink-0" />
+                        <div class="space-y-1">
+                            <div id="inspectName" class="font-black text-sm text-slate-900">Sản Phẩm Đang Kiểm Duyệt</div>
+                            <div id="inspectPrice" class="text-base font-extrabold text-emerald-700">0đ</div>
+                            <div id="inspectSeller" class="text-slate-600 font-medium">Tiểu thương: Nguyễn Văn A</div>
+                            <div id="inspectMarket" class="text-slate-600 font-medium">Chợ: Chợ Thành Công</div>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200">
+                        <span class="font-bold text-slate-700 block mb-1">Nội dung Snapshot Json:</span>
+                        <pre id="inspectSnapshot" class="bg-white p-2.5 rounded-xl border border-slate-200 text-[11px] font-mono overflow-x-auto max-h-28"></pre>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: KẾT QUẢ TỰ ĐỘNG (FR-06 ASSESSMENT) -->
+                <div class="bg-slate-50 rounded-3xl p-5 border border-slate-200 space-y-3">
+                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-2">Kết Quả Đánh Giá Tự Động (Auto Assessment)</h4>
+                    <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200">
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block">Risk Score (Điểm Rủi Ro)</span>
+                            <span id="inspectScoreNum" class="text-2xl font-black text-red-600">72/100</span>
+                        </div>
+                        <span id="inspectRiskBadge" class="px-3.5 py-1.5 rounded-full font-black text-xs bg-red-100 text-red-700 border border-red-300">
+                            🔴 HIGH
+                        </span>
+                    </div>
+
+                    <div>
+                        <span class="font-bold text-slate-700 block mb-1.5">Quy tắc (Rules) đã bị kích hoạt:</span>
+                        <div id="inspectTriggeredRules" class="bg-white p-3 rounded-2xl border border-slate-200 space-y-1.5 max-h-28 overflow-y-auto">
+                            <!-- Triggered rules with weights appended via JS -->
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200">
+                        <span class="font-bold text-slate-600">Quyết định khuyến nghị:</span>
+                        <span id="inspectDecisionText" class="font-black text-amber-800">PENDING_MANUAL_REVIEW</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: NỘI DUNG PHIÊN BẢN (CONTENT VERSIONS & DIFF COMPARISON) -->
+            <div class="bg-slate-50 rounded-3xl p-5 border border-slate-200 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm text-blue-700">history</span> Lịch Sử Phiên Bản Nội Dung (Content Versions)
+                    </h4>
+                    <button type="button" onclick="triggerDiffView()" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl text-xs cursor-pointer shadow-xs">
+                        [ So Sánh Phiên Bản Diff ]
+                    </button>
+                </div>
+                <div id="inspectVersionsList" class="flex gap-2 overflow-x-auto py-1">
+                    <!-- Versions list buttons via JS -->
+                </div>
+            </div>
+
+            <!-- SECTION: LỊCH SỬ XỬ LÝ (ACTION HISTORY TIMELINE) -->
+            <div class="bg-slate-50 rounded-3xl p-5 border border-slate-200 space-y-3">
+                <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-emerald-700">timeline</span> Lịch Sử Xử Lý (Action History)
+                </h4>
+                <div id="inspectHistoryTimeline" class="space-y-2 max-h-32 overflow-y-auto">
+                    <!-- History timeline via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM CONTROL ACTION BAR (6 EXPLICIT ACTION BUTTONS - SECTION 3) -->
+        <div class="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2.5">
+            <button type="button" onclick="executeInspectAction('Approved')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center gap-1">
+                ✓ Phê Duyệt
+            </button>
+            <button type="button" onclick="executeInspectAction('ChangesRequired')" class="bg-amber-600 hover:bg-amber-700 text-white font-black px-4 py-2.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center gap-1">
+                ✎ Yêu Cầu Sửa
+            </button>
+            <button type="button" onclick="executeInspectAction('Rejected')" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center gap-1">
+                ✕ Từ Chối
+            </button>
+            <button type="button" onclick="executeInspectAction('Suspended')" class="bg-stone-700 hover:bg-stone-800 text-white font-black px-4 py-2.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center gap-1">
+                👁 Tạm Ẩn
+            </button>
+            <button type="button" onclick="executeEscalateAction()" class="bg-purple-700 hover:bg-purple-800 text-white font-black px-4 py-2.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center gap-1">
+                ↗ Chuyển Cấp
+            </button>
+            <button type="button" onclick="executeOverrideAction()" class="bg-indigo-700 hover:bg-indigo-800 text-white font-black px-4 py-2.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center gap-1">
+                ⚡ Ghi Đè Quyết Định
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
 <script>
-    function toggleSelectAll(master) {
-        const checkboxes = document.querySelectorAll('.case-checkbox');
-        checkboxes.forEach(cb => cb.checked = master.checked);
+    let currentActiveCaseId = 0;
+    let currentEntityType = 'Product';
+    let currentEntityId = 0;
+
+    async function openInspectModal(caseId) {
+        currentActiveCaseId = caseId;
+        const modal = document.getElementById('inspectModal');
+        if (modal) modal.classList.remove('hidden');
+
+        try {
+            const res = await fetch(`/Moderation/GetCaseDetail?caseId=${caseId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+
+            currentEntityType = data.entityType;
+            currentEntityId = data.entityId;
+
+            document.getElementById('inspectCaseTitle').innerText = `KIỂM DUYỆT #MC-${String(data.caseId).padStart(6, '0')}`;
+            document.getElementById('inspectScoreNum').innerText = `${data.riskScore}/100`;
+
+            const badge = document.getElementById('inspectRiskBadge');
+            if (badge) {
+                badge.innerText = data.riskScore >= 60 ? '🔴 HIGH' : (data.riskScore >= 30 ? '🟠 MEDIUM' : '🟢 LOW');
+                badge.className = `px-3.5 py-1.5 rounded-full font-black text-xs ${data.riskScore >= 60 ? 'bg-red-100 text-red-700 border border-red-300' : 'bg-amber-100 text-amber-900 border border-amber-300'}`;
+            }
+
+            document.getElementById('inspectDecisionText').innerText = data.decision || 'PENDING_MANUAL_REVIEW';
+            document.getElementById('inspectSnapshot').innerText = data.snapshot || '{}';
+
+            // Fill product info
+            if (data.product) {
+                document.getElementById('inspectName').innerText = data.product.name;
+                document.getElementById('inspectPrice').innerText = `${data.product.price.toLocaleString('vi-VN')}đ`;
+                document.getElementById('inspectSeller').innerText = `Tiểu thương: ${data.product.sellerName}`;
+                document.getElementById('inspectImg').src = data.product.imageUrl || 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=300';
+            }
+            document.getElementById('inspectMarket').innerText = `Chợ: ${data.marketName}`;
+
+            // Triggered rules
+            const rulesBox = document.getElementById('inspectTriggeredRules');
+            let rulesList = [];
+            try { rulesList = JSON.parse(data.triggeredRules || '[]'); } catch(e) {}
+            if (rulesList.length === 0) {
+                rulesBox.innerHTML = '<div class="text-emerald-700 font-bold">✓ Không phát hiện vi phạm quy tắc cơ bản.</div>';
+            } else {
+                rulesBox.innerHTML = rulesList.map(r => `<div class="text-red-600 font-bold flex items-center gap-1"><span class="material-symbols-outlined text-sm">warning</span> ⚠ ${r}</div>`).join('');
+            }
+
+            // Versions
+            const versionsBox = document.getElementById('inspectVersionsList');
+            if (data.versions && data.versions.length > 0) {
+                versionsBox.innerHTML = data.versions.map(v => `
+                    <div class="bg-white border border-slate-200 px-3 py-1.5 rounded-xl font-bold text-slate-800 text-[11px]">
+                        Version #${v.versionNumber} ${v.versionNumber === data.versions[0].versionNumber ? '(Hiện tại)' : ''}
+                    </div>
+                `).join('');
+            } else {
+                versionsBox.innerHTML = '<div class="text-slate-400">Chưa có lịch sử phiên bản.</div>';
+            }
+
+            // Timeline
+            const timelineBox = document.getElementById('inspectHistoryTimeline');
+            if (data.history && data.history.length > 0) {
+                timelineBox.innerHTML = data.history.map(h => `
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center text-[11px]">
+                        <div><span class="font-extrabold text-slate-900">${h.adminName}:</span> ${h.actionType} (${h.reason || '---'})</div>
+                        <span class="text-slate-400 font-mono">${h.timestamp}</span>
+                    </div>
+                `).join('');
+            } else {
+                timelineBox.innerHTML = '<div class="text-slate-400 font-medium">🤖 Auto Moderation: Risk = ' + data.riskScore + '</div>';
+            }
+        } catch(e) {
+            console.error(e);
+        }
     }
 
-    function submitSingleReview(caseId, decisionStatus) {
+    function closeInspectModal() {
+        const modal = document.getElementById('inspectModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function triggerDiffView() {
+        openDiffModal(currentEntityType, currentEntityId);
+    }
+
+    function executeInspectAction(decisionStatus) {
         const notes = prompt(`Nhập lý do/hướng dẫn xử lý cho quyết định ${decisionStatus}:`);
         if (notes === null) return;
         if ((decisionStatus === 'Rejected' || decisionStatus === 'ChangesRequired') && !notes.trim()) {
-            alert('Quản trị viên BẮT BUỘC phải nhập lý do khi Từ Chối hoặc Yêu Cầu Sửa!');
+            alert('Quản trị viên BẮT BUỘC phải nhập lý do!');
             return;
         }
 
+        submitSingleReview(currentActiveCaseId, decisionStatus, notes);
+    }
+
+    function executeEscalateAction() {
+        openEscalateModal(currentActiveCaseId);
+    }
+
+    function executeOverrideAction() {
+        openOverrideModal(currentActiveCaseId);
+    }
+
+    function submitSingleReview(caseId, decisionStatus, notes) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/Moderation/Review';
 
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-        if (token) {
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = '__RequestVerificationToken';
-            tokenInput.value = token;
-            form.appendChild(tokenInput);
-        }
-
         const caseInput = document.createElement('input');
-        caseInput.type = 'hidden';
-        caseInput.name = 'caseId';
-        caseInput.value = caseId;
-        form.appendChild(caseInput);
+        caseInput.type = 'hidden'; caseInput.name = 'caseId'; caseInput.value = caseId; form.appendChild(caseInput);
 
         const statusInput = document.createElement('input');
-        statusInput.type = 'hidden';
-        statusInput.name = 'decisionStatus';
-        statusInput.value = decisionStatus;
-        form.appendChild(statusInput);
+        statusInput.type = 'hidden'; statusInput.name = 'decisionStatus'; statusInput.value = decisionStatus; form.appendChild(statusInput);
 
         const notesInput = document.createElement('input');
-        notesInput.type = 'hidden';
-        notesInput.name = 'notes';
-        notesInput.value = notes;
-        form.appendChild(notesInput);
+        notesInput.type = 'hidden'; notesInput.name = 'notes'; notesInput.value = notes || ''; form.appendChild(notesInput);
 
         document.body.appendChild(form);
         form.submit();
-    }
-
-    function openOverrideModal(caseId) {
-        const reason = prompt('BẮT BUỘC nhập lý do Ghi Đè quyết định (Override):');
-        if (!reason || !reason.trim()) {
-            alert('Lý do Ghi Đè không được để trống!');
-            return;
-        }
-        const newStatus = prompt('Nhập trạng thái mới (Approved / Rejected / ChangesRequired):', 'Approved');
-        if (!newStatus) return;
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/Moderation/Override';
-
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-        if (token) {
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = '__RequestVerificationToken';
-            tokenInput.value = token;
-            form.appendChild(tokenInput);
-        }
-
-        const cInput = document.createElement('input');
-        cInput.type = 'hidden';
-        cInput.name = 'caseId';
-        cInput.value = caseId;
-        form.appendChild(cInput);
-
-        const sInput = document.createElement('input');
-        sInput.type = 'hidden';
-        sInput.name = 'newStatus';
-        sInput.value = newStatus;
-        form.appendChild(sInput);
-
-        const rInput = document.createElement('input');
-        rInput.type = 'hidden';
-        rInput.name = 'overrideReason';
-        rInput.value = reason;
-        form.appendChild(rInput);
-
-        document.body.appendChild(form);
-        form.submit();
-    }
-
-    function openEscalateModal(caseId) {
-        const reason = prompt('BẮT BUỘC nhập lý do Chuyển Cấp Duyệt (Escalate):');
-        if (!reason || !reason.trim()) return;
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/Moderation/Escalate';
-
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-        if (token) {
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = '__RequestVerificationToken';
-            tokenInput.value = token;
-            form.appendChild(tokenInput);
-        }
-
-        const cInput = document.createElement('input');
-        cInput.type = 'hidden';
-        cInput.name = 'caseId';
-        cInput.value = caseId;
-        form.appendChild(cInput);
-
-        const rInput = document.createElement('input');
-        rInput.type = 'hidden';
-        rInput.name = 'escalationReason';
-        rInput.value = reason;
-        form.appendChild(rInput);
-
-        document.body.appendChild(form);
-        form.submit();
-    }
-
-    async function loadActionHistory(caseId) {
-        try {
-            const res = await fetch(`/Moderation/GetActionHistory?caseId=${caseId}`);
-            if (!res.ok) return;
-            const data = await res.json();
-            let msg = `LỊCH SỬ XỬ LÝ CHO CASE #${caseId}:\n\n`;
-            if (data.length === 0) msg += 'Chưa có lịch sử xử lý thủ công.';
-            data.forEach(h => {
-                msg += `[${h.timestamp}] ${h.adminName}: ${h.actionType} (${h.oldStatus} -> ${h.newStatus})\nLý do: ${h.reason}\n------------------\n`;
-            });
-            alert(msg);
-        } catch (e) { console.error(e); }
-    }
-
-    async function loadVersionHistory(entityType, entityId) {
-        try {
-            const res = await fetch(`/Moderation/GetVersionHistory?entityType=${entityType}&entityId=${entityId}`);
-            if (!res.ok) return;
-            const data = await res.json();
-            let msg = `LỊCH SỬ PHIÊN BẢN (CONTENT VERSIONS) ${entityType} #${entityId}:\n\n`;
-            data.forEach(v => {
-                msg += `Version #${v.versionNumber} [${v.createdAt}]\nSnapshot: ${v.snapshotJson}\n------------------\n`;
-            });
-            alert(msg);
-        } catch (e) { console.error(e); }
     }
 </script>
+}

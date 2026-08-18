@@ -46,11 +46,11 @@ namespace MarketConnect.Controllers
                 return View();
             }
 
-            HttpContext.Session.SetString("AdminMfaVerified", "true");
+            try { HttpContext.Session?.SetString("AdminMfaVerified", "true"); } catch { }
             Response.Cookies.Append("AdminMfaVerified", "true", new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddHours(12) });
 
             TempData["SuccessMessage"] = "Xác thực MFA Quản trị viên thành công!";
-            return RedirectToAction("Index", "Moderation");
+            return RedirectToAction("Dashboard", "Moderation");
         }
 
         // GET: /AdminMfa/Enroll
@@ -79,11 +79,11 @@ namespace MarketConnect.Controllers
                 return View("Enroll");
             }
 
-            HttpContext.Session.SetString("AdminMfaVerified", "true");
+            try { HttpContext.Session?.SetString("AdminMfaVerified", "true"); } catch { }
             Response.Cookies.Append("AdminMfaVerified", "true", new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddHours(12) });
 
             TempData["SuccessMessage"] = "Đã kích hoạt bảo mật MFA Quản trị viên thành công! Mã bí mật đã được mã hóa bảo vệ.";
-            return RedirectToAction("Index", "Moderation");
+            return RedirectToAction("Dashboard", "Moderation");
         }
     }
 }

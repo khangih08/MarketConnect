@@ -1,0 +1,149 @@
+@model List<MarketConnect.Data.ModerationRule>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Cấu Hình Quy Tắc & Ngưỡng Rủi Ro (Rules Configuration FR-06)";
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-800 text-3xl">tune</span>
+                <span>Cấu Hình Quy Tắc & Ngưỡng Điểm Rủi Ro (FR-06)</span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Điều chỉnh trọng số quy tắc và phân dải ngưỡng rủi ro đánh giá tự động trực quan (không hard-code trong mã nguồn).</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="p-4 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold border border-emerald-200 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    <!-- 1. Visual Risk Threshold Slider / Range Breakdown (Section 11) -->
+    <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h3 class="font-extrabold text-sm text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+            Dải Ngưỡng Phân Loại Mức Độ Rủi Ro (Risk Level Thresholds)
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+            <!-- LOW -->
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1">
+                <span class="px-3 py-1 rounded-full font-black text-xs bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    🟢 LOW (0 - 29)
+                </span>
+                <div class="text-xs font-bold text-emerald-800 mt-2">Low Risk Auto Approved</div>
+                <div class="text-[11px] text-slate-500">Tự động duyệt xuất bản công khai</div>
+            </div>
+
+            <!-- MEDIUM -->
+            <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-1">
+                <span class="px-3 py-1 rounded-full font-black text-xs bg-amber-100 text-amber-900 border border-amber-300">
+                    🟠 MEDIUM (30 - 59)
+                </span>
+                <div class="text-xs font-bold text-amber-900 mt-2">Medium Risk Manual Queue</div>
+                <div class="text-[11px] text-slate-500">Đưa vào hàng đợi kiểm duyệt thủ công</div>
+            </div>
+
+            <!-- HIGH -->
+            <div class="p-4 rounded-2xl bg-red-50 border border-red-200 space-y-1">
+                <span class="px-3 py-1 rounded-full font-black text-xs bg-red-100 text-red-700 border border-red-300">
+                    🔴 HIGH (60 - 79)
+                </span>
+                <div class="text-xs font-bold text-red-900 mt-2">High Risk Priority Queue</div>
+                <div class="text-[11px] text-slate-500">Hàng đợi kiểm duyệt ưu tiên cao</div>
+            </div>
+
+            <!-- CLEAR VIOLATION -->
+            <div class="p-4 rounded-2xl bg-stone-100 border border-stone-300 space-y-1">
+                <span class="px-3 py-1 rounded-full font-black text-xs bg-stone-800 text-white">
+                    ❌ CLEAR VIOLATION (80 - 100)
+                </span>
+                <div class="text-xs font-bold text-stone-900 mt-2">Auto Rejected</div>
+                <div class="text-[11px] text-slate-500">Tự động từ chối xuất bản</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Dynamic Rules Table Edit (Section 11) -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden space-y-4 p-6">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                Bảng Quy Tắc Tự Động (Auto Moderation Rules & Weight Matrix)
+            </h3>
+            <span class="text-xs font-bold text-slate-500">Tổng cộng: @Model.Count quy tắc</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700 border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-900 font-extrabold uppercase tracking-wider text-[11px]">
+                        <th class="p-3.5">Mã Quy Tắc (Rule Key)</th>
+                        <th class="p-3.5">Tên Quy Tắc Bắt Lỗi</th>
+                        <th class="p-3.5 text-center">Trọng Số (+Điểm Rủi Ro)</th>
+                        <th class="p-3.5 text-center">Trạng Thái Kích Hoạt</th>
+                        <th class="p-3.5 text-right">Thao Tác Cập Nhật</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach (var r in Model)
+                    {
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="p-3.5 font-mono">
+                                <span class="px-2.5 py-1 rounded-md bg-blue-100 text-blue-900 font-bold text-[11px]">@r.RuleKey</span>
+                            </td>
+                            <td class="p-3.5 font-extrabold text-slate-900 text-sm">
+                                @r.RuleName
+                            </td>
+                            <td class="p-3.5 text-center">
+                                <input type="number" id="weight_@r.Id" value="@r.Weight" min="1" max="100" class="w-20 bg-slate-50 border border-slate-300 rounded-xl px-2 py-1 text-center font-black text-sm outline-none focus:border-blue-600" />
+                            </td>
+                            <td class="p-3.5 text-center">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold">
+                                    <input type="checkbox" id="active_@r.Id" checked="@r.IsActive" class="w-4 h-4 rounded text-blue-600" />
+                                    <span>@(r.IsActive ? "Bật" : "Tắt")</span>
+                                </label>
+                            </td>
+                            <td class="p-3.5 text-right">
+                                <button type="button" onclick="saveRuleConfig(@r.Id)" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl text-xs shadow-xs cursor-pointer">
+                                    Lưu Cấu Hình
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    async function saveRuleConfig(ruleId) {
+        const weightInput = document.getElementById(`weight_${ruleId}`);
+        const activeInput = document.getElementById(`active_${ruleId}`);
+        if (!weightInput || !activeInput) return;
+
+        const formData = new FormData();
+        formData.append('ruleId', ruleId);
+        formData.append('weight', weightInput.value);
+        formData.append('isActive', activeInput.checked);
+
+        try {
+            const res = await fetch('/Moderation/UpdateRuleWeight', {
+                method: 'POST',
+                body: formData
+            });
+            if (res.ok) {
+                alert('Đã cập nhật quy tắc kiểm duyệt thành công!');
+                window.location.reload();
+            }
+        } catch (e) {
+            alert('Lỗi cập nhật quy tắc.');
+        }
+    }
+</script>
+}

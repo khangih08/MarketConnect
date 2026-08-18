@@ -234,6 +234,17 @@ namespace MarketConnect.Services
             existing.CategoryId = product.CategoryId;
 
             await _db.SaveChangesAsync();
+
+            // Run FR-06 Auto Moderation Engine & Record Content Version on Update
+            try
+            {
+                await _modService.EvaluateProductRiskAsync(existing);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FR-06 Auto Moderation Notice on Update] {ex.Message}");
+            }
+
             return existing;
         }
 

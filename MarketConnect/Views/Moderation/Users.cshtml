@@ -1,0 +1,86 @@
+@model List<MarketConnect.Data.User>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản Lý Người Dùng (Users Management)";
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-800 text-3xl">group</span>
+                <span>Quản Lý Người Dùng & Tài Khoản Hệ Thống</span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Danh sách tất cả người dùng, vai trò quản trị, kiểm duyệt viên, tiểu thương và người mua.</p>
+        </div>
+        <a href="/AdminRole" class="px-4 py-2 bg-purple-800 text-white font-extrabold rounded-2xl text-xs shadow-sm flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">vpn_key</span> Cấu Hình Phân Quyền Roles &rarr;
+        </a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between text-xs shadow-2xs">
+        <form method="get" action="/Moderation/Users" class="flex items-center gap-3">
+            <span class="font-bold text-slate-700">Lọc theo Vai Trò:</span>
+            <select name="role" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-bold outline-none">
+                <option value="">-- Tất cả Vai Trò --</option>
+                @foreach (MarketConnect.Data.UserRole r in Enum.GetValues(typeof(MarketConnect.Data.UserRole)))
+                {
+                    <option value="@r" selected="@(ViewBag.SelectedRole?.ToString() == r.ToString())">@r.ToString()</option>
+                }
+            </select>
+        </form>
+        <span class="font-extrabold text-slate-600">Hiển thị @Model.Count tài khoản</span>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700 border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-900 font-extrabold uppercase tracking-wider text-[11px]">
+                        <th class="p-3.5">ID</th>
+                        <th class="p-3.5">Họ Tên / Email / SĐT</th>
+                        <th class="p-3.5">Vai Trò (Role)</th>
+                        <th class="p-3.5">Trạng Thái Khóa</th>
+                        <th class="p-3.5 text-right">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach (var u in Model)
+                    {
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="p-3.5 font-bold text-slate-900">#@u.Id</td>
+                            <td class="p-3.5">
+                                <div class="font-extrabold text-slate-900">@(u.Name ?? "Khách hàng")</div>
+                                <div class="text-[11px] text-slate-500">@u.Email | SĐT: <strong>@(u.Phone ?? "Chưa bổ sung")</strong></div>
+                            </td>
+                            <td class="p-3.5">
+                                <span class="px-2.5 py-1 rounded-full font-black text-[11px] @(u.Role == MarketConnect.Data.UserRole.SuperAdmin ? "bg-purple-100 text-purple-900 border border-purple-300" : u.Role == MarketConnect.Data.UserRole.Moderator ? "bg-blue-100 text-blue-900 border border-blue-300" : u.Role == MarketConnect.Data.UserRole.Merchant ? "bg-emerald-100 text-emerald-900 border border-emerald-300" : "bg-slate-100 text-slate-700")">
+                                    @u.Role.ToString()
+                                </span>
+                            </td>
+                            <td class="p-3.5">
+                                @if (u.LockoutEnd.HasValue && u.LockoutEnd.Value > DateTime.UtcNow)
+                                {
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-300">
+                                        🔒 Bị khóa
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-emerald-700 font-bold">✓ Hoạt động</span>
+                                }
+                            </td>
+                            <td class="p-3.5 text-right">
+                                <a href="/AdminRole" class="px-3 py-1.5 bg-slate-800 text-white font-extrabold rounded-xl text-[11px] hover:bg-slate-900">
+                                    Quản lý quyền &rarr;
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
