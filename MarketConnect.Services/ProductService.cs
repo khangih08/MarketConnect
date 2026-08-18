@@ -13,12 +13,14 @@ namespace MarketConnect.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly ElasticsearchClient _elasticClient;
+        private readonly IContentModerationService _modService;
         private static readonly ConcurrentDictionary<string, List<ProductCommentDto>> _commentsStore = new();
 
-        public ProductService(ApplicationDbContext db, ElasticsearchClient elasticClient)
+        public ProductService(ApplicationDbContext db, ElasticsearchClient elasticClient, IContentModerationService modService)
         {
             _db = db;
             _elasticClient = elasticClient;
+            _modService = modService;
         }
 
         public async Task<Product> CreateAsync(Product product)
@@ -40,8 +42,20 @@ namespace MarketConnect.Services
             var exists = await _db.Categories.AnyAsync(c => c.Id == product.CategoryId);
             if (!exists) throw new System.ArgumentException($"Category with Id {product.CategoryId} does not exist.");
 
+            product.ModerationStatus = ModerationStatus.PendingAutoReview;
             _db.Products.Add(product);
             await _db.SaveChangesAsync();
+
+            // Run FR-06 Auto Moderation Engine
+            try
+            {
+                await _modService.EvaluateProductRiskAsync(product);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FR-06 Auto Moderation Notice] {ex.Message}");
+            }
+
             return product;
         }
 
@@ -84,6 +98,7 @@ namespace MarketConnect.Services
                 Description = dto.Description,
                 UserId = userId,
                 StoreId = storeId,
+                ModerationStatus = ModerationStatus.PendingAutoReview,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -141,6 +156,16 @@ namespace MarketConnect.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"[MultiMarket Association Notice] {ex.Message}");
+            }
+
+            // Run FR-06 Auto Moderation Engine
+            try
+            {
+                await _modService.EvaluateProductRiskAsync(product);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FR-06 Auto Moderation Notice] {ex.Message}");
             }
 
             return product;

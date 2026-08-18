@@ -10,10 +10,12 @@ namespace MarketConnect.Services
     public class MerchantStoreService : IMerchantStoreService
     {
         private readonly ApplicationDbContext _db;
+        private readonly IContentModerationService _modService;
 
-        public MerchantStoreService(ApplicationDbContext db)
+        public MerchantStoreService(ApplicationDbContext db, IContentModerationService modService)
         {
             _db = db;
+            _modService = modService;
         }
 
         public async Task<Store> CreateStoreAsync(int userId, Store store)
@@ -25,6 +27,16 @@ namespace MarketConnect.Services
 
             _db.Stores.Add(store);
             await _db.SaveChangesAsync();
+
+            try
+            {
+                await _modService.EvaluateStoreRiskAsync(store);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FR-06 Store Auto Moderation Notice] {ex.Message}");
+            }
+
             return store;
         }
 
