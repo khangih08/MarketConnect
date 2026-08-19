@@ -37,6 +37,15 @@
                 <tbody class="divide-y divide-slate-100 font-mono">
                     @foreach (var log in Model)
                     {
+                        var badgeColor = log.Action switch
+                        {
+                            "LOGIN_SUCCESS" or "MFA_VERIFY_SUCCESS" => "bg-emerald-100 text-emerald-900 border-emerald-300",
+                            "LOGIN_FAILED" or "MFA_VERIFY_FAILED" or "ACCOUNT_LOCKED" or "USER_LOCKED" or "ORDER_CANCELLED" or "PRODUCT_REJECTED" => "bg-red-100 text-red-900 border-red-300",
+                            "PASSWORD_CHANGED" or "USER_CREATED" or "USER_UPDATED" or "USER_UNLOCKED" or "ROLE_CHANGED" => "bg-purple-100 text-purple-900 border-purple-300",
+                            "PRODUCT_APPROVED" or "APPEAL_RESOLVED" => "bg-teal-100 text-teal-900 border-teal-300",
+                            "CONFIG_CHANGED" or "PERMISSIONS_CHANGED" or "SUPERADMIN_ACTION" or "POLICY_CHANGED" => "bg-rose-100 text-rose-900 border-rose-300",
+                            _ => "bg-blue-100 text-blue-900 border-blue-300"
+                        };
                         <tr class="hover:bg-slate-50/80 transition-colors">
                             <td class="p-3.5 text-slate-500 font-medium">
                                 @log.Timestamp.AddHours(7).ToString("HH:mm:ss dd/MM/yyyy")
@@ -46,14 +55,14 @@
                                 <div class="text-[10px] font-black text-emerald-800">@(log.UserRole ?? "Admin")</div>
                             </td>
                             <td class="p-3.5">
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black border @badgeColor">
                                     @log.Action
                                 </span>
                             </td>
                             <td class="p-3.5 font-sans font-bold text-slate-800">
-                                @(log.EntityName ?? "Product") #@(log.EntityId ?? 0)
+                                @(log.EntityName ?? "System") #@(log.EntityId ?? 0)
                             </td>
-                            <td class="p-3.5 text-slate-700 max-w-xs truncate">
+                            <td class="p-3.5 text-slate-700 max-w-sm">
                                 @log.DetailsJson
                             </td>
                             <td class="p-3.5 text-slate-400">

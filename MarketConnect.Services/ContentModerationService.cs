@@ -137,37 +137,24 @@ namespace MarketConnect.Services
             riskScore = Math.Min(100, Math.Max(0, riskScore));
 
             // Decouple RiskScore, RiskLevel, and ModerationDecision
+            // Tất cả sản phẩm mới đăng đều vào Hàng Đợi Ưu Tiên (Admin Priority Queue) để Admin duyệt thủ công
             RiskLevel riskLevel;
             ModerationDecision decision;
             ModerationStatus status;
 
-            if (riskScore < 30)
-            {
-                riskLevel = RiskLevel.Low;
-                decision = ModerationDecision.LowRiskAutoApproved;
-                status = ModerationStatus.Approved;
-                product.ModerationStatus = ModerationStatus.Approved;
-            }
-            else if (riskScore < 60)
-            {
-                riskLevel = RiskLevel.Medium;
-                decision = ModerationDecision.MediumRiskManualQueue;
-                status = ModerationStatus.PendingManualReview;
-                product.ModerationStatus = ModerationStatus.PendingManualReview;
-            }
-            else if (riskScore < 80)
-            {
-                riskLevel = RiskLevel.High;
-                decision = ModerationDecision.HighRiskBlocked;
-                status = ModerationStatus.PendingManualReview;
-                product.ModerationStatus = ModerationStatus.PendingManualReview;
-            }
-            else
+            if (riskScore >= 80)
             {
                 riskLevel = RiskLevel.Critical;
                 decision = ModerationDecision.AutoRejected;
                 status = ModerationStatus.Rejected;
                 product.ModerationStatus = ModerationStatus.Rejected;
+            }
+            else
+            {
+                riskLevel = riskScore >= 60 ? RiskLevel.High : (riskScore >= 30 ? RiskLevel.Medium : RiskLevel.Low);
+                decision = ModerationDecision.MediumRiskManualQueue;
+                status = ModerationStatus.PendingManualReview;
+                product.ModerationStatus = ModerationStatus.PendingManualReview;
             }
 
             // Determine MarketId and ProvinceId for scope filtering
@@ -245,11 +232,11 @@ namespace MarketConnect.Services
                 triggeredRules.Add("MISSING_REQUIRED: Tên gian hàng hoặc số điện thoại thiếu");
             }
 
-            RiskLevel riskLevel = riskScore < 30 ? RiskLevel.Low : RiskLevel.Medium;
-            ModerationDecision decision = riskScore < 30 ? ModerationDecision.LowRiskAutoApproved : ModerationDecision.MediumRiskManualQueue;
-            ModerationStatus status = decision == ModerationDecision.LowRiskAutoApproved ? ModerationStatus.Approved : ModerationStatus.PendingManualReview;
+            RiskLevel riskLevel = riskScore >= 60 ? RiskLevel.High : (riskScore >= 30 ? RiskLevel.Medium : RiskLevel.Low);
+            ModerationDecision decision = ModerationDecision.MediumRiskManualQueue;
+            ModerationStatus status = ModerationStatus.PendingManualReview;
 
-            store.Status = status == ModerationStatus.Approved ? StoreStatus.Approved : StoreStatus.PendingApproval;
+            store.Status = StoreStatus.PendingApproval;
 
             var snapshotData = new
             {

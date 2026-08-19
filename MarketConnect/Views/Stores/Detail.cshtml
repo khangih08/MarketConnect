@@ -31,6 +31,17 @@
         </div>
     }
 
+    @if (Model.Status == MarketConnect.Data.StoreStatus.PendingApproval)
+    {
+        <div class="bg-amber-100 border-2 border-amber-400 text-amber-950 px-5 py-4 rounded-3xl mb-6 text-xs flex items-start gap-3 shadow-md">
+            <span class="material-symbols-outlined text-amber-700 text-2xl shrink-0 mt-0.5 animate-bounce">pending_actions</span>
+            <div>
+                <h4 class="font-extrabold text-sm text-amber-900 mb-0.5">THÔNG BÁO: HỒ SƠ GIAN HÀNG ĐANG CHỜ ADMIN XÉT DUYỆT</h4>
+                <p class="leading-relaxed">Hồ sơ đăng ký gian hàng "<strong>@Model.StoreName</strong>" của bạn đã được chuyển đến bộ phận Quản trị viên (Admin) xét duyệt. Vui lòng kiên nhẫn chờ Quản trị viên phê duyệt trước khi gian hàng của bạn officially hoạt động và đăng bán sản phẩm công khai!</p>
+            </div>
+        </div>
+    }
+
     <!-- Store Profile Header -->
     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-8">
         <div class="h-44 bg-gradient-to-r from-emerald-900 via-teal-800 to-emerald-900 p-6 flex items-end relative">
@@ -42,9 +53,18 @@
                     <div class="text-white space-y-1">
                         <div class="flex items-center gap-2">
                             <h1 class="text-2xl font-extrabold tracking-tight">@Model.StoreName</h1>
-                            <span class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                                @Model.Status.ToString()
-                            </span>
+                            @if (Model.Status == MarketConnect.Data.StoreStatus.PendingApproval)
+                            {
+                                <span class="bg-amber-400 text-amber-950 font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-wider shadow-sm animate-pulse flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-800"></span> PENDING (CHỜ ADMIN DUYỆT)
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                                    @Model.Status.ToString()
+                                </span>
+                            }
                         </div>
                         <p class="text-xs text-emerald-200 flex items-center gap-2">
                             <span>Chủ gian: <strong class="text-white">@Model.RepresentativeName</strong></span>

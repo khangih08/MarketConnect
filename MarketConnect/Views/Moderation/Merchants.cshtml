@@ -50,9 +50,25 @@
                                 @s.VerifiedPhone
                             </td>
                             <td class="p-3.5">
-                                <span class="px-2.5 py-1 rounded-full font-black text-[11px] @(s.Status == MarketConnect.Data.StoreStatus.Approved ? "bg-emerald-100 text-emerald-900 border border-emerald-300" : s.Status == MarketConnect.Data.StoreStatus.Rejected ? "bg-red-100 text-red-700 border border-red-300" : "bg-amber-100 text-amber-900 border border-amber-300")">
-                                    @s.Status.ToString()
-                                </span>
+                                @if (s.Status == MarketConnect.Data.StoreStatus.PendingApproval)
+                                {
+                                    <span class="px-3 py-1 rounded-full font-black text-[11px] bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                                        <span>Pending (Chờ Admin duyệt)</span>
+                                    </span>
+                                }
+                                else if (s.Status == MarketConnect.Data.StoreStatus.Approved)
+                                {
+                                    <span class="px-2.5 py-1 rounded-full font-black text-[11px] bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                        Approved
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="px-2.5 py-1 rounded-full font-black text-[11px] bg-red-100 text-red-700 border border-red-300">
+                                        @s.Status.ToString()
+                                    </span>
+                                }
                             </td>
                             <td class="p-3.5 text-right">
                                 <form method="post" action="/Moderation/ReviewStore" class="inline-flex items-center gap-1">

@@ -10,18 +10,20 @@ namespace MarketConnect.Controllers
     {
         private readonly IAdminMfaService _mfaService;
         private readonly ICurrentUserService _currentUser;
+        private readonly IAuditLogService _auditLog;
 
-        public AdminMfaController(IAdminMfaService mfaService, ICurrentUserService currentUser)
+        public AdminMfaController(IAdminMfaService mfaService, ICurrentUserService currentUser, IAuditLogService auditLog)
         {
             _mfaService = mfaService;
             _currentUser = currentUser;
+            _auditLog = auditLog;
         }
 
         // GET: /AdminMfa/Verify
         [HttpGet]
         public IActionResult Verify()
         {
-            if (!_currentUser.IsAuthenticated)
+            if (_currentUser.UserId <= 0)
             {
                 return RedirectToAction("Login", "Account");
             }
@@ -34,7 +36,7 @@ namespace MarketConnect.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Verify(string passcode)
         {
-            if (!_currentUser.IsAuthenticated)
+            if (_currentUser.UserId <= 0)
             {
                 return RedirectToAction("Login", "Account");
             }
@@ -42,12 +44,32 @@ namespace MarketConnect.Controllers
             bool isValid = await _mfaService.ValidateAdminMfaPasscodeAsync(_currentUser.UserId, passcode);
             if (!isValid)
             {
+                await _auditLog.LogActionAsync(
+                    _currentUser.UserId,
+                    _currentUser.Role.ToString(),
+                    "MFA_VERIFY_FAILED",
+                    "User",
+                    _currentUser.UserId,
+                    "Xác thực MFA OTP Quản trị viên thất bại (Sai mã OTP)",
+                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+                );
+
                 ViewBag.ErrorMessage = "Mã xác thực MFA không chính xác. Vui lòng thử lại (hoặc dùng mã thử nghiệm 123456).";
                 return View();
             }
 
             try { HttpContext.Session?.SetString("AdminMfaVerified", "true"); } catch { }
             Response.Cookies.Append("AdminMfaVerified", "true", new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddHours(12) });
+
+            await _auditLog.LogActionAsync(
+                _currentUser.UserId,
+                _currentUser.Role.ToString(),
+                "MFA_VERIFY_SUCCESS",
+                "User",
+                _currentUser.UserId,
+                "Xác thực MFA OTP Quản trị viên thành công",
+                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+            );
 
             TempData["SuccessMessage"] = "Xác thực MFA Quản trị viên thành công!";
             return RedirectToAction("Dashboard", "Moderation");

@@ -1076,6 +1076,43 @@ namespace MarketConnect.Data
 
                 db.RolePermissions.AddRange(rolePerms);
                 await db.SaveChangesAsync();
+
+                if (!await db.AuditLogs.AnyAsync())
+                {
+                    var sampleLogs = new List<AuditLog>
+                    {
+                        // 1. Đăng nhập / bảo mật
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "LOGIN_SUCCESS", EntityName = "User", EntityId = 1, DetailsJson = "Đăng nhập thành công qua Số điện thoại (SĐT: 0900000000)", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-120) },
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "MFA_VERIFY_SUCCESS", EntityName = "User", EntityId = 1, DetailsJson = "Xác thực MFA OTP Quản trị viên thành công", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-118) },
+                        new AuditLog { UserId = 2, UserRole = "Moderator", Action = "LOGIN_FAILED", EntityName = "User", EntityId = 2, DetailsJson = "Đăng nhập thất bại (Nhập sai mật khẩu lần 3/5)", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-90) },
+                        new AuditLog { UserId = 2, UserRole = "Moderator", Action = "PASSWORD_CHANGED", EntityName = "User", EntityId = 2, DetailsJson = "Thay đổi mật khẩu tài khoản thành công", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-60) },
+                        new AuditLog { UserId = 15, UserRole = "Buyer", Action = "ACCOUNT_LOCKED", EntityName = "User", EntityId = 15, DetailsJson = "Khóa tài khoản tạm thời 30 phút do nhập sai mật khẩu quá 5 lần", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-45) },
+
+                        // 2. Quản lý người dùng
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "USER_CREATED", EntityName = "User", EntityId = 16, DetailsJson = "Tạo mới tài khoản Kiểm duyệt viên Chợ Nhân Chính (ModNhanchinh)", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-110) },
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "USER_UPDATED", EntityName = "User", EntityId = 2, DetailsJson = "Cập nhật thông tin cá nhân và email Mod Chợ Nhân Chính", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-80) },
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "ROLE_CHANGED", EntityName = "User", EntityId = 3, DetailsJson = "Thay đổi vai trò người dùng từ Moderator sang MarketAdmin Chợ Đồng Xuân", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-50) },
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "USER_UNLOCKED", EntityName = "User", EntityId = 14, DetailsJson = "Mở khóa tài khoản người dùng sau khi hoàn tất xác minh thông tin", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-30) },
+
+                        // 3. Quản lý sản phẩm
+                        new AuditLog { UserId = 2, UserRole = "Moderator", Action = "PRODUCT_APPROVED", EntityName = "Product", EntityId = 101, DetailsJson = "Phê duyệt hiển thị sản phẩm 'Rau Củ Quả Hữu Cơ Nông Sản Việt'", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-100) },
+                        new AuditLog { UserId = 2, UserRole = "Moderator", Action = "PRODUCT_REJECTED", EntityName = "Product", EntityId = 102, DetailsJson = "Từ chối sản phẩm vi phạm quy định mô tả và gắn mác sai giá trị", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-75) },
+                        new AuditLog { UserId = 2, UserRole = "Moderator", Action = "PRODUCT_VISIBILITY_CHANGED", EntityName = "Product", EntityId = 103, DetailsJson = "Tạm ẩn sản phẩm khỏi sàn niêm yết theo yêu cầu bổ sung chứng nhận", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-40) },
+                        new AuditLog { UserId = 2, UserRole = "Moderator", Action = "PRODUCT_UPDATED", EntityName = "Product", EntityId = 104, DetailsJson = "Chỉnh sửa phiên bản kiểm duyệt nội dung ContentVersion #2", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-25) },
+
+                        // 4. Quản lý đơn hàng / giao dịch
+                        new AuditLog { UserId = 3, UserRole = "MarketAdmin", Action = "ORDER_STATUS_UPDATED", EntityName = "PurchaseRequest", EntityId = 201, DetailsJson = "Cập nhật trạng thái đơn mua từ 'Chờ xử lý' sang 'Đã xác nhận'", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-70) },
+                        new AuditLog { UserId = 3, UserRole = "MarketAdmin", Action = "ORDER_CANCELLED", EntityName = "PurchaseRequest", EntityId = 202, DetailsJson = "Hủy đơn mua theo yêu cầu của tiểu thương và hoàn tiền", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-55) },
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "APPEAL_RESOLVED", EntityName = "ModerationAppeal", EntityId = 1, DetailsJson = "Chấp nhận khiếu nại của Gian Hàng Rau Sạch và mở lại quyền đăng bán", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-20) },
+
+                        // 5. Quản trị hệ thống
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "CONFIG_CHANGED", EntityName = "ModerationRule", EntityId = 1, DetailsJson = "Cập nhật ngưỡng tự động duyệt Auto-Approval Score threshold = 85", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-35) },
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "PERMISSIONS_CHANGED", EntityName = "RolePermission", EntityId = 12, DetailsJson = "Cấp bổ sung quyền MODERATION_RULE_MANAGE cho vai trò MarketAdmin", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-15) },
+                        new AuditLog { UserId = 1, UserRole = "SuperAdmin", Action = "SUPERADMIN_ACTION", EntityName = "System", EntityId = 99, DetailsJson = "Ghi đè thủ công trạng thái kiểm duyệt nội dung bởi SuperAdmin", IpHash = "127.0.0.1", Timestamp = DateTime.UtcNow.AddMinutes(-5) }
+                    };
+                    db.AuditLogs.AddRange(sampleLogs);
+                    await db.SaveChangesAsync();
+                }
             }
         }
     }

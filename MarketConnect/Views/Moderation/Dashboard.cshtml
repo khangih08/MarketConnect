@@ -1,173 +1,205 @@
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Dashboard Tổng Quan Hệ Thống Admin Portal";
+    ViewData["Title"] = "MarketConnect Admin Portal - Tổng quan";
     var recentLogs = ViewBag.RecentActivity as List<MarketConnect.Data.AuditLog> ?? new List<MarketConnect.Data.AuditLog>();
 }
 
-<div class="space-y-6">
-    <!-- Header Title -->
-    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-        <div>
-            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
-                <span class="material-symbols-outlined text-emerald-800 text-3xl">dashboard</span>
-                <span>Tổng Quan Hệ Thống Admin Portal</span>
-            </h1>
-            <p class="text-xs text-slate-500 mt-1">Thống kê toàn diện về người dùng, sản phẩm, chợ, hàng đợi kiểm duyệt và cảnh báo bảo mật.</p>
+<!-- Page Header -->
+<div class="flex items-center justify-between mb-8">
+    <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-3 text-primary">
+            <span class="material-symbols-outlined text-3xl">qr_code_2</span>
+            <h1 class="font-display-lg text-display-lg text-2xl font-bold text-on-surface">Tổng Quan Hệ Thống Admin Portal</h1>
         </div>
-        <a href="/Moderation" class="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-2xl text-xs shadow-sm transition-all flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-sm">shield</span> Vào Hàng Đợi Kiểm Duyệt &rarr;
-        </a>
+        <p class="font-body-md text-body-md text-on-surface-variant text-xs">Thống kê toàn diện về người dùng, sản phẩm, chợ, hàng đợi kiểm duyệt và cảnh báo bảo mật.</p>
+    </div>
+    <a href="/Moderation" class="bg-secondary hover:bg-on-secondary-container text-white px-5 py-2.5 rounded-lg font-label-md transition-colors flex items-center gap-2 shadow-sm text-xs font-semibold">
+        <span class="material-symbols-outlined text-sm">policy</span>
+        Vào Hàng Đợi Kiểm Duyệt
+        <span class="material-symbols-outlined text-sm">arrow_right_alt</span>
+    </a>
+</div>
+
+<!-- Dashboard Grid -->
+<div class="flex flex-col gap-6">
+    <!-- Top Row: 4 Large Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Card 1 -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-soft flex flex-col justify-between border border-surface-container">
+            <div class="flex justify-between items-start mb-4">
+                <span class="font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px] font-semibold">Tổng số sản phẩm</span>
+                <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+                    <span class="material-symbols-outlined">inventory_2</span>
+                </div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="font-display-lg text-display-lg text-3xl font-bold text-on-surface">@ViewBag.TotalProducts</span>
+                <span class="font-label-sm text-secondary flex items-center gap-1 text-[11px] font-medium">
+                    <span class="material-symbols-outlined text-[14px]">check</span>
+                    Đã tối ưu hóa dữ liệu
+                </span>
+            </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-soft flex flex-col justify-between border-l-4 border-orange-400 border-y border-r border-surface-container">
+            <div class="flex justify-between items-start mb-4">
+                <span class="font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px] font-semibold">Nội dung chờ duyệt</span>
+                <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500">
+                    <span class="material-symbols-outlined">pending_actions</span>
+                </div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="font-display-lg text-display-lg text-3xl font-bold text-orange-500">@ViewBag.TotalPending</span>
+                <span class="font-label-sm text-orange-600 flex items-center gap-1 text-[11px] font-medium">
+                    <span class="material-symbols-outlined text-[14px]">warning</span>
+                    Cần kiểm duyệt thủ công
+                </span>
+            </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-soft flex flex-col justify-between border-l-4 border-error border-y border-r border-surface-container">
+            <div class="flex justify-between items-start mb-4">
+                <span class="font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px] font-semibold">Nội dung rủi ro cao</span>
+                <div class="w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-error">
+                    <span class="material-symbols-outlined">report</span>
+                </div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="font-display-lg text-display-lg text-3xl font-bold text-error">@ViewBag.HighRiskCount</span>
+                <span class="font-label-sm text-error flex items-center gap-1 text-[11px] font-medium">
+                    <span class="material-symbols-outlined text-[14px]">error</span>
+                    Cảnh báo mức High/Critical
+                </span>
+            </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-soft flex flex-col justify-between border-l-4 border-purple-500 border-y border-r border-surface-container">
+            <div class="flex justify-between items-start mb-4">
+                <span class="font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px] font-semibold">Khiếu nại chờ xử lý</span>
+                <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+                    <span class="material-symbols-outlined">gavel</span>
+                </div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="font-display-lg text-display-lg text-3xl font-bold text-purple-600">@ViewBag.PendingAppealsCount</span>
+                <span class="font-label-sm text-purple-600 flex items-center gap-1 text-[11px] font-medium">
+                    <span class="material-symbols-outlined text-[14px]">forward_to_inbox</span>
+                    Từ tiểu thương gửi tới
+                </span>
+            </div>
+        </div>
     </div>
 
-    <!-- Top 4 KPI Summary Cards (Layout Tổng Thể) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Tổng Số Sản Phẩm</div>
-                <div class="text-3xl font-black text-slate-900 mt-1">@ViewBag.TotalProducts</div>
-                <div class="text-[10px] font-bold text-emerald-600 mt-1">✓ Đã tối ưu hóa dữ liệu</div>
-            </div>
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center">
-                <span class="material-symbols-outlined text-2xl">inventory_2</span>
-            </div>
+    <!-- Second Row: 4 Smaller Stats Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-surface-container-lowest rounded-xl p-4 shadow-soft flex flex-col items-center justify-center gap-2 border border-surface-container">
+            <span class="font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Tổng người dùng</span>
+            <span class="font-headline-md text-headline-md text-xl font-bold text-on-surface">@ViewBag.TotalUsers</span>
         </div>
-
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Nội Dung Chờ Duyệt</div>
-                <div class="text-3xl font-black text-amber-600 mt-1">@ViewBag.TotalPending</div>
-                <div class="text-[10px] font-bold text-amber-700 mt-1">⚠️ Cần kiểm duyệt thủ công</div>
-            </div>
-            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center">
-                <span class="material-symbols-outlined text-2xl">pending_actions</span>
-            </div>
+        <div class="bg-surface-container-lowest rounded-xl p-4 shadow-soft flex flex-col items-center justify-center gap-2 border border-surface-container">
+            <span class="font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Tổng số chợ</span>
+            <span class="font-headline-md text-headline-md text-xl font-bold text-blue-600">@ViewBag.TotalMarkets</span>
         </div>
-
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Nội Dung Rủi Ro Cao</div>
-                <div class="text-3xl font-black text-red-600 mt-1">@ViewBag.HighRiskCount</div>
-                <div class="text-[10px] font-bold text-red-600 mt-1">🔴 Cảnh báo mức High/Critical</div>
-            </div>
-            <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center">
-                <span class="material-symbols-outlined text-2xl">warning</span>
-            </div>
+        <div class="bg-surface-container-lowest rounded-xl p-4 shadow-soft flex flex-col items-center justify-center gap-2 border border-surface-container">
+            <span class="font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Tổng số tiểu thương</span>
+            <span class="font-headline-md text-headline-md text-xl font-bold text-secondary">@ViewBag.TotalMerchants</span>
         </div>
-
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Khiếu Nại Chờ Xử Lý</div>
-                <div class="text-3xl font-black text-purple-700 mt-1">@ViewBag.PendingAppealsCount</div>
-                <div class="text-[10px] font-bold text-purple-700 mt-1">📩 Từ tiểu thương gửi tới</div>
-            </div>
-            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center">
-                <span class="material-symbols-outlined text-2xl">mail</span>
-            </div>
+        <div class="bg-surface-container-lowest rounded-xl p-4 shadow-soft flex flex-col items-center justify-center gap-2 border border-surface-container">
+            <span class="font-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Tài khoản bị khóa</span>
+            <span class="font-headline-md text-headline-md text-xl font-bold text-on-surface">@ViewBag.LockedUsersCount</span>
         </div>
     </div>
 
-    <!-- Secondary KPI Metrics Row -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-slate-400 uppercase">Tổng Người Dùng</div>
-            <div class="text-xl font-black text-slate-900 mt-1">@ViewBag.TotalUsers</div>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-slate-400 uppercase">Tổng Số Chợ</div>
-            <div class="text-xl font-black text-blue-700 mt-1">@ViewBag.TotalMarkets</div>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-slate-400 uppercase">Tổng Số Tiểu Thương</div>
-            <div class="text-xl font-black text-emerald-700 mt-1">@ViewBag.TotalMerchants</div>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-            <div class="text-[11px] font-extrabold text-slate-400 uppercase">Tài Khoản Bị Khóa</div>
-            <div class="text-xl font-black text-stone-700 mt-1">@ViewBag.LockedUsersCount</div>
-        </div>
-    </div>
-
-    <!-- Main Grid Section: Moderation Overview & Recent Activity Feed -->
+    <!-- Bottom Section: Split Layout -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Moderation Activity Breakdown -->
-        <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-black text-base text-slate-900 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-emerald-700">insights</span> Hoạt Động Kiểm Duyệt Tự Động & Thủ Công
-                </h3>
-                <span class="text-xs font-bold text-slate-500">Cập nhật thời gian thực</span>
+        <!-- Main Area (Left - 2 Cols) -->
+        <div class="lg:col-span-2 bg-surface-container-lowest rounded-2xl shadow-soft flex flex-col border border-surface-container">
+            <div class="p-6 border-b border-surface-variant flex justify-between items-center">
+                <div class="flex items-center gap-2 text-primary">
+                    <span class="material-symbols-outlined">insights</span>
+                    <h2 class="font-title-lg text-title-lg text-base font-bold text-on-surface">Hoạt Động Kiểm Duyệt Tự Động & Thủ Công</h2>
+                </div>
+                <span class="font-label-sm text-on-surface-variant text-xs">Cập nhật thời gian thực</span>
             </div>
-
-            <div class="space-y-3 text-xs">
-                <div class="p-4 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="w-3 h-3 rounded-full bg-red-600 animate-ping"></span>
-                        <div>
-                            <span class="font-extrabold text-red-900 block">🔴 HIGH RISK QUEUE</span>
-                            <span class="text-slate-600">Yêu cầu kiểm duyệt viên thẩm định kỹ</span>
+            <div class="p-6 flex flex-col gap-4">
+                <!-- High Risk Row -->
+                <a href="/Moderation?riskLevel=High" class="bg-error/5 border border-error/20 rounded-xl p-4 flex items-center justify-between hover:bg-error/10 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="w-3 h-3 rounded-full bg-error animate-ping"></div>
+                        <div class="flex flex-col">
+                            <span class="font-label-md text-error font-bold text-xs">HIGH RISK QUEUE</span>
+                            <span class="font-body-md text-on-surface-variant text-xs">Yêu cầu kiểm duyệt viên thẩm định kỹ</span>
                         </div>
                     </div>
-                    <span class="text-lg font-black text-red-700">@ViewBag.HighRiskCount Hồ Sơ</span>
+                    <span class="font-headline-sm text-headline-sm font-bold text-error text-sm">@ViewBag.HighRiskCount Hồ Sơ</span>
+                </a>
+                <!-- Medium Risk Row -->
+                <a href="/Moderation" class="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center justify-between hover:bg-orange-100/50 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="w-3 h-3 rounded-full bg-orange-500"></div>
+                        <div class="flex flex-col">
+                            <span class="font-label-md text-orange-600 font-bold text-xs">MEDIUM RISK QUEUE</span>
+                            <span class="font-body-md text-on-surface-variant text-xs">Xử lý theo thứ tự chờ trong hàng đợi</span>
+                        </div>
+                    </div>
+                    <span class="font-headline-sm text-headline-sm font-bold text-orange-600 text-sm">@ViewBag.TotalPending Hồ Sơ</span>
+                </a>
+                <!-- Auto Approved Row -->
+                <div class="bg-secondary/5 border border-secondary/20 rounded-xl p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-3 h-3 rounded-full bg-secondary"></div>
+                        <div class="flex flex-col">
+                            <span class="font-label-md text-secondary font-bold text-xs">AUTO APPROVED</span>
+                            <span class="font-body-md text-on-surface-variant text-xs">Nội dung an toàn được duyệt tự động</span>
+                        </div>
+                    </div>
+                    <span class="font-headline-sm text-headline-sm font-bold text-secondary text-sm">95.4%</span>
                 </div>
-
-                <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
-                        <div>
-                            <span class="font-extrabold text-amber-900 block">🟠 MEDIUM RISK QUEUE</span>
-                            <span class="text-slate-600">Xử lý theo thứ tự chờ trong hàng đợi</span>
+                <!-- Auto Rejected Row -->
+                <div class="bg-surface border border-outline-variant rounded-xl p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-3 h-3 rounded-full bg-on-surface"></div>
+                        <div class="flex flex-col">
+                            <span class="font-label-md text-on-surface font-bold text-xs">AUTO REJECTED</span>
+                            <span class="font-body-md text-on-surface-variant text-xs">Chặn trực tiếp vi phạm nghiêm trọng (Risk ≥ 80)</span>
                         </div>
                     </div>
-                    <span class="text-lg font-black text-amber-800">@ViewBag.TotalPending Hồ Sơ</span>
-                </div>
-
-                <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="w-3 h-3 rounded-full bg-emerald-600"></span>
-                        <div>
-                            <span class="font-extrabold text-emerald-900 block">🟢 AUTO APPROVED</span>
-                            <span class="text-slate-600">Nội dung an toàn được duyệt tự động</span>
-                        </div>
-                    </div>
-                    <span class="text-lg font-black text-emerald-800">95.4%</span>
-                </div>
-
-                <div class="p-4 rounded-2xl bg-stone-100 border border-stone-300 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="w-3 h-3 rounded-full bg-stone-700"></span>
-                        <div>
-                            <span class="font-extrabold text-stone-900 block">❌ AUTO REJECTED</span>
-                            <span class="text-slate-600">Chặn trực tiếp vi phạm nghiêm trọng (Risk ≥ 80)</span>
-                        </div>
-                    </div>
-                    <span class="text-lg font-black text-stone-800">4.6%</span>
+                    <span class="font-headline-sm text-headline-sm font-bold text-on-surface text-sm">4.6%</span>
                 </div>
             </div>
         </div>
-
-        <!-- Recent Audit Log Stream -->
-        <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-black text-base text-slate-900 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-blue-700">history</span> Hoạt Động Gần Đây
-                </h3>
-                <a href="/Moderation/AuditLogs" class="text-xs font-bold text-emerald-700 hover:underline">Xem log &rarr;</a>
+        <!-- Side Area (Right - 1 Col) -->
+        <div class="bg-surface-container-lowest rounded-2xl shadow-soft flex flex-col h-full border border-surface-container">
+            <div class="p-6 border-b border-surface-variant flex justify-between items-center">
+                <div class="flex items-center gap-2 text-primary">
+                    <span class="material-symbols-outlined text-blue-600">history</span>
+                    <h2 class="font-title-lg text-title-lg text-base font-bold text-on-surface">Hoạt Động Gần Đây</h2>
+                </div>
+                <a class="font-label-sm text-secondary hover:underline flex items-center gap-1 text-xs font-bold" href="/Moderation/AuditLogs">
+                    Xem log
+                    <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                </a>
             </div>
-
-            <div class="space-y-3 text-xs">
+            <div class="flex-1 p-6 flex flex-col gap-3 min-h-[300px]">
                 @if (!recentLogs.Any())
                 {
-                    <div class="text-center text-slate-400 py-6">Chưa có nhật ký hoạt động gần đây.</div>
+                    <div class="flex flex-col items-center justify-center h-full text-center py-10">
+                        <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-outline-variant mb-4">
+                            <span class="material-symbols-outlined text-3xl">event_note</span>
+                        </div>
+                        <span class="font-body-md text-on-surface-variant text-xs">Chưa có nhật ký hoạt động gần đây.</span>
+                    </div>
                 }
                 else
                 {
                     @foreach (var log in recentLogs)
                     {
-                        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                        <div class="p-3 rounded-xl bg-surface-container-low border border-surface-container space-y-1">
                             <div class="flex items-center justify-between">
-                                <span class="font-extrabold text-slate-900">@log.Action</span>
-                                <span class="text-[10px] text-slate-400 font-mono">@log.Timestamp.AddHours(7).ToString("HH:mm dd/MM")</span>
+                                <span class="font-extrabold text-on-surface text-xs">@log.Action</span>
+                                <span class="text-[10px] text-outline font-mono">@log.Timestamp.AddHours(7).ToString("HH:mm dd/MM")</span>
                             </div>
-                            <div class="text-slate-600 text-[11px] truncate">@log.DetailsJson</div>
+                            <div class="text-on-surface-variant text-[11px] truncate">@log.DetailsJson</div>
                         </div>
                     }
                 }

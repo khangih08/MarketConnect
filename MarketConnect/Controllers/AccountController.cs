@@ -1,5 +1,6 @@
 using MarketConnect.Controllers.Dtos;
 using MarketConnect.Data;
+using MarketConnect.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -10,10 +11,14 @@ namespace MarketConnect.Controllers
     public class AccountController : Controller
     {
         private readonly ApplicationDbContext _db;
+        private readonly IAuditLogService _auditLog;
+        private readonly ICurrentUserService _currentUser;
 
-        public AccountController(ApplicationDbContext db)
+        public AccountController(ApplicationDbContext db, IAuditLogService auditLog, ICurrentUserService currentUser)
         {
             _db = db;
+            _auditLog = auditLog;
+            _currentUser = currentUser;
         }
 
         [HttpGet("Account/AddPhoneAndSetPassword")]
@@ -80,15 +85,33 @@ namespace MarketConnect.Controllers
         [HttpPost("Account/Logout")]
         public async Task<IActionResult> Logout()
         {
+            int uId = _currentUser.UserId;
+            if (uId > 0)
+            {
+                await _auditLog.LogActionAsync(
+                    uId,
+                    _currentUser.Role.ToString(),
+                    "LOGOUT",
+                    "User",
+                    uId,
+                    "Đăng xuất khỏi hệ thống",
+                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+                );
+            }
+
             try
             {
                 await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.SignOutAsync(HttpContext);
             }
             catch { }
 
+            Response.Cookies.Delete("access_token");
+            Response.Cookies.Delete("user_id");
+            Response.Cookies.Delete("user_role");
             Response.Cookies.Delete("user_email");
             Response.Cookies.Delete("user_name");
             Response.Cookies.Delete("user_phone");
+            Response.Cookies.Delete("AdminMfaVerified");
             Response.Cookies.Delete("MarketConnectAuthCookie");
             Response.Cookies.Delete(".AspNetCore.Cookies");
             Response.Cookies.Delete(".AspNetCore.Identity.Application");
@@ -526,6 +549,16 @@ namespace MarketConnect.Controllers
             Response.Cookies.Append("user_role", adminUser.Role.ToString(), new CookieOptions { HttpOnly = false, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(7) });
             Response.Cookies.Append("AdminMfaVerified", "true", new CookieOptions { HttpOnly = false, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(7) });
             try { HttpContext.Session?.SetString("AdminMfaVerified", "true"); } catch { }
+
+            await _auditLog.LogActionAsync(
+                adminUser.Id,
+                adminUser.Role.ToString(),
+                "LOGIN_SUCCESS",
+                "User",
+                adminUser.Id,
+                "Đăng nhập SuperAdmin (Quick Login Admin Portal)",
+                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+            );
 
             TempData["SuccessMessage"] = "Đã đăng nhập thành công với quyền SuperAdmin!";
             return RedirectToAction("Dashboard", "Moderation");

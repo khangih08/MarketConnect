@@ -7,175 +7,270 @@
     var currentPath = Context.Request.Path.Value ?? "";
 }
 <!DOCTYPE html>
-<html lang="vi">
+<html class="light" lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - MarketConnect Admin Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e0e3e5",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-container-low": "#f2f4f6",
+                        "on-secondary-fixed": "#002113",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#000000",
+                        "on-tertiary-container": "#7073ff",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#76777d",
+                        "on-background": "#191c1e",
+                        "surface-bright": "#f7f9fb",
+                        "surface": "#f7f9fb",
+                        "surface-dim": "#d8dadc",
+                        "primary-container": "#131b2e",
+                        "primary-fixed": "#dae2fd",
+                        "primary": "#000000",
+                        "on-primary-container": "#7c839b",
+                        "tertiary-container": "#07006c",
+                        "surface-container": "#eceef0",
+                        "on-secondary-fixed-variant": "#005236",
+                        "primary-fixed-dim": "#bec6e0",
+                        "inverse-surface": "#2d3133",
+                        "on-surface": "#191c1e",
+                        "on-primary-fixed": "#131b2e",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#bec6e0",
+                        "secondary-fixed": "#6ffbbe",
+                        "tertiary-fixed": "#e1e0ff",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-container-high": "#e6e8ea",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "on-tertiary-fixed": "#07006c",
+                        "surface-tint": "#565e74",
+                        "secondary": "#006c49",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-secondary-container": "#00714d",
+                        "on-secondary": "#ffffff",
+                        "background": "#f8fafc",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "outline-variant": "#c6c6cd",
+                        "on-surface-variant": "#45464d",
+                        "secondary-container": "#6cf8bb",
+                        "surface-container-highest": "#e0e3e5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "2xl": "1rem"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "max-container": "1440px",
+                        "sm": "12px",
+                        "xs": "8px",
+                        "lg": "24px",
+                        "gutter": "24px",
+                        "sidebar-width": "260px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter", "sans-serif"],
+                        "headline-sm": ["Inter", "sans-serif"],
+                        "display-lg-mobile": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"],
+                        "title-lg": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "label-sm": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"]
+                    },
+                    "boxShadow": {
+                        'soft': '0px 1px 3px rgba(0,0,0,0.1), 0px 1px 2px rgba(0,0,0,0.06)',
+                        'nav': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+                    }
+                },
+            },
+        }
+    </script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .sidebar-scroll:hover::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col">
-    <!-- Top Header Bar -->
-    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
-        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-            <!-- Brand Logo -->
-            <div class="flex items-center gap-3">
-                <a href="/Moderation/Dashboard" class="flex items-center gap-2.5 group">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
-                        <span class="material-symbols-outlined text-2xl">admin_panel_settings</span>
-                    </div>
-                    <div>
-                        <span class="text-base font-extrabold tracking-tight text-white block leading-none">MarketConnect</span>
-                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">Admin Portal</span>
-                    </div>
-                </a>
+<body class="bg-background text-on-surface antialiased">
+    <!-- Top Navigation Bar -->
+    <header class="bg-surface-container-lowest text-on-surface shadow-nav h-16 ml-[260px] w-[calc(100%-260px)] fixed top-0 z-40 flex items-center justify-between px-lg border-b border-surface-container">
+        <!-- Search Area -->
+        <div class="flex items-center flex-1 max-w-md">
+            <div class="relative w-full">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">search</span>
+                <input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-transparent rounded-lg focus:bg-surface-container-lowest focus:border-outline-variant focus:ring-1 focus:ring-outline-variant transition-all font-body-md text-body-md placeholder:text-outline text-xs" placeholder="Tìm kiếm hệ thống..." type="text"/>
             </div>
-
-            <!-- Header Right Section: Notification & User Dropdown -->
-            <div class="flex items-center gap-4">
-                <!-- Notification Bell (FR-07 Notification Center) -->
+        </div>
+        <!-- Trailing Actions -->
+        <div class="flex items-center gap-4">
+            <a href="/AdminMfa/Verify" class="px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-lg font-label-md hover:bg-surface-container transition-colors flex items-center gap-2 border border-outline-variant/30 text-xs font-semibold">
+                <span class="material-symbols-outlined text-sm">security</span>
+                MFA OTP
+            </a>
+            <div class="flex items-center gap-2">
                 <div class="relative" id="notificationDropdown">
-                    <button type="button" onclick="toggleNotificationMenu()" class="relative p-2 text-slate-300 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer">
-                        <span class="material-symbols-outlined text-2xl">notifications</span>
-                        <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-red-600 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center border-2 border-slate-900 animate-pulse">3</span>
+                    <button type="button" onclick="toggleNotificationMenu()" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors relative cursor-pointer">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
                     </button>
-
-                    <!-- Notifications Panel -->
+                    <!-- Notification Panel Dropdown -->
                     <div id="notificationMenu" class="hidden absolute right-0 mt-2 w-80 bg-white text-slate-900 rounded-2xl shadow-2xl border border-slate-200 py-2 z-50">
                         <div class="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
                             <span class="font-extrabold text-xs text-slate-900">Thông Báo Cảnh Báo</span>
-                            <span class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">3 Mới</span>
+                            <span class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">Mới</span>
                         </div>
                         <div class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">
                             <a href="/Moderation?riskLevel=High" class="block p-3 hover:bg-red-50/50 transition-colors">
                                 <div class="font-bold text-red-700 flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-sm">warning</span> 🔴 5 nội dung RỦI RO CAO chờ duyệt
+                                    <span class="material-symbols-outlined text-sm">warning</span> 🔴 Cảnh báo nội dung RỦI RO CAO
                                 </div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">Yêu cầu kiểm duyệt thủ công ưu tiên</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Yêu cầu kiểm duyệt viên thẩm định kỹ</div>
                             </a>
                             <a href="/Moderation/Appeals" class="block p-3 hover:bg-purple-50/50 transition-colors">
                                 <div class="font-bold text-purple-800 flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-sm">mail</span> 📩 2 khiếu nại mới từ tiểu thương
+                                    <span class="material-symbols-outlined text-sm">mail</span> 📩 Khiếu nại từ tiểu thương
                                 </div>
                                 <div class="text-[11px] text-slate-500 mt-0.5">Khiếu nại về quyết định Auto Rejected</div>
                             </a>
-                            <a href="/AdminRole" class="block p-3 hover:bg-amber-50/50 transition-colors">
-                                <div class="font-bold text-amber-900 flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-sm">shield</span> 🔐 Có thay đổi phân quyền mới
-                                </div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">Phân quyền scope cho Moderator</div>
-                            </a>
                         </div>
                         <div class="px-4 py-2 border-t border-slate-100 text-center">
-                            <a href="/Moderation" class="text-[11px] font-bold text-emerald-700 hover:underline">Xem tất cả hàng đợi &rarr;</a>
+                            <a href="/Moderation" class="text-[11px] font-bold text-secondary hover:underline">Xem tất cả hàng đợi &rarr;</a>
                         </div>
                     </div>
                 </div>
-
-                <!-- User Profile Badge & Quick MFA -->
-                <div class="flex items-center gap-3 border-l border-slate-800 pl-4">
-                    <a href="/AdminMfa/Verify" class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 rounded-xl text-xs font-bold border border-amber-500/40 transition-colors">
-                        <span class="material-symbols-outlined text-sm">security</span> MFA OTP
-                    </a>
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-emerald-700 text-white font-extrabold flex items-center justify-center text-xs shadow-inner">
-                            @(string.IsNullOrEmpty(currentEmail) ? "A" : currentEmail.Substring(0, 1).ToUpper())
-                        </div>
-                        <div class="hidden sm:block text-left">
-                            <div class="text-xs font-extrabold text-white leading-none">@(string.IsNullOrEmpty(currentEmail) ? "Quản trị viên" : currentEmail.Split('@')[0])</div>
-                            <div class="text-[10px] font-extrabold text-emerald-400 mt-0.5">@currentUserRole.ToString()</div>
-                        </div>
-                        <a href="/Account/Logout" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-1 rounded-lg hover:bg-slate-800 transition-colors ml-1">
-                            <span class="material-symbols-outlined text-lg">logout</span>
-                        </a>
-                    </div>
+                <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+                    <span class="material-symbols-outlined">verified_user</span>
+                </button>
+            </div>
+            <!-- Profile -->
+            <div class="flex items-center gap-3 pl-4 border-l border-outline-variant/30">
+                <div class="flex flex-col items-end">
+                    <span class="font-label-md text-on-surface font-semibold text-xs">@(string.IsNullOrEmpty(currentEmail) ? "admin" : currentEmail.Split('@')[0])</span>
+                    <span class="font-label-sm text-secondary text-[10px] font-bold">@currentUserRole.ToString()</span>
                 </div>
+                <div class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-bold text-sm">
+                    @(string.IsNullOrEmpty(currentEmail) ? "A" : currentEmail.Substring(0, 1).ToUpper())
+                </div>
+                <a href="/Account/Logout" title="Đăng xuất" class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-error transition-colors ml-1">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                </a>
             </div>
         </div>
     </header>
 
-    <!-- Main Layout Container with 9-Module Left Sidebar -->
-    <div class="flex-grow flex max-w-[1600px] w-full mx-auto">
-        <!-- Sidebar Navigation (9 Modules) -->
-        <aside class="w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex-shrink-0 hidden md:block py-6">
-            <div class="px-4 mb-4">
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 block">Menu Quản Trị Hệ Thống</span>
-            </div>
-            <nav class="space-y-1 px-2">
-                <!-- 1. Tổng quan -->
-                <a href="/Moderation/Dashboard" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all @(currentPath.Equals("/Moderation/Dashboard", StringComparison.OrdinalIgnoreCase) ? "bg-emerald-600 text-white shadow-md" : "hover:bg-slate-800 hover:text-white")">
-                    <span class="material-symbols-outlined text-lg">dashboard</span>
-                    <span>📊 1. Tổng quan</span>
-                </a>
+    <!-- Side Navigation Bar (260px) -->
+    <nav class="bg-primary-container text-on-primary-container w-[260px] h-screen fixed left-0 top-0 shadow-md flex flex-col z-50">
+        <!-- Brand Header -->
+        <div class="h-16 flex items-center px-lg border-b border-white/5">
+            <a href="/Moderation/Dashboard" class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">storefront</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-headline-sm text-headline-sm font-bold text-surface-container-lowest leading-tight tracking-tight">MarketConnect</span>
+                    <span class="font-label-sm text-secondary-fixed-dim tracking-wider uppercase opacity-80" style="font-size: 10px;">Admin Portal</span>
+                </div>
+            </a>
+        </div>
+        <!-- Menu Header -->
+        <div class="px-6 pt-6 pb-2">
+            <span class="font-label-sm text-on-primary-container/60 uppercase tracking-widest text-[10px]">Menu Quản Trị Hệ Thống</span>
+        </div>
+        <!-- Navigation Links (9 Modules) -->
+        <div class="flex-1 overflow-y-auto sidebar-scroll py-2 px-3 flex flex-col gap-1">
+            <!-- 1. Tổng quan -->
+            <a class="@(currentPath.Equals("/Moderation/Dashboard", StringComparison.OrdinalIgnoreCase) ? "bg-secondary text-on-secondary font-bold shadow-sm" : "text-on-primary-container opacity-70 hover:opacity-100 hover:bg-white/5") rounded-lg mx-2 my-1 px-4 py-3 flex items-center gap-3 transition-all font-label-md text-label-md text-xs" href="/Moderation/Dashboard">
+                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                Tổng quan
+            </a>
+            <!-- 2. Kiểm duyệt Queue -->
+            <a class="@(currentPath.Equals("/Moderation", StringComparison.OrdinalIgnoreCase) ? "bg-secondary text-on-secondary font-bold shadow-sm" : "text-on-primary-container opacity-70 hover:opacity-100 hover:bg-white/5") rounded-lg mx-2 my-1 px-4 py-3 flex items-center gap-3 transition-all font-label-md text-label-md text-xs" href="/Moderation">
+                <span class="material-symbols-outlined text-[20px]">queue_play_next</span>
+                Kiểm duyệt Queue
+            </a>
+            <!-- 3. Quản lý chợ -->
+            <a class="@(currentPath.Equals("/Moderation/Markets", StringComparison.OrdinalIgnoreCase) ? "bg-secondary text-on-secondary font-bold shadow-sm" : "text-on-primary-container opacity-70 hover:opacity-100 hover:bg-white/5") rounded-lg mx-2 my-1 px-4 py-3 flex items-center gap-3 transition-all font-label-md text-label-md text-xs" href="/Moderation/Markets">
+                <span class="material-symbols-outlined text-[20px]">storefront</span>
+                Quản lý chợ
+            </a>
+            <!-- 4. Người dùng -->
+            <a class="@(currentPath.Equals("/Moderation/Users", StringComparison.OrdinalIgnoreCase) ? "bg-secondary text-on-secondary font-bold shadow-sm" : "text-on-primary-container opacity-70 hover:opacity-100 hover:bg-white/5") rounded-lg mx-2 my-1 px-4 py-3 flex items-center gap-3 transition-all font-label-md text-label-md text-xs" href="/Moderation/Users">
+                <span class="material-symbols-outlined text-[20px]">group</span>
+                Người dùng
+            </a>
+            <!-- 5. Tiểu thương -->
+            <a class="@(currentPath.Equals("/Moderation/Merchants", StringComparison.OrdinalIgnoreCase) ? "bg-secondary text-on-secondary font-bold shadow-sm" : "text-on-primary-container opacity-70 hover:opacity-100 hover:bg-white/5") rounded-lg mx-2 my-1 px-4 py-3 flex items-center gap-3 transition-all font-label-md text-label-md text-xs" href="/Moderation/Merchants">
+                <span class="material-symbols-outlined text-[20px]">badge</span>
+                Tiểu thương
+            </a>
+            <!-- 6. Phân quyền & Scope -->
+            <a class="@(currentPath.StartsWith("/AdminRole", StringComparison.OrdinalIgnoreCase) ? "bg-secondary text-on-secondary font-bold shadow-sm" : "text-on-primary-container opacity-70 hover:opacity-100 hover:bg-white/5") rounded-lg mx-2 my-1 px-4 py-3 flex items-center gap-3 transition-all font-label-md text-label-md text-xs" href="/AdminRole">
+                <span class="material-symbols-outlined text-[20px]">vpn_key</span>
+                Phân quyền & Scope
+            </a>
+            <!-- 7. Khiếu nại -->
+            <a class="@(currentPath.Equals("/Moderation/Appeals", StringComparison.OrdinalIgnoreCase) ? "bg-secondary text-on-secondary font-bold shadow-sm" : "text-on-primary-container opacity-70 hover:opacity-100 hover:bg-white/5") rounded-lg mx-2 my-1 px-4 py-3 flex items-center gap-3 transition-all font-label-md text-label-md text-xs" href="/Moderation/Appeals">
+                <span class="material-symbols-outlined text-[20px]">mail</span>
+                Khiếu nại (Appeals)
+            </a>
+            <!-- 8. Audit Log -->
+            <a class="@(currentPath.Equals("/Moderation/AuditLogs", StringComparison.OrdinalIgnoreCase) ? "bg-secondary text-on-secondary font-bold shadow-sm" : "text-on-primary-container opacity-70 hover:opacity-100 hover:bg-white/5") rounded-lg mx-2 my-1 px-4 py-3 flex items-center gap-3 transition-all font-label-md text-label-md text-xs" href="/Moderation/AuditLogs">
+                <span class="material-symbols-outlined text-[20px]">drive_file_rename</span>
+                Audit Log
+            </a>
+            <!-- 9. Cấu hình quy tắc -->
+            <a class="@(currentPath.Equals("/Moderation/RulesConfig", StringComparison.OrdinalIgnoreCase) ? "bg-secondary text-on-secondary font-bold shadow-sm" : "text-on-primary-container opacity-70 hover:opacity-100 hover:bg-white/5") rounded-lg mx-2 my-1 px-4 py-3 flex items-center gap-3 transition-all font-label-md text-label-md text-xs" href="/Moderation/RulesConfig">
+                <span class="material-symbols-outlined text-[20px]">settings_input_component</span>
+                Cấu hình quy tắc
+            </a>
+        </div>
+    </nav>
 
-                <!-- 2. Kiểm duyệt -->
-                <a href="/Moderation" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all @(currentPath.Equals("/Moderation", StringComparison.OrdinalIgnoreCase) ? "bg-emerald-600 text-white shadow-md" : "hover:bg-slate-800 hover:text-white")">
-                    <span class="material-symbols-outlined text-lg">shield</span>
-                    <span>🛡 2. Kiểm duyệt Queue</span>
-                </a>
+    <!-- Main Canvas -->
+    <main class="ml-[260px] mt-16 p-xl min-h-[calc(100vh-4rem)]">
+        @RenderBody()
+    </main>
 
-                <!-- 3. Quản lý chợ -->
-                <a href="/Moderation/Markets" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all @(currentPath.Equals("/Moderation/Markets", StringComparison.OrdinalIgnoreCase) ? "bg-emerald-600 text-white shadow-md" : "hover:bg-slate-800 hover:text-white")">
-                    <span class="material-symbols-outlined text-lg">storefront</span>
-                    <span>🏪 3. Quản lý chợ</span>
-                </a>
-
-                <!-- 4. Người dùng -->
-                <a href="/Moderation/Users" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all @(currentPath.Equals("/Moderation/Users", StringComparison.OrdinalIgnoreCase) ? "bg-emerald-600 text-white shadow-md" : "hover:bg-slate-800 hover:text-white")">
-                    <span class="material-symbols-outlined text-lg">group</span>
-                    <span>👥 4. Người dùng</span>
-                </a>
-
-                <!-- 5. Tiểu thương -->
-                <a href="/Moderation/Merchants" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all @(currentPath.Equals("/Moderation/Merchants", StringComparison.OrdinalIgnoreCase) ? "bg-emerald-600 text-white shadow-md" : "hover:bg-slate-800 hover:text-white")">
-                    <span class="material-symbols-outlined text-lg">store</span>
-                    <span>🧑‍🌾 5. Tiểu thương</span>
-                </a>
-
-                <!-- 6. Phân quyền & Scope -->
-                <a href="/AdminRole" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all @(currentPath.StartsWith("/AdminRole", StringComparison.OrdinalIgnoreCase) ? "bg-emerald-600 text-white shadow-md" : "hover:bg-slate-800 hover:text-white")">
-                    <span class="material-symbols-outlined text-lg">vpn_key</span>
-                    <span>🔐 6. Phân quyền & Scope</span>
-                </a>
-
-                <!-- 7. Khiếu nại -->
-                <a href="/Moderation/Appeals" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all @(currentPath.Equals("/Moderation/Appeals", StringComparison.OrdinalIgnoreCase) ? "bg-emerald-600 text-white shadow-md" : "hover:bg-slate-800 hover:text-white")">
-                    <span class="material-symbols-outlined text-lg">mark_email_unread</span>
-                    <span>📩 7. Khiếu nại (Appeals)</span>
-                </a>
-
-                <!-- 8. Audit Log -->
-                <a href="/Moderation/AuditLogs" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all @(currentPath.Equals("/Moderation/AuditLogs", StringComparison.OrdinalIgnoreCase) ? "bg-emerald-600 text-white shadow-md" : "hover:bg-slate-800 hover:text-white")">
-                    <span class="material-symbols-outlined text-lg">receipt_long</span>
-                    <span>📜 8. Audit Log</span>
-                </a>
-
-                <!-- 9. Cấu hình kiểm duyệt -->
-                <a href="/Moderation/RulesConfig" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all @(currentPath.Equals("/Moderation/RulesConfig", StringComparison.OrdinalIgnoreCase) ? "bg-emerald-600 text-white shadow-md" : "hover:bg-slate-800 hover:text-white")">
-                    <span class="material-symbols-outlined text-lg">tune</span>
-                    <span>⚙️ 9. Cấu hình quy tắc</span>
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Main Content View Area -->
-        <main class="flex-grow p-6 overflow-x-hidden">
-            @RenderBody()
-        </main>
-    </div>
-
-    <!-- Scripts -->
     <script>
         function toggleNotificationMenu() {
             const menu = document.getElementById('notificationMenu');
             if (menu) menu.classList.toggle('hidden');
         }
-
         document.addEventListener('click', function(e) {
             const dropdown = document.getElementById('notificationDropdown');
             const menu = document.getElementById('notificationMenu');

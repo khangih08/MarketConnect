@@ -12,11 +12,19 @@ namespace MarketConnect.Controllers
     {
         private readonly IMerchantStoreService _storeService;
         private readonly ApplicationDbContext _db;
+        private readonly IAuditLogService _auditLog;
+        private readonly ICurrentUserService _currentUser;
 
-        public StoresController(IMerchantStoreService storeService, ApplicationDbContext db)
+        public StoresController(
+            IMerchantStoreService storeService,
+            ApplicationDbContext db,
+            IAuditLogService auditLog,
+            ICurrentUserService currentUser)
         {
             _storeService = storeService;
             _db = db;
+            _auditLog = auditLog;
+            _currentUser = currentUser;
         }
 
         // GET: /Stores
@@ -243,17 +251,20 @@ namespace MarketConnect.Controllers
                 return View(store);
             }
 
-            store.Status = StoreStatus.Approved;
+            store.Status = StoreStatus.PendingApproval;
             var created = await _storeService.CreateStoreAsync(userId, store);
 
-            if (currentUser.Role == UserRole.Buyer)
-            {
-                currentUser.Role = UserRole.Merchant;
-                _db.Users.Update(currentUser);
-                await _db.SaveChangesAsync();
-            }
+            await _auditLog.LogActionAsync(
+                userId,
+                currentUser.Role.ToString(),
+                "STORE_REGISTERED",
+                "Store",
+                created.Id,
+                $"Đăng ký gian hàng mới: '{created.StoreName}' (Đang chờ Quản trị viên phê duyệt)",
+                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+            );
 
-            TempData["SuccessMessage"] = "Chúc mừng! Gian hàng của bạn đã được đăng ký và xác thực vai trò Tiểu thương thành công!";
+            TempData["SuccessMessage"] = "Hồ sơ đăng ký gian hàng của bạn đã được gửi thành công! Vui lòng chờ Quản trị viên (Admin) phê duyệt.";
             return RedirectToAction("Detail", new { id = created.Id });
         }
     }

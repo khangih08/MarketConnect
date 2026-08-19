@@ -12,10 +12,12 @@ namespace MarketConnect.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IAuditLogService _auditLog;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IAuditLogService auditLog)
         {
             _authService = authService;
+            _auditLog = auditLog;
         }
 
         [HttpPost("google-login")]
@@ -34,6 +36,17 @@ namespace MarketConnect.Controllers
                     Email = res.Email,
                     ExpiresAt = res.ExpiresAt
                 };
+                Response.Cookies.Append(
+                    "access_token",
+                    res.Token,
+                    new CookieOptions
+                    {
+                        HttpOnly = true,
+                        SameSite = SameSiteMode.Lax,
+                        Secure = Request.IsHttps,
+                        Expires = res.ExpiresAt
+                    }
+                );
                 Response.Cookies.Append("user_id", res.UserId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
                 if (!string.IsNullOrEmpty(outDto.Email)) Response.Cookies.Append("user_email", outDto.Email, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
                 if (!string.IsNullOrEmpty(outDto.Username)) Response.Cookies.Append("user_name", outDto.Username, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
@@ -142,6 +155,16 @@ namespace MarketConnect.Controllers
             var res = await _authService.PhoneLoginDetailedAsync(svcReq);
             if (!res.Success)
             {
+                await _auditLog.LogActionAsync(
+                    null,
+                    "Guest",
+                    "LOGIN_FAILED",
+                    "User",
+                    null,
+                    $"Đăng nhập thất bại cho SĐT {dto.PhoneNumber}: {res.Message}",
+                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+                );
+
                 if (res.IsLocked)
                 {
                     return StatusCode(423, new { 
@@ -177,6 +200,17 @@ namespace MarketConnect.Controllers
             };
 
             // Đính kèm Response Cookies để giữ phiên đăng nhập trên toàn bộ giao diện ASP.NET Core
+            Response.Cookies.Append(
+                "access_token",
+                authData.Token,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Lax,
+                    Secure = Request.IsHttps,
+                    Expires = authData.ExpiresAt
+                }
+            );
             Response.Cookies.Append("user_id", authData.UserId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
             Response.Cookies.Append("user_role", authData.Role.ToString(), new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
             if (!string.IsNullOrEmpty(outDto.Email))
@@ -191,6 +225,16 @@ namespace MarketConnect.Controllers
             {
                 Response.Cookies.Append("user_phone", dto.PhoneNumber, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
             }
+
+            await _auditLog.LogActionAsync(
+                authData.UserId,
+                authData.Role.ToString(),
+                "LOGIN_SUCCESS",
+                "User",
+                authData.UserId,
+                $"Đăng nhập thành công qua Số điện thoại (SĐT: {dto.PhoneNumber})",
+                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+            );
 
             return Ok(outDto);
         }

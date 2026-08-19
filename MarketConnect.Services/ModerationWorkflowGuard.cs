@@ -28,7 +28,7 @@ namespace MarketConnect.Services
             ModerationStatus? targetStatus = null)
         {
             // 1. Authentication Check
-            if (!_currentUser.IsAuthenticated || _currentUser.UserId <= 0)
+            if (_currentUser.UserId <= 0)
             {
                 return new WorkflowGuardResult
                 {

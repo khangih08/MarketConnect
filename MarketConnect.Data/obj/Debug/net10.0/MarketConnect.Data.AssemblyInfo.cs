@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MarketConnect.Data")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4c8cb13df96cddae5270771fe6256c0f90302145")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e6775bdf58b7ea4cbcb574c74a40f0912dd1d5e8")]
 [assembly: System.Reflection.AssemblyProductAttribute("MarketConnect.Data")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MarketConnect.Data")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -16,11 +16,15 @@ namespace MarketConnect.Controllers
     {
         private readonly IProductService _products;
         private readonly ApplicationDbContext _db;
+        private readonly IAuditLogService _auditLog;
+        private readonly ICurrentUserService _currentUser;
 
-        public ProductController(IProductService products, ApplicationDbContext db)
+        public ProductController(IProductService products, ApplicationDbContext db, IAuditLogService auditLog, ICurrentUserService currentUser)
         {
             _products = products;
             _db = db;
+            _auditLog = auditLog;
+            _currentUser = currentUser;
         }
 
         [HttpGet]
@@ -132,6 +136,17 @@ namespace MarketConnect.Controllers
             }
 
             var created = await _products.CreateListingAsync(dto, currentUserId);
+
+            await _auditLog.LogActionAsync(
+                currentUserId ?? _currentUser.UserId,
+                _currentUser.Role.ToString(),
+                "PRODUCT_CREATED",
+                "Product",
+                created.Id,
+                $"Tạo mới sản phẩm/tin đăng: '{created.Name}' (Chờ kiểm duyệt tự động & thủ công)",
+                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+            );
+
             return RedirectToAction("ProductDetail", new { id = created.Id });
         }
     }

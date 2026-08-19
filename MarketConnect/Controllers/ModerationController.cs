@@ -17,6 +17,7 @@ namespace MarketConnect.Controllers
         private readonly IModerationWorkflowGuard _workflowGuard;
         private readonly IModerationAppealService _appealService;
         private readonly ApplicationDbContext _db;
+        private readonly IAuditLogService _auditLog;
 
         public ModerationController(
             IContentModerationService modService,
@@ -24,7 +25,8 @@ namespace MarketConnect.Controllers
             ICurrentUserService currentUser,
             IModerationWorkflowGuard workflowGuard,
             IModerationAppealService appealService,
-            ApplicationDbContext db)
+            ApplicationDbContext db,
+            IAuditLogService auditLog)
         {
             _modService = modService;
             _storeService = storeService;
@@ -32,6 +34,26 @@ namespace MarketConnect.Controllers
             _workflowGuard = workflowGuard;
             _appealService = appealService;
             _db = db;
+            _auditLog = auditLog;
+        }
+
+        private IActionResult? CheckAdminAccess()
+        {
+            int userId = _currentUser.UserId;
+            if (userId <= 0)
+            {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập tài khoản quản trị để truy cập Cổng Quản Trị.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            var role = _currentUser.Role;
+            if (role != UserRole.SuperAdmin && role != UserRole.ProvinceAdmin && role != UserRole.MarketAdmin && role != UserRole.Moderator)
+            {
+                TempData["ErrorMessage"] = "Tài khoản của bạn không có quyền truy cập vào Cổng Quản Trị Admin Portal.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            return null;
         }
 
         // GET: /Moderation
@@ -42,6 +64,9 @@ namespace MarketConnect.Controllers
             int? marketId = null,
             int? provinceId = null)
         {
+            var accessGuard = CheckAdminAccess();
+            if (accessGuard != null) return accessGuard;
+
             var guard = await _workflowGuard.ValidateWorkflowStepAsync("CONTENT_VIEW", marketId, provinceId);
             if (!guard.IsAllowed)
             {
@@ -87,7 +112,27 @@ namespace MarketConnect.Controllers
             try
             {
                 bool success = await _modService.ReviewCaseAsync(caseId, decisionStatus, notes);
-                if (success) TempData["SuccessMessage"] = "Đã cập nhật quyết định kiểm duyệt thành công!";
+                if (success)
+                {
+                    string actCode = decisionStatus switch
+                    {
+                        ModerationStatus.Approved => "PRODUCT_APPROVED",
+                        ModerationStatus.Rejected => "PRODUCT_REJECTED",
+                        _ => "PRODUCT_VISIBILITY_CHANGED"
+                    };
+
+                    await _auditLog.LogActionAsync(
+                        _currentUser.UserId,
+                        _currentUser.Role.ToString(),
+                        actCode,
+                        "ModerationCase",
+                        caseId,
+                        $"Cập nhật quyết định kiểm duyệt sang '{decisionStatus}'. Ghi chú: {notes}",
+                        HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+                    );
+
+                    TempData["SuccessMessage"] = "Đã cập nhật quyết định kiểm duyệt thành công!";
+                }
                 else TempData["ErrorMessage"] = "Không tìm thấy hồ sơ kiểm duyệt.";
             }
             catch (Exception ex)
@@ -106,6 +151,18 @@ namespace MarketConnect.Controllers
             try
             {
                 var processed = await _modService.BulkReviewCasesAsync(caseIds, decisionStatus, notes);
+                string actCode = decisionStatus == ModerationStatus.Approved ? "PRODUCT_APPROVED" : "PRODUCT_REJECTED";
+
+                await _auditLog.LogActionAsync(
+                    _currentUser.UserId,
+                    _currentUser.Role.ToString(),
+                    actCode,
+                    "ModerationCase",
+                    0,
+                    $"Kiểm duyệt hàng loạt cho {processed.Count} sản phẩm sang '{decisionStatus}'. Ghi chú: {notes}",
+                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+                );
+
                 TempData["SuccessMessage"] = $"Đã xử lý kiểm duyệt hàng loạt cho {processed.Count} sản phẩm/hồ sơ thành công!";
             }
             catch (Exception ex)
@@ -156,7 +213,28 @@ namespace MarketConnect.Controllers
             try
             {
                 bool success = await _storeService.UpdateStoreStatusAsync(storeId, newStatus, rejectionReason);
-                if (success) TempData["SuccessMessage"] = "Đã cập nhật trạng thái hồ sơ gian hàng thành công!";
+                if (success)
+                {
+                    string actCode = newStatus switch
+                    {
+                        StoreStatus.Approved => "PRODUCT_APPROVED",
+                        StoreStatus.Rejected => "PRODUCT_REJECTED",
+                        StoreStatus.Locked => "ACCOUNT_LOCKED",
+                        _ => "PRODUCT_VISIBILITY_CHANGED"
+                    };
+
+                    await _auditLog.LogActionAsync(
+                        _currentUser.UserId,
+                        _currentUser.Role.ToString(),
+                        actCode,
+                        "Store",
+                        storeId,
+                        $"Cập nhật trạng thái gian hàng '{store.StoreName}' sang '{newStatus}'. Lý do: {rejectionReason}",
+                        HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+                    );
+
+                    TempData["SuccessMessage"] = "Đã cập nhật trạng thái hồ sơ gian hàng thành công!";
+                }
                 else TempData["ErrorMessage"] = "Cập nhật hồ sơ gian hàng thất bại.";
             }
             catch (Exception ex)
@@ -175,7 +253,20 @@ namespace MarketConnect.Controllers
             try
             {
                 bool success = await _modService.OverrideCaseAsync(caseId, newStatus, overrideReason);
-                if (success) TempData["SuccessMessage"] = "Đã ghi đè (Override) quyết định kiểm duyệt thành công!";
+                if (success)
+                {
+                    await _auditLog.LogActionAsync(
+                        _currentUser.UserId,
+                        _currentUser.Role.ToString(),
+                        "SUPERADMIN_ACTION",
+                        "ModerationCase",
+                        caseId,
+                        $"Ghi đè thủ công (Override) trạng thái case #{caseId} sang '{newStatus}'. Lý do: {overrideReason}",
+                        HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+                    );
+
+                    TempData["SuccessMessage"] = "Đã ghi đè (Override) quyết định kiểm duyệt thành công!";
+                }
                 else TempData["ErrorMessage"] = "Ghi đè thất bại.";
             }
             catch (Exception ex)
@@ -194,7 +285,20 @@ namespace MarketConnect.Controllers
             try
             {
                 bool success = await _modService.EscalateCaseAsync(caseId, escalationReason);
-                if (success) TempData["SuccessMessage"] = "Đã chuyển cấp duyệt (Escalate) hồ sơ lên Quản trị cấp cao thành công!";
+                if (success)
+                {
+                    await _auditLog.LogActionAsync(
+                        _currentUser.UserId,
+                        _currentUser.Role.ToString(),
+                        "SUPERADMIN_ACTION",
+                        "ModerationCase",
+                        caseId,
+                        $"Chuyển cấp duyệt (Escalate) hồ sơ #{caseId} lên Quản trị cấp cao. Lý do: {escalationReason}",
+                        HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+                    );
+
+                    TempData["SuccessMessage"] = "Đã chuyển cấp duyệt (Escalate) hồ sơ lên Quản trị cấp cao thành công!";
+                }
                 else TempData["ErrorMessage"] = "Chuyển cấp duyệt thất bại.";
             }
             catch (Exception ex)
@@ -254,6 +358,9 @@ namespace MarketConnect.Controllers
         [HttpGet]
         public async Task<IActionResult> Dashboard()
         {
+            var accessGuard = CheckAdminAccess();
+            if (accessGuard != null) return accessGuard;
+
             ViewBag.TotalUsers = await _db.Users.CountAsync();
             ViewBag.TotalMerchants = await _db.Users.CountAsync(u => u.Role == UserRole.Merchant);
             ViewBag.TotalMarkets = await _db.Markets.CountAsync();
@@ -271,6 +378,9 @@ namespace MarketConnect.Controllers
         [HttpGet]
         public async Task<IActionResult> Markets(int? provinceId)
         {
+            var accessGuard = CheckAdminAccess();
+            if (accessGuard != null) return accessGuard;
+
             var query = _db.Markets.Include(m => m.Province).Include(m => m.Ward).AsQueryable();
             if (provinceId.HasValue) query = query.Where(m => m.ProvinceId == provinceId.Value);
 
@@ -284,6 +394,9 @@ namespace MarketConnect.Controllers
         [HttpGet]
         public async Task<IActionResult> Users(UserRole? role)
         {
+            var accessGuard = CheckAdminAccess();
+            if (accessGuard != null) return accessGuard;
+
             var query = _db.Users.Include(u => u.AdminScopes).AsQueryable();
             if (role.HasValue) query = query.Where(u => u.Role == role.Value);
 
@@ -296,6 +409,9 @@ namespace MarketConnect.Controllers
         [HttpGet]
         public async Task<IActionResult> Merchants()
         {
+            var accessGuard = CheckAdminAccess();
+            if (accessGuard != null) return accessGuard;
+
             var stores = await _db.Stores
                 .Include(s => s.Owner)
                 .Include(s => s.Market)
@@ -309,6 +425,9 @@ namespace MarketConnect.Controllers
         [HttpGet]
         public async Task<IActionResult> Appeals()
         {
+            var accessGuard = CheckAdminAccess();
+            if (accessGuard != null) return accessGuard;
+
             var appeals = await _db.ModerationAppeals
                 .Include(a => a.Merchant)
                 .Include(a => a.ModerationCase)
@@ -322,6 +441,9 @@ namespace MarketConnect.Controllers
         [HttpGet]
         public async Task<IActionResult> AuditLogs()
         {
+            var accessGuard = CheckAdminAccess();
+            if (accessGuard != null) return accessGuard;
+
             var logs = await _db.AuditLogs
                 .OrderByDescending(l => l.Timestamp)
                 .Take(100)
@@ -334,6 +456,9 @@ namespace MarketConnect.Controllers
         [HttpGet]
         public async Task<IActionResult> RulesConfig()
         {
+            var accessGuard = CheckAdminAccess();
+            if (accessGuard != null) return accessGuard;
+
             var rules = await _db.ModerationRules.ToListAsync();
             return View(rules);
         }
@@ -342,6 +467,8 @@ namespace MarketConnect.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCaseDetail(int caseId)
         {
+            var accessGuard = CheckAdminAccess();
+            if (accessGuard != null) return accessGuard;
             var modCase = await _db.ModerationCases.FirstOrDefaultAsync(c => c.Id == caseId);
             if (modCase == null) return NotFound(new { message = "Không tìm thấy hồ sơ kiểm duyệt." });
 
