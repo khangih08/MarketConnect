@@ -34,15 +34,22 @@ namespace MarketConnect.Services
             var triggeredRules = new List<string>();
             var ruleResults = new Dictionary<string, object>();
 
+            bool hasConfirmedProhibitedContent = false;
+            bool hasFixableDataQualityError = false;
+            bool hasSuspectedKeyword = false;
+            bool hasForceManualReview = false;
+            bool hasPriceAnomaly = false;
+
             // Fetch dynamic rules from DB if present
             var dbRules = await _db.Set<ModerationRule>().Where(r => r.IsActive).ToListAsync();
 
-            // 1. Required Fields Rule
+            // 1. Data Quality & Required Fields Rule (Fixable Seller Error)
             if (string.IsNullOrWhiteSpace(product.Name) || product.Price <= 0)
             {
+                hasFixableDataQualityError = true;
                 int w = dbRules.FirstOrDefault(r => r.RuleKey == "MISSING_REQUIRED")?.Weight ?? 35;
                 riskScore += w;
-                triggeredRules.Add("MISSING_REQUIRED: Tiêu đề hoặc giá không hợp lệ");
+                triggeredRules.Add("MISSING_REQUIRED: Tiêu đề hoặc giá không hợp lệ (Bắt buộc phải điền)");
                 ruleResults["MISSING_REQUIRED"] = "FAILED";
             }
             else
@@ -50,22 +57,53 @@ namespace MarketConnect.Services
                 ruleResults["MISSING_REQUIRED"] = "PASSED";
             }
 
-            // 2. Prohibited Words Rule
-            var textToScan = $"{product.Name} {product.Description} {product.SearchKeywords}".ToLower();
-            var defaultBannedWords = new[] { "lừa đảo", "hàng giả", "hàng nhái", "súng", "ma túy", "rượu giả", "đạn", "cá độ", "lô đề" };
-            bool foundBannedWord = false;
-            foreach (var bw in defaultBannedWords)
+            var descTrimmed = (product.Description ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(descTrimmed) || descTrimmed.Length < 10 || Regex.IsMatch(descTrimmed, @"^(test|\d+|asdf|abc)+$", RegexOptions.IgnoreCase))
             {
-                if (textToScan.Contains(bw))
+                hasFixableDataQualityError = true;
+                int w = dbRules.FirstOrDefault(r => r.RuleKey == "DESCRIPTION_QUALITY")?.Weight ?? 30;
+                riskScore += w;
+                triggeredRules.Add("DESCRIPTION_QUALITY: Nội dung mô tả quá ngắn hoặc chứa văn bản thử nghiệm/placeholder.");
+                ruleResults["DESCRIPTION_QUALITY"] = "FAILED";
+            }
+            else
+            {
+                ruleResults["DESCRIPTION_QUALITY"] = "PASSED";
+            }
+
+            // 2. Prohibited Words & Severe Illegal Goods Scanner
+            var textToScan = $"{product.Name} {product.Description} {product.SearchKeywords}".ToLower();
+            var severeProhibitedWords = new[] { "súng", "ma túy", "chất nổ", "vũ khí", "lô đề", "cá độ", "đạn" };
+            var suspectedWords = new[] { "lừa đảo", "hàng giả", "hàng nhái", "rượu giả", "xách tay 100%", "giảm cân tốc hành" };
+
+            foreach (var spw in severeProhibitedWords)
+            {
+                if (textToScan.Contains(spw))
                 {
-                    int w = dbRules.FirstOrDefault(r => r.RuleKey == "PROHIBITED_WORDS")?.Weight ?? 50;
-                    riskScore += w;
-                    triggeredRules.Add($"PROHIBITED_WORDS: Chứa từ nhạy cảm '{bw}'");
-                    foundBannedWord = true;
+                    hasConfirmedProhibitedContent = true;
+                    riskScore += 100;
+                    triggeredRules.Add($"PROHIBITED_CONTENT_CONFIRMED: Phát hiện nội dung cấm nghiêm trọng '{spw}'");
+                    ruleResults["PROHIBITED_CONTENT_CONFIRMED"] = "FAILED";
                     break;
                 }
             }
-            ruleResults["PROHIBITED_WORDS"] = foundBannedWord ? "FAILED" : "PASSED";
+
+            if (!hasConfirmedProhibitedContent)
+            {
+                foreach (var sw in suspectedWords)
+                {
+                    if (textToScan.Contains(sw))
+                    {
+                        hasSuspectedKeyword = true;
+                        hasForceManualReview = true;
+                        int w = dbRules.FirstOrDefault(r => r.RuleKey == "PROHIBITED_KEYWORD_SUSPECTED")?.Weight ?? 50;
+                        riskScore += w;
+                        triggeredRules.Add($"PROHIBITED_KEYWORD_SUSPECTED: Chứa từ khóa nhạy cảm cần kiểm tra '{sw}'");
+                        ruleResults["PROHIBITED_KEYWORD_SUSPECTED"] = "FAILED";
+                        break;
+                    }
+                }
+            }
 
             // 3. Contact Information Regex Scanner (Phone, Email, URL, Social)
             var phoneRegex = new Regex(@"(\+84|0)[3|5|7|8|9][0-9]{8}\b");
@@ -75,9 +113,10 @@ namespace MarketConnect.Services
 
             if (phoneRegex.IsMatch(textToScan) || emailRegex.IsMatch(textToScan) || urlRegex.IsMatch(textToScan) || socialRegex.IsMatch(textToScan))
             {
+                hasForceManualReview = true;
                 int w = dbRules.FirstOrDefault(r => r.RuleKey == "UNAUTHORIZED_CONTACT")?.Weight ?? 25;
                 riskScore += w;
-                triggeredRules.Add("UNAUTHORIZED_CONTACT: Chứa số điện thoại, email, URL hoặc link mạng xã hội ngoài khung chat");
+                triggeredRules.Add("UNAUTHORIZED_CONTACT: Chứa số điện thoại, email, URL hoặc link mạng xã hội ngoài hệ thống");
                 ruleResults["UNAUTHORIZED_CONTACT"] = "FAILED";
             }
             else
@@ -85,22 +124,21 @@ namespace MarketConnect.Services
                 ruleResults["UNAUTHORIZED_CONTACT"] = "PASSED";
             }
 
-            // 4. Category Price Anomaly Math
-            if (product.CategoryId > 0)
+            // 4. Category Price Anomaly Math & Reference Data Check
+            if (product.CategoryId > 0 && product.Price > 0)
             {
-                var avgPrice = await _db.Products
-                    .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id && p.Price > 0)
-                    .Select(p => (double)p.Price)
-                    .DefaultIfEmpty(0)
-                    .AverageAsync();
+                var priceRef = await _db.CategoryPriceReferences
+                    .FirstOrDefaultAsync(r => r.CategoryId == product.CategoryId);
 
-                if (avgPrice > 0)
+                if (priceRef != null && priceRef.MaxPrice > 0)
                 {
-                    if (product.Price > (decimal)(avgPrice * 5) || product.Price < (decimal)(avgPrice * 0.1))
+                    if (product.Price > priceRef.MaxPrice * 2.5m || product.Price < priceRef.MinPrice * 0.2m)
                     {
-                        int w = dbRules.FirstOrDefault(r => r.RuleKey == "PRICE_ANOMALY")?.Weight ?? 30;
+                        hasPriceAnomaly = true;
+                        hasForceManualReview = true;
+                        int w = dbRules.FirstOrDefault(r => r.RuleKey == "PRICE_ANOMALY")?.Weight ?? 25;
                         riskScore += w;
-                        triggeredRules.Add($"PRICE_ANOMALY: Giá bán {product.Price:N0}đ chênh lệch quá lớn so với trung bình danh mục ({avgPrice:N0}đ)");
+                        triggeredRules.Add($"PRICE_ANOMALY: Giá {product.Price:N0}đ chênh lệch bất thường so với khoảng tham chiếu ({priceRef.MinPrice:N0}đ - {priceRef.MaxPrice:N0}đ)");
                         ruleResults["PRICE_ANOMALY"] = "FAILED";
                     }
                     else
@@ -108,54 +146,139 @@ namespace MarketConnect.Services
                         ruleResults["PRICE_ANOMALY"] = "PASSED";
                     }
                 }
+                else
+                {
+                    var avgPrice = await _db.Products
+                        .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id && p.Price > 0)
+                        .Select(p => (double)p.Price)
+                        .DefaultIfEmpty(0)
+                        .AverageAsync();
+
+                    if (avgPrice > 0 && (product.Price > (decimal)(avgPrice * 5) || product.Price < (decimal)(avgPrice * 0.1)))
+                    {
+                        hasPriceAnomaly = true;
+                        hasForceManualReview = true;
+                        int w = dbRules.FirstOrDefault(r => r.RuleKey == "PRICE_ANOMALY")?.Weight ?? 25;
+                        riskScore += w;
+                        triggeredRules.Add($"PRICE_ANOMALY: Giá bán {product.Price:N0}đ chênh lệch quá lớn so với trung bình danh mục ({avgPrice:N0}đ)");
+                        ruleResults["PRICE_ANOMALY"] = "FAILED";
+                    }
+                }
             }
 
-            // 5. Account Risk & Spam Evaluation
+            // 5. Suspected Duplicate Detection
+            if (product.UserId > 0 && !string.IsNullOrWhiteSpace(product.Name))
+            {
+                var normName = product.Name.Trim().ToLower();
+                var duplicate = await _db.Products
+                    .Where(p => p.UserId == product.UserId && p.Id != product.Id && p.CreatedAt >= DateTime.UtcNow.AddHours(-24))
+                    .FirstOrDefaultAsync(p => p.Name.Trim().ToLower() == normName && p.Price == product.Price);
+
+                if (duplicate != null)
+                {
+                    hasForceManualReview = true;
+                    int w = dbRules.FirstOrDefault(r => r.RuleKey == "SUSPECTED_DUPLICATE")?.Weight ?? 30;
+                    riskScore += w;
+                    triggeredRules.Add($"SUSPECTED_DUPLICATE: Nghi ngờ trùng lặp bài đăng với SP #{duplicate.Id}");
+                    ruleResults["SUSPECTED_DUPLICATE"] = "FAILED";
+                }
+            }
+
+            // 6. Brand / Origin Claim Verification
+            var brandClaims = new[] { "nhập khẩu", "xách tay", "chính hãng 100%", "hàng công ty" };
+            foreach (var claim in brandClaims)
+            {
+                if (textToScan.Contains(claim))
+                {
+                    hasForceManualReview = true;
+                    int w = dbRules.FirstOrDefault(r => r.RuleKey == "BRAND_CLAIM_VERIFY")?.Weight ?? 30;
+                    riskScore += w;
+                    triggeredRules.Add($"BRAND_CLAIM_VERIFY: Tuyên bố nguồn gốc/thương hiệu '{claim}' cần xác minh");
+                    ruleResults["BRAND_CLAIM_VERIFY"] = "FAILED";
+                    break;
+                }
+            }
+
+            // 7. Image Quality Check
+            if (string.IsNullOrWhiteSpace(product.ImageUrl) || product.ImageUrl.Contains("placeholder") || product.ImageUrl.Contains("test"))
+            {
+                riskScore += 10;
+                triggeredRules.Add("IMAGE_QUALITY: Ảnh sản phẩm thiếu hoặc chưa đạt chuẩn.");
+                ruleResults["IMAGE_QUALITY"] = "FAILED";
+            }
+
+            // 8. Seller History & Trust Score Calculation
             if (product.UserId > 0)
             {
                 var user = await _db.Users.FindAsync(product.UserId);
                 if (user != null && (user.AccessFailedCount >= 3 || user.LockoutEnd > DateTime.UtcNow))
                 {
                     riskScore += 20;
-                    triggeredRules.Add("ACCOUNT_RISK: Tài khoản có lịch sử vi phạm hoặc bị cảnh báo hệ thống");
+                    triggeredRules.Add("ACCOUNT_RISK: Tài khoản có lịch sử vi phạm hoặc bị khóa cảnh báo");
                     ruleResults["ACCOUNT_RISK"] = "FAILED";
                 }
 
-                var recentCount = await _db.Products
-                    .Where(p => p.UserId == product.UserId && p.CreatedAt >= DateTime.UtcNow.AddHours(-1))
+                var approvedCount = await _db.Products
+                    .Where(p => p.UserId == product.UserId && p.ModerationStatus == ModerationStatus.Approved)
                     .CountAsync();
 
-                if (recentCount >= 10)
+                if (approvedCount < 5)
                 {
-                    riskScore += 25;
-                    triggeredRules.Add("SPAM_FREQUENCY: Đăng bài sản phẩm với tần suất liên tục bất thường (>10 sản phẩm/giờ)");
-                    ruleResults["SPAM_FREQUENCY"] = "FAILED";
+                    riskScore += 15;
+                    triggeredRules.Add("SELLER_TRUST: Merchant mới (dưới 5 sản phẩm đã duyệt).");
+                }
+                else if (approvedCount >= 20 && (user == null || user.AccessFailedCount == 0))
+                {
+                    riskScore = Math.Max(0, riskScore - 10);
+                    triggeredRules.Add("SELLER_TRUST_BONUS: Merchant uy tín lâu năm (-10 điểm rủi ro).");
                 }
             }
 
             // Cap risk score at 100
-            riskScore = Math.Min(100, Math.Max(0, riskScore));
+            int finalRiskScore = Math.Min(100, Math.Max(0, riskScore));
 
-            // Decouple RiskScore, RiskLevel, and ModerationDecision
-            // Tất cả sản phẩm mới đăng đều vào Hàng Đợi Ưu Tiên (Admin Priority Queue) để Admin duyệt thủ công
+            // Priority Decision Routing Hierarchy:
+            // 1. Confirmed Prohibited -> Rejected
+            // 2. Fixable Data Quality Fail -> ChangesRequired (Merchant edits & re-submits)
+            // 3. ForceManualReview / Safety Override Flags -> PendingManualReview
+            // 4. Risk Score Evaluation -> Approved (0-19) / PendingManualReview (20-100)
+
             RiskLevel riskLevel;
             ModerationDecision decision;
             ModerationStatus status;
 
-            if (riskScore >= 80)
+            if (hasConfirmedProhibitedContent)
             {
                 riskLevel = RiskLevel.Critical;
                 decision = ModerationDecision.AutoRejected;
                 status = ModerationStatus.Rejected;
-                product.ModerationStatus = ModerationStatus.Rejected;
+            }
+            else if (hasFixableDataQualityError)
+            {
+                riskLevel = finalRiskScore >= 60 ? RiskLevel.High : RiskLevel.Medium;
+                decision = ModerationDecision.MediumRiskManualQueue;
+                status = ModerationStatus.ChangesRequired;
+            }
+            else if (hasSuspectedKeyword || hasForceManualReview || hasPriceAnomaly)
+            {
+                riskLevel = finalRiskScore >= 60 ? (finalRiskScore >= 80 ? RiskLevel.Critical : RiskLevel.High) : RiskLevel.Medium;
+                decision = ModerationDecision.MediumRiskManualQueue;
+                status = ModerationStatus.PendingManualReview;
+            }
+            else if (finalRiskScore <= 19)
+            {
+                riskLevel = RiskLevel.Low;
+                decision = ModerationDecision.LowRiskAutoApproved;
+                status = ModerationStatus.Approved;
             }
             else
             {
-                riskLevel = riskScore >= 60 ? RiskLevel.High : (riskScore >= 30 ? RiskLevel.Medium : RiskLevel.Low);
+                riskLevel = finalRiskScore >= 60 ? (finalRiskScore >= 80 ? RiskLevel.Critical : RiskLevel.High) : RiskLevel.Medium;
                 decision = ModerationDecision.MediumRiskManualQueue;
                 status = ModerationStatus.PendingManualReview;
-                product.ModerationStatus = ModerationStatus.PendingManualReview;
             }
+
+            product.ModerationStatus = status;
 
             // Determine MarketId and ProvinceId for scope filtering
             int? marketId = null;
@@ -202,7 +325,7 @@ namespace MarketConnect.Services
             {
                 EntityType = "Product",
                 EntityId = product.Id,
-                RiskScore = riskScore,
+                RiskScore = finalRiskScore,
                 RiskLevel = riskLevel,
                 TriggeredRulesJson = JsonSerializer.Serialize(triggeredRules),
                 RuleResultsJson = JsonSerializer.Serialize(ruleResults),

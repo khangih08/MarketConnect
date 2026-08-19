@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj": {}
+    "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj": {}
   },
   "projects": {
     "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj": {
@@ -742,14 +742,14 @@
         }
       }
     },
-    "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj": {
+    "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj",
+        "projectUniqueName": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj",
         "projectName": "MarketConnect.Tests",
-        "projectPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj",
+        "projectPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj",
         "packagesPath": "C:\\Users\\Dell\\.nuget\\packages\\",
-        "outputPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\obj\\",
+        "outputPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Dell\\AppData\\Roaming\\NuGet\\NuGet.Config"

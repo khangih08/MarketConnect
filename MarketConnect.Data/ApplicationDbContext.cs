@@ -26,6 +26,7 @@ namespace MarketConnect.Data
         public DbSet<Store> Stores { get; set; } = null!;
         public DbSet<ModerationCase> ModerationCases { get; set; } = null!;
         public DbSet<ModerationRule> ModerationRules { get; set; } = null!;
+        public DbSet<CategoryPriceReference> CategoryPriceReferences { get; set; } = null!;
 
         public DbSet<CartItem> CartItems { get; set; } = null!;
         public DbSet<PurchaseRequest> PurchaseRequests { get; set; } = null!;

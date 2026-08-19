@@ -1,4 +1,6 @@
 using MarketConnect.Controllers.Dtos;
+using MarketConnect.Data;
+using MarketConnect.Helpers;
 using MarketConnect.Services;
 using MarketConnect.Services.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -13,11 +15,13 @@ namespace MarketConnect.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IAuditLogService _auditLog;
+        private readonly ApplicationDbContext _db;
 
-        public AuthController(IAuthService authService, IAuditLogService auditLog)
+        public AuthController(IAuthService authService, IAuditLogService auditLog, ApplicationDbContext db)
         {
             _authService = authService;
             _auditLog = auditLog;
+            _db = db;
         }
 
         [HttpPost("google-login")]
@@ -50,6 +54,21 @@ namespace MarketConnect.Controllers
                 Response.Cookies.Append("user_id", res.UserId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
                 if (!string.IsNullOrEmpty(outDto.Email)) Response.Cookies.Append("user_email", outDto.Email, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
                 if (!string.IsNullOrEmpty(outDto.Username)) Response.Cookies.Append("user_name", outDto.Username, new Microsoft.AspNetCore.Http.CookieOptions { HttpOnly = false, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+
+                await _auditLog.LogActionAsync(
+                    res.UserId,
+                    res.Role.ToString(),
+                    "LOGIN_SUCCESS",
+                    "User",
+                    res.UserId,
+                    $"Đăng nhập thành công qua Google (Email: {res.Email})",
+                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+                );
+
+                var userAgent = Request.Headers["User-Agent"].ToString();
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                await UserSessionHelper.CreateSessionAsync(_db, res.UserId, userAgent, ip);
+
                 return Ok(outDto);
             }
             catch (InvalidOperationException ex)
@@ -235,6 +254,10 @@ namespace MarketConnect.Controllers
                 $"Đăng nhập thành công qua Số điện thoại (SĐT: {dto.PhoneNumber})",
                 HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
             );
+
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            await UserSessionHelper.CreateSessionAsync(_db, authData.UserId, userAgent, ip);
 
             return Ok(outDto);
         }

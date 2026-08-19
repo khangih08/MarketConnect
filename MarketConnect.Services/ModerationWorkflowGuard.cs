@@ -128,6 +128,7 @@ namespace MarketConnect.Services
                 ModerationStatus.Draft => targetStatus == ModerationStatus.PendingAutoReview,
                 ModerationStatus.PendingAutoReview => targetStatus == ModerationStatus.Approved ||
                                                       targetStatus == ModerationStatus.PendingManualReview ||
+                                                      targetStatus == ModerationStatus.ChangesRequired ||
                                                       targetStatus == ModerationStatus.Rejected,
                 ModerationStatus.PendingManualReview => targetStatus == ModerationStatus.Approved ||
                                                         targetStatus == ModerationStatus.ChangesRequired ||

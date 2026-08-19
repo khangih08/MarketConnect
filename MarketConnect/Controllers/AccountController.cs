@@ -1,5 +1,6 @@
 using MarketConnect.Controllers.Dtos;
 using MarketConnect.Data;
+using MarketConnect.Helpers;
 using MarketConnect.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -282,52 +283,11 @@ namespace MarketConnect.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var userAgent = Request.Headers["User-Agent"].ToString();
-            string currentDevice = ParseUserAgent(userAgent);
-            string currentIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "113.190.24.12";
-
             var sessions = await _db.UserSessions
                 .Where(s => s.UserId == currentUser.Id && s.IsActive)
                 .OrderByDescending(s => s.LoginTime)
+                .AsNoTracking()
                 .ToListAsync();
-
-            var currentSess = sessions.FirstOrDefault(s => s.DeviceName == currentDevice);
-            if (currentSess == null)
-            {
-                foreach (var s in sessions)
-                {
-                    s.IsCurrentSession = false;
-                }
-
-                currentSess = new UserSession
-                {
-                    UserId = currentUser.Id,
-                    DeviceName = currentDevice,
-                    IpAddress = currentIp,
-                    Location = "Hanoi, Viet Nam",
-                    IsCurrentSession = true,
-                    IsActive = true,
-                    LoginTime = DateTime.UtcNow,
-                    LastActiveTime = DateTime.UtcNow
-                };
-
-                _db.UserSessions.Add(currentSess);
-                await _db.SaveChangesAsync();
-
-                sessions = await _db.UserSessions
-                    .Where(s => s.UserId == currentUser.Id && s.IsActive)
-                    .OrderByDescending(s => s.LoginTime)
-                    .ToListAsync();
-            }
-            else
-            {
-                foreach (var s in sessions)
-                {
-                    s.IsCurrentSession = (s.Id == currentSess.Id);
-                }
-                currentSess.LastActiveTime = DateTime.UtcNow;
-                await _db.SaveChangesAsync();
-            }
 
             ViewBag.CurrentUser = currentUser;
             return View(sessions);
@@ -370,20 +330,7 @@ namespace MarketConnect.Controllers
 
         private string ParseUserAgent(string? userAgent)
         {
-            if (string.IsNullOrWhiteSpace(userAgent)) return "Windows 10.0 (Chrome 151.0.0.0)";
-
-            string os = "Windows 10.0";
-            if (userAgent.Contains("Android")) os = "Android 14";
-            else if (userAgent.Contains("iPhone") || userAgent.Contains("iPad")) os = "iOS 18.0";
-            else if (userAgent.Contains("Macintosh")) os = "macOS Sequoia";
-            else if (userAgent.Contains("Linux")) os = "Linux x86_64";
-
-            string browser = "Chrome 151.0.0.0";
-            if (userAgent.Contains("Edg/")) browser = "Edge 122.0";
-            else if (userAgent.Contains("Firefox/")) browser = "Firefox 125.0";
-            else if (userAgent.Contains("Safari/") && !userAgent.Contains("Chrome/")) browser = "Safari 17.4";
-
-            return $"{os} ({browser})";
+            return UserSessionHelper.ParseUserAgent(userAgent);
         }
 
         private async Task<User?> GetCurrentUserAsync()
@@ -559,6 +506,10 @@ namespace MarketConnect.Controllers
                 "Đăng nhập SuperAdmin (Quick Login Admin Portal)",
                 HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
             );
+
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            await UserSessionHelper.CreateSessionAsync(_db, adminUser.Id, userAgent, ip);
 
             TempData["SuccessMessage"] = "Đã đăng nhập thành công với quyền SuperAdmin!";
             return RedirectToAction("Dashboard", "Moderation");
