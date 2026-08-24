@@ -137,41 +137,53 @@ namespace MarketConnect.Services
             // 4. Category Price Anomaly Math & Reference Data Check
             if (product.CategoryId > 0 && product.Price > 0)
             {
-                var priceRef = await _db.CategoryPriceReferences
-                    .FirstOrDefaultAsync(r => r.CategoryId == product.CategoryId);
-
-                if (priceRef != null && priceRef.MaxPrice > 0)
+                if (product.Price > 100000000m)
                 {
-                    if (product.Price > priceRef.MaxPrice * 2.5m || product.Price < priceRef.MinPrice * 0.2m)
-                    {
-                        hasPriceAnomaly = true;
-                        hasForceManualReview = true;
-                        int w = dbRules.FirstOrDefault(r => r.RuleKey == "PRICE_ANOMALY")?.Weight ?? 25;
-                        riskScore += w;
-                        triggeredRules.Add($"PRICE_ANOMALY: Giá {product.Price:N0}đ chênh lệch bất thường so với khoảng tham chiếu ({priceRef.MinPrice:N0}đ - {priceRef.MaxPrice:N0}đ)");
-                        ruleResults["PRICE_ANOMALY"] = "FAILED";
-                    }
-                    else
-                    {
-                        ruleResults["PRICE_ANOMALY"] = "PASSED";
-                    }
+                    hasPriceAnomaly = true;
+                    hasForceManualReview = true;
+                    int w = dbRules.FirstOrDefault(r => r.RuleKey == "PRICE_ANOMALY")?.Weight ?? 40;
+                    riskScore += w;
+                    triggeredRules.Add($"PRICE_ANOMALY: Giá bán {product.Price:N0}đ quá cao so với quy định hệ thống (ngưỡng tối đa 100,000,000đ)");
+                    ruleResults["PRICE_ANOMALY"] = "FAILED";
                 }
                 else
                 {
-                    var avgPrice = await _db.Products
-                        .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id && p.Price > 0)
-                        .Select(p => (double)p.Price)
-                        .DefaultIfEmpty(0)
-                        .AverageAsync();
+                    var priceRef = await _db.CategoryPriceReferences
+                        .FirstOrDefaultAsync(r => r.CategoryId == product.CategoryId);
 
-                    if (avgPrice > 0 && (product.Price > (decimal)(avgPrice * 5) || product.Price < (decimal)(avgPrice * 0.1)))
+                    if (priceRef != null && priceRef.MaxPrice > 0)
                     {
-                        hasPriceAnomaly = true;
-                        hasForceManualReview = true;
-                        int w = dbRules.FirstOrDefault(r => r.RuleKey == "PRICE_ANOMALY")?.Weight ?? 25;
-                        riskScore += w;
-                        triggeredRules.Add($"PRICE_ANOMALY: Giá bán {product.Price:N0}đ chênh lệch quá lớn so với trung bình danh mục ({avgPrice:N0}đ)");
-                        ruleResults["PRICE_ANOMALY"] = "FAILED";
+                        if (product.Price > priceRef.MaxPrice * 2.5m || product.Price < priceRef.MinPrice * 0.2m)
+                        {
+                            hasPriceAnomaly = true;
+                            hasForceManualReview = true;
+                            int w = dbRules.FirstOrDefault(r => r.RuleKey == "PRICE_ANOMALY")?.Weight ?? 25;
+                            riskScore += w;
+                            triggeredRules.Add($"PRICE_ANOMALY: Giá {product.Price:N0}đ chênh lệch bất thường so với khoảng tham chiếu ({priceRef.MinPrice:N0}đ - {priceRef.MaxPrice:N0}đ)");
+                            ruleResults["PRICE_ANOMALY"] = "FAILED";
+                        }
+                        else
+                        {
+                            ruleResults["PRICE_ANOMALY"] = "PASSED";
+                        }
+                    }
+                    else
+                    {
+                        var avgPrice = await _db.Products
+                            .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id && p.Price > 0 && p.Price < 100000000m)
+                            .Select(p => (double)p.Price)
+                            .DefaultIfEmpty(0)
+                            .AverageAsync();
+
+                        if (avgPrice > 0 && (product.Price > (decimal)(avgPrice * 5) || product.Price < (decimal)(avgPrice * 0.1)))
+                        {
+                            hasPriceAnomaly = true;
+                            hasForceManualReview = true;
+                            int w = dbRules.FirstOrDefault(r => r.RuleKey == "PRICE_ANOMALY")?.Weight ?? 25;
+                            riskScore += w;
+                            triggeredRules.Add($"PRICE_ANOMALY: Giá bán {product.Price:N0}đ chênh lệch quá lớn so với trung bình danh mục ({((decimal)avgPrice):N0}đ)");
+                            ruleResults["PRICE_ANOMALY"] = "FAILED";
+                        }
                     }
                 }
             }
@@ -331,6 +343,23 @@ namespace MarketConnect.Services
             _db.ContentVersions.Add(contentVer);
             await _db.SaveChangesAsync();
 
+            var existingCase = await _db.ModerationCases.FirstOrDefaultAsync(c => c.EntityType == "Product" && c.EntityId == product.Id);
+            if (existingCase != null)
+            {
+                existingCase.RiskScore = finalRiskScore;
+                existingCase.RiskLevel = riskLevel;
+                existingCase.TriggeredRulesJson = JsonSerializer.Serialize(triggeredRules);
+                existingCase.RuleResultsJson = JsonSerializer.Serialize(ruleResults);
+                existingCase.Decision = decision;
+                existingCase.Status = status;
+                existingCase.MarketId = marketId;
+                existingCase.ProvinceId = provinceId;
+                existingCase.ContentSnapshotJson = snapshotJson;
+                _db.ModerationCases.Update(existingCase);
+                await _db.SaveChangesAsync();
+                return existingCase;
+            }
+
             var modCase = new ModerationCase
             {
                 EntityType = "Product",
@@ -432,6 +461,12 @@ namespace MarketConnect.Services
             if (status.HasValue)
             {
                 query = query.Where(mc => mc.Status == status.Value);
+            }
+            else
+            {
+                query = query.Where(mc => mc.Status == ModerationStatus.PendingAutoReview ||
+                                          mc.Status == ModerationStatus.PendingManualReview ||
+                                          mc.Status == ModerationStatus.ChangesRequired);
             }
 
             if (riskLevel.HasValue)

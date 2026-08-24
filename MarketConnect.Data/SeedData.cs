@@ -891,7 +891,7 @@ namespace MarketConnect.Data
                        MinOrderQuantity = 1,
                        StockStatus = "InStock",
                        SearchKeywords = "táo envy, trái cây nhập khẩu, táo Mỹ",
-                       ModerationStatus = ModerationStatus.Approved,
+                       ModerationStatus = ModerationStatus.PendingManualReview,
                        StoreId = sampleStore?.Id,
                        Address = "Chợ Nhân Chính, Hà Nội",
                        SellerType = "Tiểu thương chợ",
@@ -910,7 +910,7 @@ namespace MarketConnect.Data
                        MinOrderQuantity = 1,
                        StockStatus = "InStock",
                        SearchKeywords = "cam sành, cam vắt nước, trái cây",
-                       ModerationStatus = ModerationStatus.Approved,
+                       ModerationStatus = ModerationStatus.PendingManualReview,
                        StoreId = sampleStore?.Id,
                        Address = "Chợ Nhân Chính, Hà Nội",
                        SellerType = "Tiểu thương chợ",
@@ -929,7 +929,7 @@ namespace MarketConnect.Data
                        MinOrderQuantity = 1,
                        StockStatus = "InStock",
                        SearchKeywords = "thịt bò, ba chỉ bò Mỹ",
-                       ModerationStatus = ModerationStatus.Approved,
+                       ModerationStatus = ModerationStatus.PendingManualReview,
                        StoreId = sampleStore?.Id,
                        Address = "Chợ Nhân Chính, Hà Nội",
                        SellerType = "Tiểu thương chợ",
@@ -1186,31 +1186,46 @@ namespace MarketConnect.Data
                         Console.WriteLine($"[SeedData Remediation] Updated {unmoderatedProducts.Count} unmoderated products to PendingManualReview.");
                     }
 
-                    // 2. Tự động bảo đảm các sản phẩm ở trạng thái PendingManualReview luôn có bản ghi ModerationCase để hiển thị trong Admin Queue
+                    // 2. Tự động bảo đảm TẤT CẢ các sản phẩm chưa duyệt luôn có bản ghi ModerationCase để hiển thị trong Admin Queue
                     var pendingProductsWithoutCases = await db.Products
-                        .Where(p => p.ModerationStatus == ModerationStatus.PendingManualReview && !db.ModerationCases.Any(mc => mc.EntityType == "Product" && mc.EntityId == p.Id))
+                        .Where(p => p.ModerationStatus != ModerationStatus.Approved && !db.ModerationCases.Any(mc => mc.EntityType == "Product" && mc.EntityId == p.Id))
                         .ToListAsync();
 
                     if (pendingProductsWithoutCases.Any())
                     {
                         foreach (var p in pendingProductsWithoutCases)
                         {
+                            bool isAnomaly = p.Price > 100000000m || (p.Description != null && p.Description.ToLower().Contains("test"));
+                            var rules = new List<string>();
+                            if (p.Price > 100000000m) rules.Add($"PRICE_ANOMALY: Giá bán {p.Price:N0}đ chênh lệch quá lớn so với trung bình danh mục");
+                            if (p.Description != null && p.Description.ToLower().Contains("test")) rules.Add("SUSPECTED_SPAM: Mô tả sản phẩm chứa ký tự rác/test");
+                            if (!rules.Any()) rules.Add("MANUAL_REVIEW_REQUIRED: Sản phẩm mới đăng bán chờ Admin phê duyệt");
+
+                            int marketId = 0;
+                            if (p.StoreId.HasValue)
+                            {
+                                var st = await db.Stores.FindAsync(p.StoreId.Value);
+                                if (st != null) marketId = st.MarketId;
+                            }
+
                             db.ModerationCases.Add(new ModerationCase
                             {
                                 EntityType = "Product",
                                 EntityId = p.Id,
-                                RiskScore = 35,
-                                RiskLevel = RiskLevel.Medium,
-                                TriggeredRulesJson = "[\"MANUAL_REVIEW_REQUIRED: Sản phẩm mới đăng bán chờ Admin phê duyệt\"]",
+                                RiskScore = isAnomaly ? 75 : 35,
+                                RiskLevel = isAnomaly ? RiskLevel.High : RiskLevel.Medium,
+                                TriggeredRulesJson = System.Text.Json.JsonSerializer.Serialize(rules),
                                 RuleResultsJson = "{\"MANUAL_REVIEW_REQUIRED\":\"PENDING\"}",
                                 Decision = ModerationDecision.MediumRiskManualQueue,
                                 Status = ModerationStatus.PendingManualReview,
                                 CurrentVersionNumber = 1,
-                                ContentSnapshotJson = System.Text.Json.JsonSerializer.Serialize(new { p.Name, p.Price, p.Description }),
+                                MarketId = marketId > 0 ? marketId : null,
+                                ContentSnapshotJson = System.Text.Json.JsonSerializer.Serialize(new { p.Id, p.Name, p.Price, p.Description, p.ImageUrl, p.StoreId }),
                                 CreatedAt = DateTime.UtcNow
                             });
                         }
                         await db.SaveChangesAsync();
+                        Console.WriteLine($"[SeedData Remediation] Created ModerationCase entries for {pendingProductsWithoutCases.Count} pending products.");
                     }
 
                     // 3. Remediate Test Stores: Chuyển các gian hàng test (StoreName chứa "test") bị gán Approved tự động về PendingApproval để Admin duyệt thực tế

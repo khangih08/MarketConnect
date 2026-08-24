@@ -11,7 +11,6 @@
                 <span class="material-symbols-outlined text-emerald-800 text-3xl">store</span>
                 <span>Quản Lý Tiểu Thương & Hồ Sơ Gian Hàng</span>
             </h1>
-            <p class="text-xs text-slate-500 mt-1">Đánh giá rủi ro tài khoản (Account Risk FR-06), phê duyệt hồ sơ đăng ký sạp hàng và lịch sử khiếu nại vi phạm.</p>
         </div>
     </div>
 
@@ -71,12 +70,33 @@
                                 }
                             </td>
                             <td class="p-3.5 text-right">
-                                <form method="post" action="/Moderation/ReviewStore" class="inline-flex items-center gap-1">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="storeId" value="@s.Id" />
-                                    <button type="submit" name="newStatus" value="Approved" class="px-2.5 py-1 bg-emerald-700 text-white font-bold rounded-xl text-[11px]">Duyệt</button>
-                                    <button type="submit" name="newStatus" value="Rejected" class="px-2.5 py-1 bg-red-600 text-white font-bold rounded-xl text-[11px]">Từ chối</button>
-                                </form>
+                                @if (s.Status == MarketConnect.Data.StoreStatus.PendingApproval)
+                                {
+                                    <form method="post" action="/Moderation/ReviewStore" class="inline-flex items-center gap-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="storeId" value="@s.Id" />
+                                        <button type="submit" name="newStatus" value="Approved" class="px-2.5 py-1 bg-emerald-700 text-white font-bold rounded-xl text-[11px] cursor-pointer hover:bg-emerald-800 transition-colors">Duyệt</button>
+                                        <button type="submit" name="newStatus" value="Rejected" class="px-2.5 py-1 bg-red-600 text-white font-bold rounded-xl text-[11px] cursor-pointer hover:bg-red-700 transition-colors">Từ chối</button>
+                                    </form>
+                                }
+                                else if (s.Status == MarketConnect.Data.StoreStatus.Approved)
+                                {
+                                    <span class="px-3 py-1 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-[11px]">
+                                        ✓ Đã duyệt
+                                    </span>
+                                }
+                                else if (s.Status == MarketConnect.Data.StoreStatus.Rejected)
+                                {
+                                    <span class="px-3 py-1 rounded-xl bg-red-100 text-red-700 font-bold text-[11px]">
+                                        ✕ Đã từ chối
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="px-3 py-1 rounded-xl bg-slate-100 text-slate-600 font-bold text-[11px]">
+                                        @s.Status
+                                    </span>
+                                }
                             </td>
                         </tr>
                     }

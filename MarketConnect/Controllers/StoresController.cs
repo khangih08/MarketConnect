@@ -90,6 +90,13 @@ namespace MarketConnect.Controllers
                 }
             }
 
+            if (canPostProduct)
+            {
+                store.Products = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+                    _db.Products.Where(p => p.StoreId == id).OrderByDescending(p => p.CreatedAt)
+                );
+            }
+
             ViewBag.CanPostProduct = canPostProduct;
             ViewBag.Categories = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(_db.Categories.OrderBy(c => c.Name));
 
@@ -191,6 +198,27 @@ namespace MarketConnect.Controllers
                 Console.WriteLine($"[FR-06 Auto Moderation Exception - FAIL CLOSED] {ex.Message}");
                 product.ModerationStatus = ModerationStatus.PendingManualReview;
                 await _db.SaveChangesAsync();
+
+                var existingCase = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.ModerationCases, c => c.EntityType == "Product" && c.EntityId == product.Id);
+                if (existingCase == null)
+                {
+                    _db.ModerationCases.Add(new ModerationCase
+                    {
+                        EntityType = "Product",
+                        EntityId = product.Id,
+                        RiskScore = 90,
+                        RiskLevel = RiskLevel.Critical,
+                        TriggeredRulesJson = System.Text.Json.JsonSerializer.Serialize(new[] { $"FAIL_CLOSED: Lỗi kiểm duyệt tự động ({ex.Message})" }),
+                        RuleResultsJson = "{\"FAIL_CLOSED\":\"FAILED\"}",
+                        Decision = ModerationDecision.MediumRiskManualQueue,
+                        Status = ModerationStatus.PendingManualReview,
+                        CurrentVersionNumber = 1,
+                        MarketId = store.MarketId > 0 ? store.MarketId : null,
+                        ContentSnapshotJson = System.Text.Json.JsonSerializer.Serialize(new { product.Id, product.Name, product.Price, product.Description, product.ImageUrl, product.StoreId }),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await _db.SaveChangesAsync();
+                }
             }
 
             if (product.ModerationStatus == ModerationStatus.Approved)

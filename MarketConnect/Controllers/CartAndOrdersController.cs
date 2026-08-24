@@ -77,6 +77,14 @@ namespace MarketConnect.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1, string? options = null, string? note = null)
         {
+            var product = await _db.Products.FindAsync(productId);
+            if (product == null || product.ModerationStatus != ModerationStatus.Approved)
+            {
+                TempData["ErrorMessage"] = "Sản phẩm chưa được Quản trị viên phê duyệt, không thể đặt mua.";
+                var refererUrl = Request.Headers["Referer"].ToString();
+                return Redirect(string.IsNullOrEmpty(refererUrl) ? "/Stores" : refererUrl);
+            }
+
             int buyerId = await GetCurrentUserIdAsync();
             await _cartService.AddToCartAsync(buyerId, productId, quantity, options, note);
             TempData["SuccessMessage"] = "Đã thêm sản phẩm vào giỏ hàng!";

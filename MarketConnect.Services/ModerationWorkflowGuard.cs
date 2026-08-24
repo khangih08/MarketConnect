@@ -126,8 +126,7 @@ namespace MarketConnect.Services
             return currentStatus switch
             {
                 ModerationStatus.Draft => targetStatus == ModerationStatus.PendingAutoReview,
-                ModerationStatus.PendingAutoReview => targetStatus == ModerationStatus.Approved ||
-                                                      targetStatus == ModerationStatus.PendingManualReview ||
+                ModerationStatus.PendingAutoReview => targetStatus == ModerationStatus.PendingManualReview ||
                                                       targetStatus == ModerationStatus.ChangesRequired ||
                                                       targetStatus == ModerationStatus.Rejected,
                 ModerationStatus.PendingManualReview => targetStatus == ModerationStatus.Approved ||

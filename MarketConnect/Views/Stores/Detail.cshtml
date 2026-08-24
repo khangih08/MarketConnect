@@ -138,20 +138,48 @@
                     <div class="space-y-3">
                         <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400" : p.ImageUrl)" class="w-full h-40 object-cover rounded-xl" alt="@p.Name" />
                         <div>
-                            <h3 class="font-bold text-sm text-gray-900 line-clamp-1">@p.Name</h3>
+                            <div class="flex items-center justify-between gap-1">
+                                <h3 class="font-bold text-sm text-gray-900 line-clamp-1">@p.Name</h3>
+                                @if (p.ModerationStatus == MarketConnect.Data.ModerationStatus.PendingManualReview || p.ModerationStatus == MarketConnect.Data.ModerationStatus.PendingAutoReview)
+                                {
+                                    <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">⏳ Chờ duyệt</span>
+                                }
+                                else if (p.ModerationStatus == MarketConnect.Data.ModerationStatus.ChangesRequired)
+                                {
+                                    <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">⚠ Yêu cầu sửa</span>
+                                }
+                                else if (p.ModerationStatus == MarketConnect.Data.ModerationStatus.Rejected)
+                                {
+                                    <span class="bg-red-100 text-red-700 border border-red-300 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">✕ Từ chối</span>
+                                }
+                                else if (p.ModerationStatus == MarketConnect.Data.ModerationStatus.Approved)
+                                {
+                                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">✓ Đã duyệt</span>
+                                }
+                            </div>
                             <p class="text-xs text-gray-500 line-clamp-2 mt-1">@p.Description</p>
                         </div>
                     </div>
                     <div class="pt-2 border-t border-gray-50 flex items-center justify-between">
                         <span class="text-emerald-700 font-extrabold text-base">@p.Price.ToString("N0") đ / @p.Unit</span>
-                        <form method="post" action="/CartAndOrders/AddToCart">
-                            <input type="hidden" name="productId" value="@p.Id" />
-                            <input type="hidden" name="quantity" value="1" />
-                            <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 transition-all active:scale-95 cursor-pointer">
-                                <span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
-                                <span>Thêm Giỏ</span>
-                            </button>
-                        </form>
+                        @if (p.ModerationStatus == MarketConnect.Data.ModerationStatus.Approved)
+                        {
+                            <form method="post" action="/CartAndOrders/AddToCart">
+                                <input type="hidden" name="productId" value="@p.Id" />
+                                <input type="hidden" name="quantity" value="1" />
+                                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 transition-all active:scale-95 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+                                    <span>Thêm Giỏ</span>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-200 inline-flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">lock</span>
+                                <span>Chưa thể mua</span>
+                            </span>
+                        }
                     </div>
                 </div>
             }

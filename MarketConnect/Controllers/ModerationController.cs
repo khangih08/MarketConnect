@@ -194,7 +194,13 @@ namespace MarketConnect.Controllers
             if (store == null)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy hồ sơ gian hàng.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Merchants");
+            }
+
+            if (store.Status != StoreStatus.PendingApproval)
+            {
+                TempData["ErrorMessage"] = $"Gian hàng \"{store.StoreName}\" hiện đang ở trạng thái '{store.Status}' và không còn ở hàng chờ xét duyệt.";
+                return RedirectToAction("Merchants");
             }
 
             string permCode = newStatus switch
@@ -491,13 +497,71 @@ namespace MarketConnect.Controllers
 
             Product? product = null;
             Store? store = null;
+
+            string storeName = "Gian hàng chưa cập nhật";
+            string representativeName = "Tiểu thương MarketConnect";
+            string verifiedPhone = "Chưa cập nhật SĐT";
+            string marketName = "Chợ được chọn";
+            string categoryName = "Nông sản & Thực phẩm";
+            string productName = "Sản phẩm đang kiểm duyệt";
+            decimal price = 0;
+            string imageUrl = "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=300";
+            string description = "";
+
             if (modCase.EntityType == "Product")
             {
-                product = await _db.Products.Include(p => p.Seller).FirstOrDefaultAsync(p => p.Id == modCase.EntityId);
+                product = await _db.Products
+                    .Include(p => p.Seller)
+                    .Include(p => p.Category)
+                    .Include(p => p.Store)
+                        .ThenInclude(s => s!.Market)
+                    .FirstOrDefaultAsync(p => p.Id == modCase.EntityId);
+
+                if (product != null)
+                {
+                    productName = product.Name ?? "Sản phẩm Nông sản";
+                    price = product.Price;
+                    imageUrl = !string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : imageUrl;
+                    description = product.Description ?? "";
+                    categoryName = product.Category?.Name ?? categoryName;
+
+                    if (product.Store != null)
+                    {
+                        storeName = product.Store.StoreName ?? storeName;
+                        representativeName = !string.IsNullOrWhiteSpace(product.Store.RepresentativeName)
+                            ? product.Store.RepresentativeName
+                            : (product.Seller?.Name ?? representativeName);
+                        verifiedPhone = !string.IsNullOrWhiteSpace(product.Store.VerifiedPhone)
+                            ? product.Store.VerifiedPhone
+                            : (product.Seller?.Phone ?? verifiedPhone);
+                        marketName = product.Store.Market?.Name ?? marketName;
+                    }
+                    else if (product.Seller != null)
+                    {
+                        representativeName = product.Seller.Name ?? (product.Seller.Email != null ? product.Seller.Email.Split('@')[0] : representativeName);
+                        verifiedPhone = product.Seller.Phone ?? verifiedPhone;
+                    }
+                }
             }
             else if (modCase.EntityType == "Store")
             {
-                store = await _db.Stores.Include(s => s.Owner).FirstOrDefaultAsync(s => s.Id == modCase.EntityId);
+                store = await _db.Stores
+                    .Include(s => s.Owner)
+                    .Include(s => s.Category)
+                    .Include(s => s.Market)
+                    .FirstOrDefaultAsync(s => s.Id == modCase.EntityId);
+
+                if (store != null)
+                {
+                    productName = store.StoreName;
+                    storeName = store.StoreName;
+                    representativeName = !string.IsNullOrWhiteSpace(store.RepresentativeName) ? store.RepresentativeName : (store.Owner?.Name ?? representativeName);
+                    verifiedPhone = !string.IsNullOrWhiteSpace(store.VerifiedPhone) ? store.VerifiedPhone : (store.Owner?.Phone ?? verifiedPhone);
+                    marketName = store.Market?.Name ?? marketName;
+                    categoryName = store.Category?.Name ?? categoryName;
+                    imageUrl = !string.IsNullOrEmpty(store.LogoUrl) ? store.LogoUrl : imageUrl;
+                    description = store.Description ?? "";
+                }
             }
 
             var versions = await _db.ContentVersions
@@ -521,7 +585,11 @@ namespace MarketConnect.Controllers
                 })
                 .ToListAsync();
 
-            var market = modCase.MarketId.HasValue ? await _db.Markets.FindAsync(modCase.MarketId.Value) : null;
+            string systemRecommendation = modCase.RiskScore <= 19
+                ? "Sản phẩm không phát hiện dấu hiệu vi phạm. Đủ điều kiện để Admin xem xét phê duyệt."
+                : (modCase.RiskScore < 60
+                    ? "Sản phẩm có dấu hiệu cần lưu ý. Đề xuất Admin rà soát kỹ các trường thông tin trước khi duyệt."
+                    : "Sản phẩm có mức rủi ro cao hoặc vi phạm quy tắc. Đề xuất Admin yêu cầu chỉnh sửa hoặc từ chối.");
 
             return Ok(new
             {
@@ -533,11 +601,22 @@ namespace MarketConnect.Controllers
                 triggeredRules = modCase.TriggeredRulesJson,
                 decision = modCase.Decision.ToString(),
                 status = modCase.Status.ToString(),
-                marketName = market?.Name ?? "Chưa gán chợ",
+                marketName = marketName,
                 snapshot = modCase.ContentSnapshotJson,
                 createdAt = modCase.CreatedAt.AddHours(7).ToString("dd/MM/yyyy HH:mm"),
-                product = product != null ? new { product.Id, product.Name, product.Price, product.ImageUrl, sellerName = product.Seller?.Name ?? "Tiểu thương" } : null,
-                store = store != null ? new { store.Id, store.StoreName, store.RepresentativeName, store.VerifiedPhone } : null,
+                systemRecommendation = systemRecommendation,
+                detailInfo = new
+                {
+                    productName,
+                    price,
+                    imageUrl,
+                    description,
+                    storeName,
+                    representativeName,
+                    verifiedPhone,
+                    marketName,
+                    categoryName
+                },
                 versions = versions.Select(v => new { v.VersionNumber, v.CreatedAt, v.SnapshotJson }),
                 history = history
             });

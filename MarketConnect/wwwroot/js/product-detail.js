@@ -1,6 +1,3 @@
-// ==========================================
-// GLOBAL STATE VARIABLES (TOP-LEVEL DECLARED TO PREVENT TDZ ERROR)
-// ==========================================
 let editingCommentId = null;
 let deletingCommentId = null;
 let currentProduct = null;
@@ -8,48 +5,45 @@ let galleryImages = [];
 let activeImageIndex = 0;
 let selectedCommentImageBase64 = null;
 
-// ==========================================
-// THỜI GIAN THỰC ĐĂNG BÌNH LUẬN (RELATIVE TIME FORMATTER)
-// ==========================================
 function formatRelativeTime(dateInput) {
     if (!dateInput) return 'Vừa xong';
     if (typeof dateInput === 'string' && (dateInput.includes('phút') || dateInput.includes('giờ') || dateInput.includes('ngày') || dateInput === 'Vừa xong')) {
         return dateInput;
     }
-    
+
     let date;
     if (dateInput instanceof Date) {
         date = dateInput;
     } else {
         date = new Date(dateInput);
     }
-    
+
     if (isNaN(date.getTime())) {
         return typeof dateInput === 'string' ? dateInput : 'Vừa xong';
     }
-    
+
     const now = new Date();
     const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
+
     if (diffSeconds < 60 && diffSeconds >= 0) {
         return 'Vừa xong';
     }
-    
+
     const diffMinutes = Math.floor(diffSeconds / 60);
     if (diffMinutes < 60 && diffMinutes > 0) {
         return `${diffMinutes} phút trước`;
     }
-    
+
     const diffHours = Math.floor(diffMinutes / 60);
     if (diffHours < 24 && diffHours > 0) {
         return `${diffHours} giờ trước`;
     }
-    
+
     const diffDays = Math.floor(diffHours / 24);
     if (diffDays < 30 && diffDays > 0) {
         return `${diffDays} ngày trước`;
     }
-    
+
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
@@ -131,7 +125,7 @@ function initCommentSectionUI() {
     }
 }
 
-window.showLoginModal = function() {
+window.showLoginModal = function () {
     const modal = document.getElementById('loginRequiredModal');
     if (modal) modal.classList.remove('hidden');
     else {
@@ -141,12 +135,12 @@ window.showLoginModal = function() {
     }
 };
 
-window.hideLoginModal = function() {
+window.hideLoginModal = function () {
     const modal = document.getElementById('loginRequiredModal');
     if (modal) modal.classList.add('hidden');
 };
 
-window.handleCommentInputFocus = function(e) {
+window.handleCommentInputFocus = function (e) {
     const user = getCurrentUser();
     if (!user) {
         if (e && e.target) e.target.blur();
@@ -157,16 +151,16 @@ window.handleCommentInputFocus = function(e) {
 // ==========================================
 // LOGIC THAO TÁC SỬA & XÓA BÌNH LUẬN (GLOBAL WINDOW HANDLERS)
 // ==========================================
-window.startEditComment = function(commentId) {
+window.startEditComment = function (commentId) {
     editingCommentId = commentId;
     renderComments(currentProduct?.comments || []);
-    
+
     setTimeout(() => {
         const textarea = document.getElementById(`edit_textarea_${commentId}`);
         if (textarea) {
             textarea.focus();
             textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-            textarea.addEventListener('keydown', function(e) {
+            textarea.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     saveEditedComment(commentId);
@@ -178,12 +172,12 @@ window.startEditComment = function(commentId) {
     }, 50);
 };
 
-window.cancelEditComment = function() {
+window.cancelEditComment = function () {
     editingCommentId = null;
     renderComments(currentProduct?.comments || []);
 };
 
-window.saveEditedComment = async function(commentId) {
+window.saveEditedComment = async function (commentId) {
     const textarea = document.getElementById(`edit_textarea_${commentId}`);
     if (!textarea) return;
     const newText = textarea.value.trim();
@@ -229,19 +223,19 @@ window.saveEditedComment = async function(commentId) {
     renderComments(comments);
 };
 
-window.openDeleteCommentModal = function(commentId) {
+window.openDeleteCommentModal = function (commentId) {
     deletingCommentId = commentId;
     const modal = document.getElementById('deleteCommentModal');
     if (modal) modal.classList.remove('hidden');
 };
 
-window.hideDeleteCommentModal = function() {
+window.hideDeleteCommentModal = function () {
     deletingCommentId = null;
     const modal = document.getElementById('deleteCommentModal');
     if (modal) modal.classList.add('hidden');
 };
 
-window.confirmDeleteComment = async function() {
+window.confirmDeleteComment = async function () {
     if (!deletingCommentId) return;
     const targetId = deletingCommentId;
     const urlParams = new URLSearchParams(window.location.search);
@@ -268,7 +262,7 @@ window.confirmDeleteComment = async function() {
     }
 };
 
-window.toggleRelatedWishlist = function(event, itemId) {
+window.toggleRelatedWishlist = function (event, itemId) {
     event.stopPropagation();
     const user = getCurrentUser();
     if (!user) {
@@ -287,23 +281,23 @@ window.toggleRelatedWishlist = function(event, itemId) {
     }
 };
 
-window.setMainImage = function(index) {
+window.setMainImage = function (index) {
     updateMainImage(index);
 };
 
 // ==========================================
 // LOGIC MENU 3 CHẤM (DROPDOWN MENU 3-DOTS)
 // ==========================================
-window.closeAllCommentMenus = function() {
+window.closeAllCommentMenus = function () {
     const menus = document.querySelectorAll('.comment-dropdown-menu');
     menus.forEach(m => m.classList.add('hidden'));
 };
 
-window.toggleCommentMenu = function(event, commentId) {
+window.toggleCommentMenu = function (event, commentId) {
     if (event) event.stopPropagation();
     const targetMenu = document.getElementById(`comment_menu_${commentId}`);
     if (!targetMenu) return;
-    
+
     const isHidden = targetMenu.classList.contains('hidden');
     window.closeAllCommentMenus();
     if (isHidden) {
@@ -311,19 +305,19 @@ window.toggleCommentMenu = function(event, commentId) {
     }
 };
 
-window.handleMenuEdit = function(event, commentId) {
+window.handleMenuEdit = function (event, commentId) {
     if (event) event.stopPropagation();
     window.closeAllCommentMenus();
     startEditComment(commentId);
 };
 
-window.handleMenuDelete = function(event, commentId) {
+window.handleMenuDelete = function (event, commentId) {
     if (event) event.stopPropagation();
     window.closeAllCommentMenus();
     openDeleteCommentModal(commentId);
 };
 
-window.handleMenuDeleteLocked = function(event) {
+window.handleMenuDeleteLocked = function (event) {
     if (event) event.stopPropagation();
     window.closeAllCommentMenus();
     alert('Bình luận này đã có phản hồi từ người bán hoặc người dùng khác, không thể xóa để giữ toàn vẹn luồng hội thoại!');
@@ -332,7 +326,7 @@ window.handleMenuDeleteLocked = function(event) {
 // ==========================================
 // THAO TÁC ĐÍNH KÈM ÁNH & THUMBNAIL PREVIEW (XỬ LÝ AN NINH & BẢO MẬT)
 // ==========================================
-window.handleCommentImageSelect = function(event) {
+window.handleCommentImageSelect = function (event) {
     const file = event.target.files ? event.target.files[0] : null;
     if (!file) return;
 
@@ -356,9 +350,9 @@ window.handleCommentImageSelect = function(event) {
     console.log(`[Content Moderation Security] Scanning image file: ${file.name} (${file.type}, ${(file.size / 1024).toFixed(1)} KB)...`);
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         selectedCommentImageBase64 = e.target.result;
-        
+
         const previewContainer = document.getElementById('commentImagePreviewContainer');
         const previewImg = document.getElementById('commentImagePreview');
         if (previewContainer && previewImg) {
@@ -369,11 +363,11 @@ window.handleCommentImageSelect = function(event) {
     reader.readAsDataURL(file);
 };
 
-window.removeCommentImage = function() {
+window.removeCommentImage = function () {
     selectedCommentImageBase64 = null;
     const input = document.getElementById('commentImageInput');
     if (input) input.value = '';
-    
+
     const previewContainer = document.getElementById('commentImagePreviewContainer');
     const previewImg = document.getElementById('commentImagePreview');
     if (previewContainer && previewImg) {
@@ -524,7 +518,7 @@ function getMockProductDetail(id) {
 function renderProductInfo(p) {
     const title = p.productName || p.name || p.title || 'Sản phẩm';
     const catName = p.categoryName || p.brand || (p.category ? p.category.name : 'Rau củ & Trái cây tươi');
-    
+
     if (catName) {
         try {
             localStorage.setItem('marketconnect_last_viewed_category', catName);
@@ -578,10 +572,10 @@ function renderProductInfo(p) {
         shippingLabel.innerText = p.address ? `Giao dịch tại ${p.address}` : 'Hà Nội';
     }
 
-    galleryImages = (p.galleryImages && p.galleryImages.length > 0) 
-        ? p.galleryImages 
+    galleryImages = (p.galleryImages && p.galleryImages.length > 0)
+        ? p.galleryImages
         : [p.imageUrl || '/images/placeholder.svg'];
-    
+
     updateMainImage(0);
     renderThumbnailGrid(galleryImages);
 
@@ -594,7 +588,7 @@ function renderProductInfo(p) {
         const avatar = sellerObj.sellerAvatar || sellerObj.shopLogo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
         const sellerLogoElem = document.getElementById('sellerLogo');
         if (sellerLogoElem) sellerLogoElem.src = avatar;
-        
+
         const ratingVal = typeof sellerObj.rating === 'number' ? sellerObj.rating.toFixed(1) : (typeof p.rating === 'number' ? p.rating.toFixed(1) : '5.0');
         const sellerRatingElem = document.getElementById('sellerRating');
         if (sellerRatingElem) sellerRatingElem.innerText = `${ratingVal}/5.0`;
@@ -648,7 +642,7 @@ function updateMainImage(index) {
     activeImageIndex = index;
     const mainImg = document.getElementById('mainProductImage');
     if (mainImg) mainImg.src = galleryImages[activeImageIndex];
-    
+
     const thumbs = document.querySelectorAll('#thumbnailGallery > div');
     thumbs.forEach((t, i) => {
         if (i === activeImageIndex) {
@@ -710,7 +704,7 @@ function renderComments(comments) {
         const commentUserId = c.userId ? String(c.userId) : null;
         // Kiểm tra chính chủ đăng bình luận (Khớp userId hoặc userFullName)
         const isOwner = currentUser && (
-            (commentUserId && commentUserId === currentUserId) || 
+            (commentUserId && commentUserId === currentUserId) ||
             (c.userFullName && c.userFullName === currentUserName)
         );
         const hasReplies = c.hasReplies || (c.replies && c.replies.length > 0);
@@ -962,7 +956,7 @@ function renderRelatedProductsList(list, currentProductId, currentCategory, curr
 
 function escapeHTML(str) {
     if (!str) return '';
-    return String(str).replace(/[&<>'"]/g, 
+    return String(str).replace(/[&<>'"]/g,
         tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
     );
 }
@@ -1019,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // 5. Gửi tin nhắn bằng phím Enter (Nhấn Shift + Enter để xuống dòng)
     const mainCommentInput = document.getElementById('inputCommentText');
     if (mainCommentInput) {
-        mainCommentInput.addEventListener('keydown', function(e) {
+        mainCommentInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 postComment();
@@ -1029,7 +1023,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const quickQInput = document.getElementById('inputQuickQuestion');
     if (quickQInput) {
-        quickQInput.addEventListener('keydown', function(e) {
+        quickQInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 postQuickQuestion();
@@ -1037,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
-    document.getElementById('btnConfirmDeleteComment')?.addEventListener('click', function() {
+    document.getElementById('btnConfirmDeleteComment')?.addEventListener('click', function () {
         confirmDeleteComment();
     });
 
