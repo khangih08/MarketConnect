@@ -14,13 +14,19 @@ namespace MarketConnect.Services
         private readonly ApplicationDbContext _db;
         private readonly ElasticsearchClient _elasticClient;
         private readonly IContentModerationService _modService;
+        private readonly IMultiMarketProductService? _multiMarketService;
         private static readonly ConcurrentDictionary<string, List<ProductCommentDto>> _commentsStore = new();
 
-        public ProductService(ApplicationDbContext db, ElasticsearchClient elasticClient, IContentModerationService modService)
+        public ProductService(
+            ApplicationDbContext db,
+            ElasticsearchClient elasticClient,
+            IContentModerationService modService,
+            IMultiMarketProductService? multiMarketService = null)
         {
             _db = db;
             _elasticClient = elasticClient;
             _modService = modService;
+            _multiMarketService = multiMarketService;
         }
 
         public async Task<Product> CreateAsync(Product product)
@@ -50,10 +56,20 @@ namespace MarketConnect.Services
             try
             {
                 await _modService.EvaluateProductRiskAsync(product);
+                if (product.ModerationStatus != ModerationStatus.Approved && _multiMarketService != null)
+                {
+                    await _multiMarketService.InvalidateProductCacheAsync(product.Id);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[FR-06 Auto Moderation Notice] {ex.Message}");
+                Console.WriteLine($"[FR-06 Auto Moderation Exception - FAIL CLOSED] {ex.Message}");
+                product.ModerationStatus = ModerationStatus.PendingManualReview;
+                await _db.SaveChangesAsync();
+                if (_multiMarketService != null)
+                {
+                    await _multiMarketService.InvalidateProductCacheAsync(product.Id);
+                }
             }
 
             return product;
@@ -162,10 +178,20 @@ namespace MarketConnect.Services
             try
             {
                 await _modService.EvaluateProductRiskAsync(product);
+                if (product.ModerationStatus != ModerationStatus.Approved && _multiMarketService != null)
+                {
+                    await _multiMarketService.InvalidateProductCacheAsync(product.Id);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[FR-06 Auto Moderation Notice] {ex.Message}");
+                Console.WriteLine($"[FR-06 Auto Moderation Exception - FAIL CLOSED] {ex.Message}");
+                product.ModerationStatus = ModerationStatus.PendingManualReview;
+                await _db.SaveChangesAsync();
+                if (_multiMarketService != null)
+                {
+                    await _multiMarketService.InvalidateProductCacheAsync(product.Id);
+                }
             }
 
             return product;
@@ -185,6 +211,7 @@ namespace MarketConnect.Services
             try
             {
                 return await _db.Products
+                    .Where(p => p.ModerationStatus == ModerationStatus.Approved)
                     .Include(p => p.Category)
                     .Include(p => p.Seller)
                     .AsNoTracking()
@@ -203,10 +230,11 @@ namespace MarketConnect.Services
             try
             {
                 return await _db.Products
+                    .Where(p => p.Id == id && p.ModerationStatus == ModerationStatus.Approved)
                     .Include(p => p.Category)
                     .Include(p => p.Seller)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.Id == id);
+                    .FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -239,10 +267,20 @@ namespace MarketConnect.Services
             try
             {
                 await _modService.EvaluateProductRiskAsync(existing);
+                if (existing.ModerationStatus != ModerationStatus.Approved && _multiMarketService != null)
+                {
+                    await _multiMarketService.InvalidateProductCacheAsync(existing.Id);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[FR-06 Auto Moderation Notice on Update] {ex.Message}");
+                Console.WriteLine($"[FR-06 Auto Moderation Exception - FAIL CLOSED] {ex.Message}");
+                existing.ModerationStatus = ModerationStatus.PendingManualReview;
+                await _db.SaveChangesAsync();
+                if (_multiMarketService != null)
+                {
+                    await _multiMarketService.InvalidateProductCacheAsync(existing.Id);
+                }
             }
 
             return existing;
@@ -276,6 +314,7 @@ namespace MarketConnect.Services
             else
             {
                 dbProduct = await _db.Products
+                    .Where(p => p.ModerationStatus == ModerationStatus.Approved)
                     .Include(p => p.Category)
                     .Include(p => p.Seller)
                     .AsNoTracking()
@@ -511,7 +550,11 @@ namespace MarketConnect.Services
                 int categoryId = currentProduct?.CategoryId ?? 0;
                 string categoryName = currentProduct?.Category?.Name ?? "";
 
-                var query = _db.Products.Include(p => p.Category).AsNoTracking().AsQueryable();
+                var query = _db.Products
+                    .Where(p => p.ModerationStatus == ModerationStatus.Approved)
+                    .Include(p => p.Category)
+                    .AsNoTracking()
+                    .AsQueryable();
                 if (currentProduct != null)
                 {
                     query = query.Where(p => p.Id != currentProduct.Id);

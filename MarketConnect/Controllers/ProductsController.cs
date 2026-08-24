@@ -129,6 +129,7 @@ namespace MarketConnect.Controllers
                 try
                 {
                     var query = _db.Products
+                        .Where(p => p.ModerationStatus == ModerationStatus.Approved)
                         .Include(p => p.Category)
                         .Include(p => p.ProductMarkets!)
                             .ThenInclude(pm => pm.Market)
@@ -166,6 +167,7 @@ namespace MarketConnect.Controllers
                 {
                     Console.WriteLine($"[Database Search Notice] ProductMarkets table fallback: {exPm.Message}");
                     var fallbackQuery = _db.Products
+                        .Where(p => p.ModerationStatus == ModerationStatus.Approved)
                         .Include(p => p.Category)
                         .AsNoTracking()
                         .AsQueryable();

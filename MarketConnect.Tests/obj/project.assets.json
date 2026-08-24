@@ -4030,11 +4030,11 @@
           "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
-            "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj": {
-              "projectPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj"
+            "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj": {
+              "projectPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj"
             },
-            "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj": {
-              "projectPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj"
+            "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj": {
+              "projectPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj"
             }
           }
         }

@@ -15,17 +15,20 @@ namespace MarketConnect.Services
         private readonly ICurrentUserService _currentUser;
         private readonly IModerationWorkflowGuard _workflowGuard;
         private readonly IAuditLogService _auditLogService;
+        private readonly IMultiMarketProductService? _multiMarketService;
 
         public ContentModerationService(
             ApplicationDbContext db,
             ICurrentUserService currentUser,
             IModerationWorkflowGuard workflowGuard,
-            IAuditLogService auditLogService)
+            IAuditLogService auditLogService,
+            IMultiMarketProductService? multiMarketService = null)
         {
             _db = db;
             _currentUser = currentUser;
             _workflowGuard = workflowGuard;
             _auditLogService = auditLogService;
+            _multiMarketService = multiMarketService;
         }
 
         public async Task<ModerationCase> EvaluateProductRiskAsync(Product product)
@@ -58,7 +61,14 @@ namespace MarketConnect.Services
             }
 
             var descTrimmed = (product.Description ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(descTrimmed) || descTrimmed.Length < 10 || Regex.IsMatch(descTrimmed, @"^(test|\d+|asdf|abc)+$", RegexOptions.IgnoreCase))
+            bool isPlaceholder = string.IsNullOrWhiteSpace(descTrimmed)
+                || descTrimmed.Length < 10
+                || descTrimmed.Distinct().Count() < 4
+                || Regex.IsMatch(descTrimmed, @"(.)\1{4,}", RegexOptions.IgnoreCase)
+                || Regex.IsMatch(descTrimmed, @"^(test|asdf|abc|\d+|xxx|aaa|qwe)+$", RegexOptions.IgnoreCase)
+                || Regex.IsMatch(descTrimmed, @"test[a-z]{3,}", RegexOptions.IgnoreCase);
+
+            if (isPlaceholder)
             {
                 hasFixableDataQualityError = true;
                 int w = dbRules.FirstOrDefault(r => r.RuleKey == "DESCRIPTION_QUALITY")?.Weight ?? 30;
@@ -268,8 +278,8 @@ namespace MarketConnect.Services
             else if (finalRiskScore <= 19)
             {
                 riskLevel = RiskLevel.Low;
-                decision = ModerationDecision.LowRiskAutoApproved;
-                status = ModerationStatus.Approved;
+                decision = ModerationDecision.MediumRiskManualQueue;
+                status = ModerationStatus.PendingManualReview;
             }
             else
             {
@@ -509,6 +519,10 @@ namespace MarketConnect.Services
                 if (product != null)
                 {
                     product.ModerationStatus = decisionStatus;
+                    if (_multiMarketService != null)
+                    {
+                        await _multiMarketService.InvalidateProductCacheAsync(product.Id);
+                    }
                 }
             }
             else if (modCase.EntityType == "Store")

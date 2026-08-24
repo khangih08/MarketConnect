@@ -50,7 +50,7 @@ namespace MarketConnect.Data
                     ALTER TABLE ""Products"" ADD COLUMN IF NOT EXISTS ""MinOrderQuantity"" INT DEFAULT 1;
                     ALTER TABLE ""Products"" ADD COLUMN IF NOT EXISTS ""StockStatus"" VARCHAR(50) DEFAULT 'InStock';
                     ALTER TABLE ""Products"" ADD COLUMN IF NOT EXISTS ""SearchKeywords"" VARCHAR(500);
-                    ALTER TABLE ""Products"" ADD COLUMN IF NOT EXISTS ""ModerationStatus"" INT DEFAULT 3;
+                    ALTER TABLE ""Products"" ADD COLUMN IF NOT EXISTS ""ModerationStatus"" INT DEFAULT 1;
 
                     CREATE TABLE IF NOT EXISTS ""Provinces"" (
                         ""Id"" SERIAL PRIMARY KEY,
@@ -447,6 +447,41 @@ namespace MarketConnect.Data
                 }
             }
             await db.SaveChangesAsync();
+
+            // Seed CategoryPriceReference data per Category + Unit
+            if (!await db.CategoryPriceReferences.AnyAsync())
+            {
+                var allCats = await db.Categories.ToListAsync();
+                foreach (var c in allCats)
+                {
+                    var (unit, minP, p25P, medP, p75P, maxP) = c.Name switch
+                    {
+                        "Rau củ & Trái cây tươi" => ("kg", 10000m, 25000m, 50000m, 90000m, 250000m),
+                        "Thịt & Gia cầm" => ("kg", 40000m, 80000m, 140000m, 220000m, 500000m),
+                        "Thủy hải sản tươi sống" => ("kg", 50000m, 120000m, 250000m, 450000m, 1200000m),
+                        "Thực phẩm chế biến sẵn" => ("phần", 15000m, 35000m, 60000m, 100000m, 350000m),
+                        "Ẩm thực & Chợ ăn vặt" => ("món", 10000m, 25000m, 40000m, 70000m, 200000m),
+                        "Gia vị & Đồ khô" => ("gói", 5000m, 20000m, 45000m, 85000m, 300000m),
+                        "Gạo, Nếp & Ngũ cốc" => ("kg", 12000m, 22000m, 35000m, 60000m, 150000m),
+                        "Trứng & Sữa" => ("chục", 15000m, 30000m, 45000m, 75000m, 200000m),
+                        "Đồ gia dụng & Tiện ích" => ("cái", 20000m, 80000m, 250000m, 60000m, 3000000m),
+                        _ => ("kg", 10000m, 30000m, 70000m, 150000m, 500000m)
+                    };
+
+                    db.CategoryPriceReferences.Add(new CategoryPriceReference
+                    {
+                        CategoryId = c.Id,
+                        Unit = unit,
+                        MinPrice = minP,
+                        P25Price = p25P,
+                        MedianPrice = medP,
+                        P75Price = p75P,
+                        MaxPrice = maxP,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+                await db.SaveChangesAsync();
+            }
 
             // 3. Seed Danh Sách Chợ Nội Thành Hà Nội & Tên Phường Tương Ứng
             var hanoiProv = await db.Provinces.FirstOrDefaultAsync(p => p.Code == "HN");
@@ -1112,6 +1147,90 @@ namespace MarketConnect.Data
                     };
                     db.AuditLogs.AddRange(sampleLogs);
                     await db.SaveChangesAsync();
+                }
+
+                // Data Remediation: Quét và xử lý các sản phẩm/gian hàng bypass/seed cũ chưa được Admin duyệt thủ công
+                try
+                {
+                    // 1. Remediate Products: Chuyển các sản phẩm chưa duyệt về PendingManualReview và tạo ModerationCase nếu chưa có
+                    var approvedProductIdsWithCases = await db.ModerationCases
+                        .Where(mc => mc.EntityType == "Product")
+                        .Select(mc => mc.EntityId)
+                        .ToListAsync();
+
+                    var unmoderatedProducts = await db.Products
+                        .Where(p => p.ModerationStatus == ModerationStatus.Approved && !approvedProductIdsWithCases.Contains(p.Id))
+                        .ToListAsync();
+
+                    if (unmoderatedProducts.Any())
+                    {
+                        foreach (var unmodP in unmoderatedProducts)
+                        {
+                            unmodP.ModerationStatus = ModerationStatus.PendingManualReview;
+                            db.ModerationCases.Add(new ModerationCase
+                            {
+                                EntityType = "Product",
+                                EntityId = unmodP.Id,
+                                RiskScore = 50,
+                                RiskLevel = RiskLevel.Medium,
+                                TriggeredRulesJson = "[\"DATA_REMEDIATION: Sản phẩm chờ Admin duyệt thủ công\"]",
+                                RuleResultsJson = "{\"DATA_REMEDIATION\":\"PENDING_MANUAL_REVIEW\"}",
+                                Decision = ModerationDecision.MediumRiskManualQueue,
+                                Status = ModerationStatus.PendingManualReview,
+                                CurrentVersionNumber = 1,
+                                ContentSnapshotJson = System.Text.Json.JsonSerializer.Serialize(new { unmodP.Name, unmodP.Price, unmodP.Description }),
+                                CreatedAt = DateTime.UtcNow
+                            });
+                        }
+                        await db.SaveChangesAsync();
+                        Console.WriteLine($"[SeedData Remediation] Updated {unmoderatedProducts.Count} unmoderated products to PendingManualReview.");
+                    }
+
+                    // 2. Tự động bảo đảm các sản phẩm ở trạng thái PendingManualReview luôn có bản ghi ModerationCase để hiển thị trong Admin Queue
+                    var pendingProductsWithoutCases = await db.Products
+                        .Where(p => p.ModerationStatus == ModerationStatus.PendingManualReview && !db.ModerationCases.Any(mc => mc.EntityType == "Product" && mc.EntityId == p.Id))
+                        .ToListAsync();
+
+                    if (pendingProductsWithoutCases.Any())
+                    {
+                        foreach (var p in pendingProductsWithoutCases)
+                        {
+                            db.ModerationCases.Add(new ModerationCase
+                            {
+                                EntityType = "Product",
+                                EntityId = p.Id,
+                                RiskScore = 35,
+                                RiskLevel = RiskLevel.Medium,
+                                TriggeredRulesJson = "[\"MANUAL_REVIEW_REQUIRED: Sản phẩm mới đăng bán chờ Admin phê duyệt\"]",
+                                RuleResultsJson = "{\"MANUAL_REVIEW_REQUIRED\":\"PENDING\"}",
+                                Decision = ModerationDecision.MediumRiskManualQueue,
+                                Status = ModerationStatus.PendingManualReview,
+                                CurrentVersionNumber = 1,
+                                ContentSnapshotJson = System.Text.Json.JsonSerializer.Serialize(new { p.Name, p.Price, p.Description }),
+                                CreatedAt = DateTime.UtcNow
+                            });
+                        }
+                        await db.SaveChangesAsync();
+                    }
+
+                    // 3. Remediate Test Stores: Chuyển các gian hàng test (StoreName chứa "test") bị gán Approved tự động về PendingApproval để Admin duyệt thực tế
+                    var testStoresToRemediate = await db.Stores
+                        .Where(s => s.StoreName.ToLower().Contains("test") && s.Status == StoreStatus.Approved)
+                        .ToListAsync();
+
+                    if (testStoresToRemediate.Any())
+                    {
+                        foreach (var tStore in testStoresToRemediate)
+                        {
+                            tStore.Status = StoreStatus.PendingApproval;
+                        }
+                        await db.SaveChangesAsync();
+                        Console.WriteLine($"[SeedData Remediation] Converted {testStoresToRemediate.Count} test stores to PendingApproval for manual admin review.");
+                    }
+                }
+                catch (Exception exRem)
+                {
+                    Console.WriteLine($"[SeedData Remediation Notice] {exRem.Message}");
                 }
             }
         }

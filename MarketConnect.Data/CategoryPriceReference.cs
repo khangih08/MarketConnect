@@ -22,6 +22,9 @@ namespace MarketConnect.Data
         public decimal MinPrice { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
+        public decimal P25Price { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal MedianPrice { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]

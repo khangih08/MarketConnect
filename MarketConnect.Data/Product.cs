@@ -66,7 +66,7 @@ namespace MarketConnect.Data
         [MaxLength(500)]
         public string? SearchKeywords { get; set; }
 
-        public ModerationStatus ModerationStatus { get; set; } = ModerationStatus.Approved;
+        public ModerationStatus ModerationStatus { get; set; } = ModerationStatus.PendingAutoReview;
 
         [ForeignKey(nameof(Seller))]
         public int? UserId { get; set; } // ID người đăng tin

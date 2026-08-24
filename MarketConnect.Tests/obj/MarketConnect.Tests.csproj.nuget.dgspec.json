@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj": {}
+    "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj": {}
   },
   "projects": {
-    "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj": {
+    "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj",
+        "projectUniqueName": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj",
         "projectName": "MarketConnect.Data",
-        "projectPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj",
+        "projectPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj",
         "packagesPath": "C:\\Users\\Dell\\.nuget\\packages\\",
-        "outputPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\obj\\",
+        "outputPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Dell\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -369,14 +369,14 @@
         }
       }
     },
-    "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj": {
+    "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj",
+        "projectUniqueName": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj",
         "projectName": "MarketConnect.Services",
-        "projectPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj",
+        "projectPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj",
         "packagesPath": "C:\\Users\\Dell\\.nuget\\packages\\",
-        "outputPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\obj\\",
+        "outputPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Dell\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -392,8 +392,8 @@
             "framework": "net10.0",
             "targetAlias": "net10.0",
             "projectReferences": {
-              "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj": {
-                "projectPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj"
+              "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj": {
+                "projectPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj"
               }
             }
           }
@@ -742,14 +742,14 @@
         }
       }
     },
-    "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj": {
+    "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj",
+        "projectUniqueName": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj",
         "projectName": "MarketConnect.Tests",
-        "projectPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj",
+        "projectPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\MarketConnect.Tests.csproj",
         "packagesPath": "C:\\Users\\Dell\\.nuget\\packages\\",
-        "outputPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\obj\\",
+        "outputPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Tests\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Dell\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -765,11 +765,11 @@
             "framework": "net10.0",
             "targetAlias": "net10.0",
             "projectReferences": {
-              "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj": {
-                "projectPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj"
+              "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj": {
+                "projectPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Data\\MarketConnect.Data.csproj"
               },
-              "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj": {
-                "projectPath": "D:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj"
+              "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj": {
+                "projectPath": "d:\\URL-Shortener\\MarketConnect\\MarketConnect.Services\\MarketConnect.Services.csproj"
               }
             }
           }

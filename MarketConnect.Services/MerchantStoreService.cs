@@ -46,7 +46,7 @@ namespace MarketConnect.Services
                 .Include(s => s.Market)
                 .Include(s => s.Category)
                 .Include(s => s.Owner)
-                .Include(s => s.Products)
+                .Include(s => s.Products!.Where(p => p.ModerationStatus == ModerationStatus.Approved))
                 .Include(s => s.Reviews)
                 .FirstOrDefaultAsync(s => s.Id == storeId);
         }

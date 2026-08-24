@@ -88,7 +88,7 @@ namespace MarketConnect.Services
         {
             var query = _db.ProductMarkets
                 .AsNoTracking()
-                .Where(pm => pm.MarketId == marketId)
+                .Where(pm => pm.MarketId == marketId && pm.Product != null && pm.Product.ModerationStatus == ModerationStatus.Approved)
                 .OrderByDescending(pm => pm.CreatedAt)
                 .Select(pm => new
                 {
@@ -98,7 +98,7 @@ namespace MarketConnect.Services
                     SellerName = pm.Product != null && pm.Product.Seller != null ? pm.Product.Seller.Name : "Tiểu thương Chợ"
                 });
 
-            long totalItems = await _db.ProductMarkets.CountAsync(pm => pm.MarketId == marketId);
+            long totalItems = await _db.ProductMarkets.CountAsync(pm => pm.MarketId == marketId && pm.Product != null && pm.Product.ModerationStatus == ModerationStatus.Approved);
             var dbRecords = await query.Skip(start).Take(pageSize).ToListAsync();
 
             var dtos = new List<MultiMarketProductDto>();

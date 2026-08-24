@@ -18,6 +18,7 @@ namespace MarketConnect.Controllers
         private readonly IModerationAppealService _appealService;
         private readonly ApplicationDbContext _db;
         private readonly IAuditLogService _auditLog;
+        private readonly IMultiMarketProductService? _multiMarketService;
 
         public ModerationController(
             IContentModerationService modService,
@@ -26,7 +27,8 @@ namespace MarketConnect.Controllers
             IModerationWorkflowGuard workflowGuard,
             IModerationAppealService appealService,
             ApplicationDbContext db,
-            IAuditLogService auditLog)
+            IAuditLogService auditLog,
+            IMultiMarketProductService? multiMarketService = null)
         {
             _modService = modService;
             _storeService = storeService;
@@ -35,6 +37,7 @@ namespace MarketConnect.Controllers
             _appealService = appealService;
             _db = db;
             _auditLog = auditLog;
+            _multiMarketService = multiMarketService;
         }
 
         private IActionResult? CheckAdminAccess()
@@ -114,6 +117,15 @@ namespace MarketConnect.Controllers
                 bool success = await _modService.ReviewCaseAsync(caseId, decisionStatus, notes);
                 if (success)
                 {
+                    if (decisionStatus != ModerationStatus.Approved && _multiMarketService != null)
+                    {
+                        var mCase = await _db.ModerationCases.AsNoTracking().FirstOrDefaultAsync(c => c.Id == caseId);
+                        if (mCase != null && mCase.EntityType == "Product")
+                        {
+                            await _multiMarketService.InvalidateProductCacheAsync(mCase.EntityId);
+                        }
+                    }
+
                     string actCode = decisionStatus switch
                     {
                         ModerationStatus.Approved => "PRODUCT_APPROVED",
@@ -242,7 +254,12 @@ namespace MarketConnect.Controllers
                 TempData["ErrorMessage"] = ex.Message;
             }
 
-            return RedirectToAction("Index");
+            var referer = Request.Headers["Referer"].ToString();
+            if (!string.IsNullOrEmpty(referer) && referer.Contains("/Merchants"))
+            {
+                return RedirectToAction("Merchants");
+            }
+            return RedirectToAction("Merchants");
         }
 
         // POST: /Moderation/Override

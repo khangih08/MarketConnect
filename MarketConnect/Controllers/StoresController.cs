@@ -14,17 +14,20 @@ namespace MarketConnect.Controllers
         private readonly ApplicationDbContext _db;
         private readonly IAuditLogService _auditLog;
         private readonly ICurrentUserService _currentUser;
+        private readonly IContentModerationService _modService;
 
         public StoresController(
             IMerchantStoreService storeService,
             ApplicationDbContext db,
             IAuditLogService auditLog,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            IContentModerationService modService)
         {
             _storeService = storeService;
             _db = db;
             _auditLog = auditLog;
             _currentUser = currentUser;
+            _modService = modService;
         }
 
         // GET: /Stores
@@ -156,6 +159,7 @@ namespace MarketConnect.Controllers
                 StoreId = dto.StoreId,
                 UserId = currentUser.Id,
                 SellerType = "Bán chuyên",
+                ModerationStatus = ModerationStatus.PendingAutoReview,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -177,7 +181,27 @@ namespace MarketConnect.Controllers
                 }
             }
 
-            TempData["SuccessMessage"] = $"Đã đăng sản phẩm \"{product.Name}\" thành công lên gian hàng!";
+            // Run FR-06 Auto Moderation Engine
+            try
+            {
+                await _modService.EvaluateProductRiskAsync(product);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FR-06 Auto Moderation Exception - FAIL CLOSED] {ex.Message}");
+                product.ModerationStatus = ModerationStatus.PendingManualReview;
+                await _db.SaveChangesAsync();
+            }
+
+            if (product.ModerationStatus == ModerationStatus.Approved)
+            {
+                TempData["SuccessMessage"] = $"Đã đăng sản phẩm \"{product.Name}\" thành công và đã được phê duyệt!";
+            }
+            else
+            {
+                TempData["SuccessMessage"] = $"Đã đăng sản phẩm \"{product.Name}\" thành công! Sản phẩm hiện đang được gửi kiểm duyệt ({product.ModerationStatus}) trước khi hiển thị công khai.";
+            }
+
             return RedirectToAction("Detail", new { id = dto.StoreId });
         }
 
