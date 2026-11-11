@@ -57,7 +57,7 @@
 
 | # | Dependency | Mức độ | Lý do / bằng chứng | Hướng xử lý |
 |---|---|---|---|---|
-| 1 | .NET SDK 10.x | **Chặn** | `dotnet --info`: "No SDKs were found"; dự án target `net10.0` | Cài .NET 10 SDK (https://dotnet.microsoft.com/download), kiểm tra lại `dotnet --list-sdks` |
+| 1 | .NET SDK 10.x (✅ đã cài 10.0.404) | ~~Chặn~~ | `dotnet --info`: "No SDKs were found"; dự án target `net10.0` | Cài .NET 10 SDK (https://dotnet.microsoft.com/download), kiểm tra lại `dotnet --list-sdks` |
 | 2 | PostgreSQL client (`psql`) | Trung bình | `psql` không nhận diện | Cài PostgreSQL client tools, hoặc dùng `docker exec -it <container> psql -U postgres` |
 | 3 | dotnet-ef | Trung bình | Không có lệnh `dotnet-ef` (cần cho migration) | Sau khi có SDK: `dotnet tool install --global dotnet-ef` |
 | 4 | Elasticsearch | Trung bình | `Program.cs` dùng `http://localhost:9200`, không có trong docker-compose | Bổ sung service Elasticsearch vào compose hoặc cấu hình `Elasticsearch:Url` |
@@ -79,12 +79,35 @@
 - [x] Chạy `dotnet --info`, `docker --version`, kiểm tra `psql`
 - [x] Ghi thông tin máy / OS / phiên bản công cụ
 - [x] Lập danh sách dependency còn thiếu
-- [ ] Cài .NET SDK 10.x
-- [ ] Cài PostgreSQL client (`psql`) hoặc thống nhất dùng `psql` trong container
+- [x] Cài .NET SDK 10.x — `dotnet --list-sdks`: 10.0.404 (kiểm tra lại lúc 10:17 ngày 11/11/2026)
+- [x] Dùng `psql` trong container (`docker exec marketconnect-db-1 psql ...`); chưa cài `psql` trên máy
 - [ ] Cài `dotnet-ef`
-- [ ] Khởi động PostgreSQL bằng `docker compose up -d db` và kết nối thử
+- [x] Khởi động PostgreSQL bằng `docker compose up -d db` và kết nối thử — PostgreSQL 15.19, DB `MarketConnectDb` chưa có bảng nào
 - [ ] Bổ sung/cấu hình Elasticsearch
-- [ ] `dotnet restore` + `dotnet build MarketConnect.slnx` thành công
-- [ ] `dotnet test` chạy được (ghi số test pass/fail)
+- [x] `dotnet build MarketConnect.slnx` thành công — 0 lỗi, 4 cảnh báo
+- [x] `dotnet test` chạy được — 4 pass / 0 fail / 0 skip
 - [ ] `npm install` cho ClientApp
 - [ ] Push nhánh tích hợp lên remote và bật branch protection
+
+## Kết quả build và test (11/11/2026)
+
+### `dotnet build MarketConnect.slnx`
+
+- SDK: 10.0.404
+- Kết quả: **Build succeeded**, 0 Error(s), 4 Warning(s), thời gian 00:00:05.52
+- Project build được: MarketConnect.Data, MarketConnect.Services, MarketConnect (đều `net10.0`)
+- Cảnh báo: `NU1903` — gói `Microsoft.Extensions.Caching.Memory` 8.0.0 có lỗ hổng mức cao (GHSA-qj66-m88j-hmgj), xuất hiện ở MarketConnect.Data và MarketConnect.Services → cần nâng cấp phiên bản gói.
+
+### `dotnet test`
+
+- `MarketConnect.slnx` **không chứa** project `MarketConnect.Tests`, nên chạy trực tiếp:
+  `dotnet test MarketConnect.Tests/MarketConnect.Tests.csproj`
+- Kết quả: **Passed!** — Failed: 0, Passed: 4, Skipped: 0, Total: 4, Duration: 3 s (`MarketConnect.Tests.dll`, net10.0)
+- Đề xuất: thêm `MarketConnect.Tests` vào `MarketConnect.slnx` để `dotnet test MarketConnect.slnx` chạy được test.
+
+### PostgreSQL
+
+- `docker compose ps`: `marketconnect-db-1` (postgres:15) đang chạy, cổng 5432
+- `select version();` → PostgreSQL 15.19 (Debian 15.19-1.pgdg13+2)
+- `\dt` → "Did not find any relations" (chưa chạy migration)
+- Cảnh báo compose: thuộc tính `version` trong `docker-compose.yml` đã lỗi thời.
