@@ -37,3 +37,4 @@
 ## Bảo vệ nhánh (cấu hình trên GitHub)
 
 - `feature/recommendation-thesis`: yêu cầu PR, cấm force-push, cấm xóa nhánh.
+

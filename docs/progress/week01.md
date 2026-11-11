@@ -87,7 +87,11 @@
 - [x] `dotnet build MarketConnect.slnx` thành công — 0 lỗi, 4 cảnh báo
 - [x] `dotnet test` chạy được — 4 pass / 0 fail / 0 skip
 - [ ] `npm install` cho ClientApp
-- [ ] Push nhánh tích hợp lên remote và bật branch protection
+- [x] Push nhánh tích hợp lên remote — `git push -u origin feature/recommendation-thesis` thành công (11/11/2026)
+- [ ] Bật branch protection cho `feature/recommendation-thesis` trên GitHub
+- [ ] Gỡ `bin/` và `obj/` khỏi git (đang bị track, thay đổi sau mỗi lần build) và thêm `.gitignore`
+- [ ] Thêm `MarketConnect.Tests` vào `MarketConnect.slnx`
+- [ ] Nâng cấp `Microsoft.Extensions.Caching.Memory` (cảnh báo NU1903)
 
 ## Kết quả build và test (11/11/2026)
 
