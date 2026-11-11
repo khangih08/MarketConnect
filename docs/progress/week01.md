@@ -32,7 +32,7 @@
 | Công cụ | Lệnh | Kết quả |
 |---|---|---|
 | .NET Host | `dotnet --info` | 10.0.11 (x64, commit e2f47b0110) |
-| .NET SDK | `dotnet --info` | **No SDKs were found** |
+| .NET SDK | `dotnet --info` / `dotnet --list-sdks` | Ban đầu: **No SDKs were found** → 10:17: **10.0.404** |
 | .NET runtimes | `dotnet --info` | Microsoft.NETCore.App 6.0.28, 8.0.11, 10.0.11; WindowsDesktop.App 6.0.28, 8.0.11, 10.0.11 |
 | global.json | `dotnet --info` | Not found |
 | Docker | `docker --version` | Docker version 29.8.2, build 7fc2dff |
@@ -42,7 +42,7 @@
 | Git | `git --version` | 2.45.1.windows.1 |
 | Node.js | `node --version` | v24.20.0 |
 | npm | `npm --version` | 11.19.0 |
-| dotnet-ef | `Get-Command dotnet-ef` | **Không tìm thấy** |
+| dotnet-ef | `dotnet ef --version` / `dotnet tool list -g` | Ban đầu: **Không tìm thấy** → 10:31: **11.0.0** (global tool, `C:\Users\Tuan Manh\.dotnet\tools\dotnet-ef.exe`) |
 
 ## Yêu cầu của dự án (đọc từ mã nguồn)
 
@@ -59,7 +59,7 @@
 |---|---|---|---|---|
 | 1 | .NET SDK 10.x (✅ đã cài 10.0.404) | ~~Chặn~~ | `dotnet --info`: "No SDKs were found"; dự án target `net10.0` | Cài .NET 10 SDK (https://dotnet.microsoft.com/download), kiểm tra lại `dotnet --list-sdks` |
 | 2 | PostgreSQL client (`psql`) | Trung bình | `psql` không nhận diện | Cài PostgreSQL client tools, hoặc dùng `docker exec -it <container> psql -U postgres` |
-| 3 | dotnet-ef | Trung bình | Không có lệnh `dotnet-ef` (cần cho migration) | Sau khi có SDK: `dotnet tool install --global dotnet-ef` |
+| 3 | dotnet-ef (✅ đã cài 11.0.0) | ~~Trung bình~~ | Ban đầu không có lệnh `dotnet-ef` (cần cho migration) | Đã cài global tool; `dotnet ef migrations list` chạy được |
 | 4 | Elasticsearch | Trung bình | `Program.cs` dùng `http://localhost:9200`, không có trong docker-compose | Bổ sung service Elasticsearch vào compose hoặc cấu hình `Elasticsearch:Url` |
 | 5 | Gói npm của ClientApp | Thấp | Chưa có `ClientApp/node_modules` | `cd ClientApp; npm install` |
 | 6 | Redis | Thấp (tùy chọn) | Tham chiếu `StackExchange.Redis`, chưa đăng ký DI | Chỉ cần khi bật cache |
@@ -81,7 +81,8 @@
 - [x] Lập danh sách dependency còn thiếu
 - [x] Cài .NET SDK 10.x — `dotnet --list-sdks`: 10.0.404 (kiểm tra lại lúc 10:17 ngày 11/11/2026)
 - [x] Dùng `psql` trong container (`docker exec marketconnect-db-1 psql ...`); chưa cài `psql` trên máy
-- [ ] Cài `dotnet-ef`
+- [x] Cài `dotnet-ef` — 11.0.0, `dotnet ef migrations list` chạy được (4 migration, đều Pending)
+- [ ] Áp dụng migration vào DB (`dotnet ef database update`) — chưa chạy
 - [x] Khởi động PostgreSQL bằng `docker compose up -d db` và kết nối thử — PostgreSQL 15.19, DB `MarketConnectDb` chưa có bảng nào
 - [ ] Bổ sung/cấu hình Elasticsearch
 - [x] `dotnet build MarketConnect.slnx` thành công — 0 lỗi, 4 cảnh báo
@@ -115,3 +116,32 @@
 - `select version();` → PostgreSQL 15.19 (Debian 15.19-1.pgdg13+2)
 - `\dt` → "Did not find any relations" (chưa chạy migration)
 - Cảnh báo compose: thuộc tính `version` trong `docker-compose.yml` đã lỗi thời.
+
+### EF Core CLI (`dotnet ef`) — kiểm tra lúc 10:31 ngày 11/11/2026
+
+- `dotnet ef --version` → Entity Framework Core .NET Command-line Tools **11.0.0**
+- `dotnet tool list -g` → `dotnet-ef 11.0.0`
+- Lệnh: `dotnet ef migrations list --project MarketConnect.Data --startup-project MarketConnect`
+  - Build succeeded, kết nối được PostgreSQL (kiểm tra bảng `__EFMigrationsHistory`)
+  - Kết quả:
+    - `20260722031415_InitialDockerDb` (Pending)
+    - `20260723081510_AddOtpVerification` (Pending)
+    - `20260728101445_AddProfileFieldsToUser` (Pending)
+    - `20260802134049_UpdateProductDirectListing` (Pending)
+- Lưu ý: tool 11.0.0 mới hơn EF Core runtime trong dự án (8.0.4). Lệnh `migrations list` hoạt động bình thường; nếu gặp lỗi khi `database update`/`migrations add` thì cân nhắc cài tool cùng phiên bản: `dotnet tool update -g dotnet-ef --version 8.0.4`.
+- Chưa chạy `dotnet ef database update` (DB vẫn trống).
+
+## Lịch sử thay đổi trong tuần 01
+
+| Thời điểm (11/11/2026) | Thay đổi |
+|---|---|
+| 09:58 | Ghi mốc mã nguồn: nhánh `main`, SHA `1ac39a1e6c4057d3e67a56f85e49d51e63ae3f7a`, working tree clean |
+| 10:02 | Tạo nhánh `feature/recommendation-thesis` từ SHA gốc; commit `523b365` (nhật ký ban đầu) |
+| 10:03 | Kiểm tra môi trường: chưa có .NET SDK, chưa có `psql`, chưa có `dotnet-ef`; Docker 29.8.2 chạy được |
+| 10:04 | Thêm `docs/PR_RULES.md`, `.github/pull_request_template.md`; commit `4f41b26` |
+| 10:17 | .NET SDK 10.0.404 đã được cài; PostgreSQL 15.19 chạy trong container `marketconnect-db-1` |
+| 10:17 | `dotnet build MarketConnect.slnx`: thành công (0 lỗi, 4 cảnh báo NU1903) |
+| 10:18 | `dotnet test MarketConnect.Tests`: 4 pass / 0 fail; commit `0313e7b` |
+| 10:18 | Push `feature/recommendation-thesis` lên `origin` |
+| 10:19 | Bật branch protection thất bại (công cụ trình duyệt không kết nối được Chrome) — chưa có thay đổi trên GitHub; commit `762939a` |
+| 10:31 | `dotnet-ef` 11.0.0 đã được cài; `dotnet ef migrations list` chạy được, 4 migration Pending |
