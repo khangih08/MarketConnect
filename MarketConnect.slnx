@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="MarketConnect.Data/MarketConnect.Data.csproj" />
   <Project Path="MarketConnect.Services/MarketConnect.Services.csproj" />
+  <Project Path="MarketConnect.Tests/MarketConnect.Tests.csproj" />
   <Project Path="MarketConnect/MarketConnect.csproj" />
 </Solution>
