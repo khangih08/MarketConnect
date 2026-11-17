@@ -82,17 +82,16 @@
 - [x] Cài .NET SDK 10.x — `dotnet --list-sdks`: 10.0.404 (kiểm tra lại lúc 10:17 ngày 11/11/2026)
 - [x] Dùng `psql` trong container (`docker exec marketconnect-db-1 psql ...`); chưa cài `psql` trên máy
 - [x] Cài `dotnet-ef` — 11.0.0, `dotnet ef migrations list` chạy được (4 migration, đều Pending)
-- [ ] Áp dụng migration vào DB (`dotnet ef database update`) — chưa chạy
-- [x] Khởi động PostgreSQL bằng `docker compose up -d db` và kết nối thử — PostgreSQL 15.19, DB `MarketConnectDb` chưa có bảng nào
-- [ ] Bổ sung/cấu hình Elasticsearch
-- [x] `dotnet build MarketConnect.slnx` thành công — 0 lỗi, 4 cảnh báo
-- [x] `dotnet test` chạy được — 4 pass / 0 fail / 0 skip
-- [ ] `npm install` cho ClientApp
+- [x] Áp dụng migration vào DB (`dotnet ef database update`) — đã chạy, 4 migration applied, 7 tables
+- [x] Bổ sung/cấu hình Elasticsearch — đã thêm vào docker-compose (v8.13.4), chạy tại cổng 9200
+- [x] `dotnet build MarketConnect.slnx` thành công — 0 lỗi, 0 cảnh báo (đã fix NU1903)
+- [x] `dotnet test` chạy được — 4 pass / 0 fail / 0 skip (chạy trực tiếp qua `dotnet test MarketConnect.slnx`)
+- [x] `npm install` cho ClientApp — đã bổ sung dependencies React 18, Vite, TailwindCSS, cài đặt và build thành công (144 packages, `npm run build` OK)
 - [x] Push nhánh tích hợp lên remote — `git push -u origin feature/recommendation-thesis` thành công (11/11/2026)
 - [ ] Bật branch protection cho `feature/recommendation-thesis` trên GitHub
-- [ ] Gỡ `bin/` và `obj/` khỏi git (đang bị track, thay đổi sau mỗi lần build) và thêm `.gitignore`
-- [ ] Thêm `MarketConnect.Tests` vào `MarketConnect.slnx`
-- [ ] Nâng cấp `Microsoft.Extensions.Caching.Memory` (cảnh báo NU1903)
+- [x] Gỡ `bin/` và `obj/` khỏi git (đang bị track, thay đổi sau mỗi lần build) và thêm `.gitignore` (nhánh `chore/gitignore`)
+- [x] Thêm `MarketConnect.Tests` vào `MarketConnect.slnx`
+- [x] Nâng cấp `Microsoft.Extensions.Caching.Memory` (cảnh báo NU1903) lên 8.0.1
 
 ## Kết quả build và test (11/11/2026)
 
@@ -129,7 +128,25 @@
     - `20260728101445_AddProfileFieldsToUser` (Pending)
     - `20260802134049_UpdateProductDirectListing` (Pending)
 - Lưu ý: tool 11.0.0 mới hơn EF Core runtime trong dự án (8.0.4). Lệnh `migrations list` hoạt động bình thường; nếu gặp lỗi khi `database update`/`migrations add` thì cân nhắc cài tool cùng phiên bản: `dotnet tool update -g dotnet-ef --version 8.0.4`.
-- Chưa chạy `dotnet ef database update` (DB vẫn trống).
+- Đã chạy `dotnet ef database update`: 4 migration đã được áp dụng, database hiện có 7 bảng.
+
+### Elasticsearch (kiểm tra lúc 11:32 ngày 11/11/2026)
+
+- Đã thêm service `elasticsearch` (image `docker.elastic.co/elasticsearch/elasticsearch:8.13.4`) vào `docker-compose.yml`.
+- Container `marketconnect-elasticsearch-1` đang chạy, map cổng `9200:9200`.
+- Kiểm tra `Invoke-RestMethod http://localhost:9200` trả về thông tin cluster, status OK.
+
+### ClientApp (kiểm tra lúc 11:10 ngày 11/11/2026)
+
+- `ClientApp/package.json` đã được bổ sung dependencies chuẩn: React 18, React Router DOM 6, Axios, Vite 6, TailwindCSS 3.
+- Đã tạo `ClientApp/vite.config.ts` cấu hình dev server port 5173 và proxy `/api` sang backend ASP.NET Core port 5219.
+- `npm install` hoàn tất (160 packages).
+- `npm run build` chạy thành công, sinh thư mục `dist/` đầy đủ.
+
+### Cấu hình Solution
+
+- Đã thêm `MarketConnect.Tests/MarketConnect.Tests.csproj` vào file `MarketConnect.slnx`.
+- Hiện tại có thể chạy trực tiếp: `dotnet test MarketConnect.slnx` (4 passed).
 
 ## Lịch sử thay đổi trong tuần 01
 
@@ -145,3 +162,8 @@
 | 10:18 | Push `feature/recommendation-thesis` lên `origin` |
 | 10:19 | Bật branch protection thất bại (công cụ trình duyệt không kết nối được Chrome) — chưa có thay đổi trên GitHub; commit `762939a` |
 | 10:31 | `dotnet-ef` 11.0.0 đã được cài; `dotnet ef migrations list` chạy được, 4 migration Pending |
+| 10:48 | Tạo `.gitignore`, gỡ bỏ `bin/`, `obj/` khỏi git theo dõi trên nhánh `chore/gitignore` |
+| 10:55 | Chạy `dotnet ef database update` hoàn tất 4 migration vào Postgres; nâng cấp `Microsoft.Extensions.Caching.Memory` lên `8.0.1` |
+| 11:05 | Thêm `MarketConnect.Tests` vào `MarketConnect.slnx` (mục 2); test chạy đồng bộ thành công |
+| 11:30 | Bổ sung Elasticsearch 8.13.4 vào `docker-compose.yml` (mục 5); service đang chạy ổn định cổng 9200 |
+| 11:32 | Bổ sung đầy đủ dependencies và cấu hình Vite proxy cho `ClientApp`, chạy `npm install` và `npm run build` thành công (mục 6) |
