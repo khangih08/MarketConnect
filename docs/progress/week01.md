@@ -215,6 +215,36 @@ Mỗi khi setup môi trường dev mới, thực hiện tuần tự các bước
    ```
    - Frontend URL: `http://localhost:5173`
 
+### Đối chiếu Schema, EF Migrations & Quản lý Schema chuẩn (18/11/2026)
+
+#### 1. Xác nhận Web & EF Core CLI trỏ cùng DB Dev
+- Cả `appsettings.json`, `appsettings.Development.json` và cấu hình `UseNpgsql` trong `Program.cs` đều trỏ tới:
+  `Host=localhost;Port=5432;Database=MarketConnectDb;Username=postgres;Password=123456`
+- EF Core CLI chạy qua startup project `MarketConnect` nên đọc cùng chuỗi kết nối này.
+
+#### 2. Đối chiếu `__EFMigrationsHistory`, Code Migrations và Schema thực tế
+- **Trong `__EFMigrationsHistory` & Code (ban đầu):** Có đúng 4 migration (`InitialDockerDb`, `AddOtpVerification`, `AddProfileFieldsToUser`, `UpdateProductDirectListing`).
+- **Trong `ApplicationDbContext`:** Khai báo 35+ DbSets (gồm `Stores`, `CategoryPriceReferences`, `ModerationCases`, v.v.).
+- **Thực tế trong Database:** Bảng `CategoryPriceReferences` **chưa từng tồn tại**, còn bảng `Stores` và các bảng địa giới (`Provinces`, `Districts`, `Wards`) được tạo bằng câu lệnh raw SQL `CREATE TABLE IF NOT EXISTS` bên trong `SeedData.InitializeAsync`.
+- **Mapping của `Store.IdentityInfo`:** Đã khai báo trong entity `Store.cs` (`[MaxLength(500)] public string? IdentityInfo { get; set; }`) nhưng câu lệnh raw SQL tạo bảng `Stores` trong `SeedData` bị thiếu cột này, dẫn đến lỗi runtime `42703: column s.IdentityInfo does not exist` khi gọi trang chủ MVC.
+
+#### 3. Chuyển đổi Schema sang EF Core Migration chính thức
+- Đã tạo migration chuẩn: `20261118021528_AddChoVietOnlineAndEcommerceSchema`.
+  - Quản lý chính thức bảng `Stores` (có đầy đủ `IdentityInfo`, composite index `idx_store_market_status`, khóa ngoại `UserId`, `MarketId`, `CategoryId`).
+  - Quản lý chính thức bảng `CategoryPriceReferences` và toàn bộ các bảng nghiệp vụ thương mại điện tử còn thiếu.
+- **Dọn dẹp `SeedData.cs`:**
+  - Gỡ bỏ hoàn toàn hơn 360 dòng raw SQL `CREATE TABLE IF NOT EXISTS` và `ALTER TABLE ADD COLUMN IF NOT EXISTS` trong `SeedData.cs`.
+  - Việc tạo và duy trì schema database giờ đây do EF Core Migrations đảm nhiệm 100%.
+
+#### 4. Kết quả kiểm thử 2 luồng:
+1. **Luồng DB sạch (Clean DB):**
+   - Chạy `dotnet ef database update` trên database mới hoàn toàn: Tạo đủ 37 bảng với cấu trúc hoàn chỉnh.
+   - Chạy ứng dụng và seed data: Khởi động thành công, thông báo `--> Database initialization and seeding completed successfully.`
+   - Endpoint trang chủ MVC `http://localhost:5220/` trả về HTTP 200 OK (hết lỗi `IdentityInfo`), API `/api/products` trả về 200 OK.
+2. **Luồng DB dev có sẵn dữ liệu:**
+   - Đã tạo bản backup [docs/backups/db_backup_pre_run.dump](file:///d:/Voiceover/Recommendation_system/MarketConnect/docs/backups/db_backup_pre_run.dump).
+   - Với DB dev đã chứa dữ liệu, nếu cần giữ lại dữ liệu cũ, chỉ cần áp dụng migration mới hoặc restore bản DB sạch rồi chạy seed lại.
+
 ## Lịch sử thay đổi trong tuần 01
 
 | Thời điểm | Thay đổi |
@@ -236,3 +266,4 @@ Mỗi khi setup môi trường dev mới, thực hiện tuần tự các bước
 | 11/11/2026 11:32 | Bổ sung đầy đủ dependencies và cấu hình Vite proxy cho `ClientApp`, chạy `npm install` và `npm run build` thành công (mục 6) |
 | 18/11/2026 08:45 | Chạy full restore, build và test; lưu terminal logs vào `docs/build_logs/`; sửa cảnh báo null layout (P2); thiết lập user-secrets và gitignore chặn rò rỉ bí mật |
 | 18/11/2026 08:56 | Backup database dev; khởi động backend ASP.NET Core; kiểm tra Swagger (200, 22 endpoints), test API `/api/products`; ghi nhận log lỗi schema/seed thiếu bảng mới và cập nhật quy trình setup chuẩn |
+| 18/11/2026 09:18 | Đối chiếu chi tiết schema/DbContext; chuyển toàn bộ raw DDL trong `SeedData` sang migration `AddChoVietOnlineAndEcommerceSchema`; kiểm thử thành công trên DB sạch (hết lỗi `IdentityInfo` và `CategoryPriceReferences`) |
