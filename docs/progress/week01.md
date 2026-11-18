@@ -165,6 +165,56 @@
   - Cập nhật `.gitignore` chặn các file nhạy cảm: `appsettings.*.local.json`, `appsettings.local.json`, `.env`, `.env.local`.
   - Tạo mẫu cấu hình [appsettings.Example.json](file:///d:/Voiceover/Recommendation_system/MarketConnect/MarketConnect/appsettings.Example.json) với giá trị placeholder để người dùng tham khảo, không để lộ secrets thực tế.
 
+### Kiểm tra Runtime: Database, Migration, Seed & Swagger API (18/11/2026)
+
+#### 1. Trạng thái Migration & Database
+- Khởi động service PostgreSQL & Elasticsearch qua Docker Compose: container `marketconnect-db-1` (port 5432) và `marketconnect-elasticsearch-1` (port 9200) đều ở trạng thái Up và Healthy.
+- Trạng thái EF Migrations hiện tại trong code:
+  1. `20260722031415_InitialDockerDb`
+  2. `20260723081510_AddOtpVerification`
+  3. `20260728101445_AddProfileFieldsToUser`
+  4. `20260802134049_UpdateProductDirectListing`
+- Trước khi chạy, đã tạo bản backup PostgreSQL dev: [docs/backups/db_backup_pre_run.dump](file:///d:/Voiceover/Recommendation_system/MarketConnect/docs/backups/db_backup_pre_run.dump) (16.4 KB, tạo bằng lệnh `pg_dump -F c`).
+
+#### 2. Kết quả chạy ASP.NET Core & Swagger/API
+- Lệnh chạy: `dotnet run --project MarketConnect/MarketConnect.csproj` (lắng nghe tại `http://localhost:5219`).
+- **Swagger UI:** Truy cập thành công `http://localhost:5219/swagger/index.html` (HTTP 200), Swagger spec tại `/swagger/v1/swagger.json` chứa 22 endpoints API.
+- **API Tests:** Thử nghiệm gọi endpoint `GET /api/products`:
+  - Trả về mã HTTP 200 kèm danh sách dữ liệu sản phẩm mẫu (JSON 5 items).
+- **Log lỗi kết nối/Seed phát hiện (Cần lưu ý cho các tuần tiếp theo):**
+  - **Lỗi Seed:** `42P01: relation "CategoryPriceReferences" does not exist`. Lý do: `ApplicationDbContext` đã định nghĩa thêm nhiều DbSet mới cho tính năng Chợ Việt Online (như `CategoryPriceReferences`, `Stores`, v.v.), và `SeedData.InitializeAsync` cố gắng seed vào các bảng này trong khi chúng chưa có trong 4 file migration ban đầu.
+  - **Lỗi MVC Home/Index:** `42703: column s.IdentityInfo does not exist`. Bảng `Stores` được tạo tự động bởi lệnh raw SQL trong SeedData nhưng thiếu cột `IdentityInfo` (thuộc tính mới thêm vào class `Store`).
+  - *Ghi chú:* Swagger và các API lõi (`/api/products`, `/api/auth`, v.v.) vẫn hoạt động bình thường vì các bảng cơ sở (`Products`, `Categories`, `Users`) đã tồn tại đầy đủ.
+
+#### 3. Hướng dẫn các bước Setup có thể lặp lại (Reproducible Setup Guide)
+Mỗi khi setup môi trường dev mới, thực hiện tuần tự các bước sau:
+1. **Khởi động hạ tầng:**
+   ```powershell
+   docker compose up -d db elasticsearch
+   ```
+2. **Khôi phục database từ backup (nếu cần dữ liệu mẫu sẵn):**
+   ```powershell
+   docker cp docs/backups/db_backup_pre_run.dump marketconnect-db-1:/tmp/db_backup.dump
+   docker exec -it marketconnect-db-1 pg_restore -U postgres -d MarketConnectDb -c /tmp/db_backup.dump
+   ```
+3. **Cập nhật database schema qua EF Core:**
+   ```powershell
+   dotnet ef database update --project MarketConnect.Data --startup-project MarketConnect
+   ```
+4. **Build & chạy ứng dụng backend:**
+   ```powershell
+   dotnet build MarketConnect.slnx
+   dotnet run --project MarketConnect/MarketConnect.csproj
+   ```
+   - Swagger UI: `http://localhost:5219/swagger/index.html`
+5. **Chạy ClientApp (nếu cần frontend):**
+   ```powershell
+   cd ClientApp
+   npm install
+   npm run dev
+   ```
+   - Frontend URL: `http://localhost:5173`
+
 ## Lịch sử thay đổi trong tuần 01
 
 | Thời điểm | Thay đổi |
@@ -185,3 +235,4 @@
 | 11/11/2026 11:30 | Bổ sung Elasticsearch 8.13.4 vào `docker-compose.yml` (mục 5); service đang chạy ổn định cổng 9200 |
 | 11/11/2026 11:32 | Bổ sung đầy đủ dependencies và cấu hình Vite proxy cho `ClientApp`, chạy `npm install` và `npm run build` thành công (mục 6) |
 | 18/11/2026 08:45 | Chạy full restore, build và test; lưu terminal logs vào `docs/build_logs/`; sửa cảnh báo null layout (P2); thiết lập user-secrets và gitignore chặn rò rỉ bí mật |
+| 18/11/2026 08:56 | Backup database dev; khởi động backend ASP.NET Core; kiểm tra Swagger (200, 22 endpoints), test API `/api/products`; ghi nhận log lỗi schema/seed thiếu bảng mới và cập nhật quy trình setup chuẩn |
