@@ -483,3 +483,12 @@ $RECYCLE.BIN/
 
 node_modules/
 .vs/
+
+# App secrets and local configs
+appsettings.*.local.json
+appsettings.Local.json
+appsettings.local.json
+.env
+.env.local
+.env.*.local
+!docs/build_logs/*.log
