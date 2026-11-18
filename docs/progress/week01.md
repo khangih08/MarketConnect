@@ -148,22 +148,40 @@
 - Đã thêm `MarketConnect.Tests/MarketConnect.Tests.csproj` vào file `MarketConnect.slnx`.
 - Hiện tại có thể chạy trực tiếp: `dotnet test MarketConnect.slnx` (4 passed).
 
+### Kiểm tra Solution Build, Test & Secrets (ngày 18/11/2026)
+
+- Đã thực hiện `dotnet restore MarketConnect.slnx` và `dotnet build MarketConnect.slnx --no-restore`.
+  - Kết quả: **Build succeeded**, 0 Error(s), 0 Warning(s).
+  - Terminal log đầy đủ được lưu tại: [docs/build_logs/dotnet_restore.log](file:///d:/Voiceover/Recommendation_system/MarketConnect/docs/build_logs/dotnet_restore.log) và [docs/build_logs/dotnet_build.log](file:///d:/Voiceover/Recommendation_system/MarketConnect/docs/build_logs/dotnet_build.log).
+- Đã thực hiện `dotnet test MarketConnect.slnx`.
+  - Kết quả: **4/4 passed** (0 failed, 0 skipped), log lưu tại [docs/build_logs/dotnet_test.log](file:///d:/Voiceover/Recommendation_system/MarketConnect/docs/build_logs/dotnet_test.log).
+- Phân loại lỗi và xử lý:
+  - **P0 (Lỗi chặn build/chạy):** Không có (Solution build & test thành công).
+  - **P1 (API/DB sai):** Không có (Database migration chạy thành công, kết nối PostgreSQL & Elasticsearch ổn định).
+  - **P2 (Cảnh báo môi trường / UI):** 
+    - Warning CS8602 tại `_Layout.cshtml(151,70)` (dereference `@User.Identity.Name` có thể null). Đã sửa thành `@User.Identity?.Name` giúp build 100% sạch cảnh báo (0 Warnings).
+- Bảo mật thông tin & Secrets cấu hình:
+  - Khởi tạo `UserSecretsId` (`dotnet user-secrets init`) cho project `MarketConnect`.
+  - Cập nhật `.gitignore` chặn các file nhạy cảm: `appsettings.*.local.json`, `appsettings.local.json`, `.env`, `.env.local`.
+  - Tạo mẫu cấu hình [appsettings.Example.json](file:///d:/Voiceover/Recommendation_system/MarketConnect/MarketConnect/appsettings.Example.json) với giá trị placeholder để người dùng tham khảo, không để lộ secrets thực tế.
+
 ## Lịch sử thay đổi trong tuần 01
 
-| Thời điểm (11/11/2026) | Thay đổi |
+| Thời điểm | Thay đổi |
 |---|---|
-| 09:58 | Ghi mốc mã nguồn: nhánh `main`, SHA `1ac39a1e6c4057d3e67a56f85e49d51e63ae3f7a`, working tree clean |
-| 10:02 | Tạo nhánh `feature/recommendation-thesis` từ SHA gốc; commit `523b365` (nhật ký ban đầu) |
-| 10:03 | Kiểm tra môi trường: chưa có .NET SDK, chưa có `psql`, chưa có `dotnet-ef`; Docker 29.8.2 chạy được |
-| 10:04 | Thêm `docs/PR_RULES.md`, `.github/pull_request_template.md`; commit `4f41b26` |
-| 10:17 | .NET SDK 10.0.404 đã được cài; PostgreSQL 15.19 chạy trong container `marketconnect-db-1` |
-| 10:17 | `dotnet build MarketConnect.slnx`: thành công (0 lỗi, 4 cảnh báo NU1903) |
-| 10:18 | `dotnet test MarketConnect.Tests`: 4 pass / 0 fail; commit `0313e7b` |
-| 10:18 | Push `feature/recommendation-thesis` lên `origin` |
-| 10:19 | Bật branch protection thất bại (công cụ trình duyệt không kết nối được Chrome) — chưa có thay đổi trên GitHub; commit `762939a` |
-| 10:31 | `dotnet-ef` 11.0.0 đã được cài; `dotnet ef migrations list` chạy được, 4 migration Pending |
-| 10:48 | Tạo `.gitignore`, gỡ bỏ `bin/`, `obj/` khỏi git theo dõi trên nhánh `chore/gitignore` |
-| 10:55 | Chạy `dotnet ef database update` hoàn tất 4 migration vào Postgres; nâng cấp `Microsoft.Extensions.Caching.Memory` lên `8.0.1` |
-| 11:05 | Thêm `MarketConnect.Tests` vào `MarketConnect.slnx` (mục 2); test chạy đồng bộ thành công |
-| 11:30 | Bổ sung Elasticsearch 8.13.4 vào `docker-compose.yml` (mục 5); service đang chạy ổn định cổng 9200 |
-| 11:32 | Bổ sung đầy đủ dependencies và cấu hình Vite proxy cho `ClientApp`, chạy `npm install` và `npm run build` thành công (mục 6) |
+| 11/11/2026 09:58 | Ghi mốc mã nguồn: nhánh `main`, SHA `1ac39a1e6c4057d3e67a56f85e49d51e63ae3f7a`, working tree clean |
+| 11/11/2026 10:02 | Tạo nhánh `feature/recommendation-thesis` từ SHA gốc; commit `523b365` (nhật ký ban đầu) |
+| 11/11/2026 10:03 | Kiểm tra môi trường: chưa có .NET SDK, chưa có `psql`, chưa có `dotnet-ef`; Docker 29.8.2 chạy được |
+| 11/11/2026 10:04 | Thêm `docs/PR_RULES.md`, `.github/pull_request_template.md`; commit `4f41b26` |
+| 11/11/2026 10:17 | .NET SDK 10.0.404 đã được cài; PostgreSQL 15.19 chạy trong container `marketconnect-db-1` |
+| 11/11/2026 10:17 | `dotnet build MarketConnect.slnx`: thành công (0 lỗi, 4 cảnh báo NU1903) |
+| 11/11/2026 10:18 | `dotnet test MarketConnect.Tests`: 4 pass / 0 fail; commit `0313e7b` |
+| 11/11/2026 10:18 | Push `feature/recommendation-thesis` lên `origin` |
+| 11/11/2026 10:19 | Bật branch protection thất bại (công cụ trình duyệt không kết nối được Chrome) — chưa có thay đổi trên GitHub; commit `762939a` |
+| 11/11/2026 10:31 | `dotnet-ef` 11.0.0 đã được cài; `dotnet ef migrations list` chạy được, 4 migration Pending |
+| 11/11/2026 10:48 | Tạo `.gitignore`, gỡ bỏ `bin/`, `obj/` khỏi git theo dõi trên nhánh `chore/gitignore` |
+| 11/11/2026 10:55 | Chạy `dotnet ef database update` hoàn tất 4 migration vào Postgres; nâng cấp `Microsoft.Extensions.Caching.Memory` lên `8.0.1` |
+| 11/11/2026 11:05 | Thêm `MarketConnect.Tests` vào `MarketConnect.slnx` (mục 2); test chạy đồng bộ thành công |
+| 11/11/2026 11:30 | Bổ sung Elasticsearch 8.13.4 vào `docker-compose.yml` (mục 5); service đang chạy ổn định cổng 9200 |
+| 11/11/2026 11:32 | Bổ sung đầy đủ dependencies và cấu hình Vite proxy cho `ClientApp`, chạy `npm install` và `npm run build` thành công (mục 6) |
+| 18/11/2026 08:45 | Chạy full restore, build và test; lưu terminal logs vào `docs/build_logs/`; sửa cảnh báo null layout (P2); thiết lập user-secrets và gitignore chặn rò rỉ bí mật |
